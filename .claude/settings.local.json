@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan:*)",
+      "Bash(\"/c/Users/lenovo/.config/herd/bin/herd.bat\" php:*)"
+    ]
+  }
+}

@@ -101,7 +101,7 @@ Laravel Fortify handles registration, login, password reset, email verification,
  - Keep componets focused - One jobe per component
  - Extract reusable logic into custom hooks
  - Use hooks for reusable side effects
- 
+
 ## Context Documentation
 Read the following to get the full context of the project:
 
@@ -117,3 +117,6 @@ The `context/` directory contains authoritative specs:
 - `context/database-schema.md` — Full schema design with relationship decisions
 
 Currently implemented: authentication scaffolding (Fortify), user settings pages, app shell with sidebar. Core campaign/entry/payout system is unbuilt.
+
+## Feauture file
+- when ever u implementing or imlment a feature create a .md for it in the @context/features folder addint he feeature detail their and over view implementaion progress.

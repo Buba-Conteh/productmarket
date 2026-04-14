@@ -237,6 +237,12 @@ Charts via Recharts on the React side. Data aggregated by scheduled jobs and cac
 
 ---
 
+## UI
+- refer to the design bellow for inspiration in the design
+1. light mode: @context/screenshot.png
+2. Dark mode @context/screenshot1.png
+
+
 ## Package Summary
 
 | Layer | Package | Purpose |
