@@ -119,4 +119,4 @@ The `context/` directory contains authoritative specs:
 Currently implemented: authentication scaffolding (Fortify), user settings pages, app shell with sidebar. Core campaign/entry/payout system is unbuilt.
 
 ## Feauture file
-- when ever u implementing or imlment a feature create a .md for it in the @context/features folder addint he feeature detail their and over view implementaion progress.
+- when ever you implement a feature create a markdown for it in the @context/features folder and write the details of feature progress and over view. An over view of tha imlementation and feature
