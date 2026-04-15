@@ -36,4 +36,9 @@ final class CampaignContestDetail extends Model
     {
         return $this->belongsTo(Campaign::class);
     }
+
+    public function winnerEntry(): BelongsTo
+    {
+        return $this->belongsTo(Entry::class, 'winner_entry_id');
+    }
 }
