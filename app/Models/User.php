@@ -46,4 +46,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(SocialAccount::class);
     }
+
+    public function referralsMade(): HasMany
+    {
+        return $this->hasMany(Referral::class, 'referrer_user_id');
+    }
+
+    public function referralsReceived(): HasMany
+    {
+        return $this->hasMany(Referral::class, 'referred_user_id');
+    }
 }

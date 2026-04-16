@@ -100,4 +100,9 @@ final class Campaign extends Model
     {
         return $this->hasMany(Payout::class);
     }
+
+    public function analytics(): HasMany
+    {
+        return $this->hasMany(CampaignAnalytic::class);
+    }
 }

@@ -88,4 +88,9 @@ final class Entry extends Model
     {
         return $this->hasMany(Payout::class);
     }
+
+    public function messageThread(): HasOne
+    {
+        return $this->hasOne(MessageThread::class);
+    }
 }

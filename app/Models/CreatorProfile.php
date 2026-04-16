@@ -56,4 +56,9 @@ final class CreatorProfile extends Model
     {
         return $this->hasMany(Payout::class);
     }
+
+    public function analytics(): HasMany
+    {
+        return $this->hasMany(CreatorAnalytic::class);
+    }
 }
