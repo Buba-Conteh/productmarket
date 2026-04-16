@@ -44,4 +44,9 @@ final class EntryRippleEarning extends Model
     {
         return $this->belongsTo(CampaignRippleDetail::class, 'campaign_ripple_details_id');
     }
+
+    public function payout(): BelongsTo
+    {
+        return $this->belongsTo(Payout::class);
+    }
 }

@@ -16,6 +16,7 @@ final class DatabaseSeeder extends Seeder
             NicheSeeder::class,
             IndustrySeeder::class,
             ContentTypeSeeder::class,
+            PlatformSettingSeeder::class,
         ]);
 
         if (app()->environment('local')) {

@@ -83,4 +83,9 @@ final class Entry extends Model
     {
         return $this->hasMany(ViewSyncLog::class);
     }
+
+    public function payouts(): HasMany
+    {
+        return $this->hasMany(Payout::class);
+    }
 }

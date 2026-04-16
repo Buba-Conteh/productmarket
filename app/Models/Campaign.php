@@ -90,4 +90,14 @@ final class Campaign extends Model
     {
         return $this->hasMany(Entry::class);
     }
+
+    public function escrowTransaction(): HasOne
+    {
+        return $this->hasOne(EscrowTransaction::class);
+    }
+
+    public function payouts(): HasMany
+    {
+        return $this->hasMany(Payout::class);
+    }
 }
