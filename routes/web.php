@@ -24,4 +24,5 @@ require __DIR__.'/billing.php';
 require __DIR__.'/campaign.php';
 require __DIR__.'/entry.php';
 require __DIR__.'/creator.php';
+require __DIR__.'/profiles.php';
 require __DIR__.'/admin.php';
