@@ -1,46 +1,74 @@
-# Current Feature
+# Phase 8 — Messaging & Notifications
 
-## Phase 7 — Profiles & Discovery
+**Status:** In Progress  
+**Branch:** feature/phase-8-messaging-notifications  
+**Started:** 2026-04-21
 
-## Status
+---
 
-Complete (7.1–7.4) | 7.5 Deferred
+## Features
 
-## Goals
+| # | Feature | Status |
+|---|---|---|
+| 8.1 | Message threads per entry | 🟡 In Progress |
+| 8.2 | Real-time messaging via Reverb | 🟡 In Progress |
+| 8.3 | In-app notifications via Reverb | 🟡 In Progress |
+| 8.4 | Email notifications via Resend | 🟡 In Progress |
+| 8.5 | Notification preferences | 🟡 In Progress |
+| 4.12 | Entry status notifications (deferred) | 🟡 In Progress |
 
-- 7.1 Creator public profile — bio, niches, verified social stats, entry portfolio
-- 7.2 Creator media kit — auto-generated shareable/print-friendly page
-- 7.3 Brand public profile — active/past campaigns, aggregate stats
-- 7.4 Creator search (brand side) — filter by niche/platform/followers/region (SQL-based)
-- 7.5 Creator profile indexing in Meilisearch — deferred (Meilisearch not running locally)
+---
+
+## Overview
+
+Full messaging and notification system. Threads are scoped one-per-entry between brand and creator. Messages deliver in real-time via Laravel Reverb (WebSockets). In-app notification bell shows unread events broadcast over a private Reverb channel. Email fallbacks via Resend. User-level opt-out preferences stored per notification type.
+
+---
 
 ## Implementation Plan
 
-### 7.1 Creator Public Profile
-- Route: GET /creators/{creatorProfile}
-- Controller: CreatorProfileController@show
-- Page: resources/js/pages/creator/profile/show.tsx
-- Shows: display name, bio, avatar, country, niches, verified social accounts (handle + follower count), entry portfolio (live entries with view counts)
+### Backend
 
-### 7.2 Creator Media Kit
-- Route: GET /creators/{creatorProfile}/media-kit
-- Controller: CreatorProfileController@mediaKit
-- Page: resources/js/pages/creator/profile/media-kit.tsx
-- Print-friendly layout, shareable link, auto-generated from profile data + stats
+1. **Migrations**
+   - `notifications` table (Laravel default)
+   - `user_notification_preferences` table — per-user toggles for each event type (in-app + email)
 
-### 7.3 Brand Public Profile
-- Route: GET /brands/{brandProfile}
-- Controller: BrandProfileController@show
-- Page: resources/js/pages/brand/profile/show.tsx
-- Shows: company name, logo, industry, active campaigns, past campaigns, aggregate stats
+2. **Models**
+   - `UserNotificationPreference` — stores user_id, type, in_app_enabled, email_enabled
 
-### 7.4 Creator Search (Brand Side)
-- Route: GET /creators (brand only)
-- Controller: CreatorSearchController@index
-- Page: resources/js/pages/brand/creators/index.tsx
-- Filters: niche, platform, min/max followers, country
-- SQL-based (Meilisearch deferred as 7.5)
+3. **Events & Broadcasting**
+   - `MessageSent` — broadcast on private `thread.{threadId}` channel
+   - `NotificationCreated` — broadcast on private `notifications.{userId}` channel
+
+4. **Notification Classes**
+   - EntrySubmitted, EntryApproved, EntryRejected, EntryEditRequested, EntryWon, PayoutProcessed, NewMessage
+
+5. **Controllers**
+   - MessageThreadController, MessageController, NotificationPreferenceController, NotificationController
+
+### Frontend
+
+1. `/messages` — thread list; `/messages/{thread}` — thread view with real-time updates
+2. Notification bell in AppHeader with unread count + dropdown
+3. Notification Preferences settings page
+4. Echo wired to Reverb private channels
+
+---
+
+## Notification Event Types
+
+| Event | Who Receives | Channels |
+|---|---|---|
+| entry_submitted | Brand | In-app + Email |
+| entry_approved | Creator | In-app + Email |
+| entry_rejected | Creator | In-app + Email |
+| entry_edit_requested | Creator | In-app + Email |
+| entry_won | Creator | In-app + Email |
+| payout_processed | Creator | In-app + Email |
+| new_message | Both | In-app only |
+
+---
 
 ## History
 
-- 2026-04-21: Started and completed Phase 7 — Profiles & Discovery (7.1–7.4). 7.5 deferred (Meilisearch not running).
+- 2026-04-21: Phase 8 documented, implementation started

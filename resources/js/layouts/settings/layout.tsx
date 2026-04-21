@@ -14,6 +14,7 @@ const baseNavItems: NavItem[] = [
     { title: 'Profile', href: edit(), icon: null },
     { title: 'Security', href: editSecurity(), icon: null },
     { title: 'Appearance', href: editAppearance(), icon: null },
+    { title: 'Notifications', href: '/settings/notifications', icon: null },
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {

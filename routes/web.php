@@ -26,3 +26,4 @@ require __DIR__.'/entry.php';
 require __DIR__.'/creator.php';
 require __DIR__.'/profiles.php';
 require __DIR__.'/admin.php';
+require __DIR__.'/messaging.php';

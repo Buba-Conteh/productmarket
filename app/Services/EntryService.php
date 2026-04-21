@@ -10,6 +10,11 @@ use App\Models\CreatorProfile;
 use App\Models\Entry;
 use App\Models\EntryEditRequest;
 use App\Models\EntryRippleEarning;
+use App\Notifications\EntryApproved;
+use App\Notifications\EntryEditRequested;
+use App\Notifications\EntryRejected;
+use App\Notifications\EntrySubmitted;
+use App\Notifications\EntryWon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
@@ -83,7 +88,15 @@ final readonly class EntryService
                 'submitted_at' => now(),
             ]);
 
-            return $entry->fresh();
+            $entry = $entry->fresh();
+
+            // Notify the brand
+            $brandUser = $campaign->brandProfile->user ?? null;
+            if ($brandUser) {
+                $brandUser->notify(new EntrySubmitted($entry));
+            }
+
+            return $entry;
         });
     }
 
@@ -132,6 +145,12 @@ final readonly class EntryService
             ProcessPayoutJob::dispatch($payout->id);
         }
 
+        // Notify creator
+        $creatorUser = $entry->creator->user ?? null;
+        if ($creatorUser) {
+            $creatorUser->notify(new EntryApproved($entry));
+        }
+
         return $entry;
     }
 
@@ -143,7 +162,7 @@ final readonly class EntryService
         abort_unless($entry->type === 'pitch', 403, 'This entry is not a Pitch entry.');
         abort_unless($entry->status === 'pending_review', 403, 'Only pending entries can be approved.');
 
-        return DB::transaction(function () use ($entry, $acceptedBid) {
+        $entry = DB::transaction(function () use ($entry, $acceptedBid) {
             $pitchDetails = $entry->pitchDetails;
             $bid = $acceptedBid ?? (float) ($pitchDetails?->proposed_bid ?? 0);
 
@@ -161,6 +180,14 @@ final readonly class EntryService
 
             return $entry->fresh();
         });
+
+        // Notify creator
+        $creatorUser = $entry->creator->user ?? null;
+        if ($creatorUser) {
+            $creatorUser->notify(new EntryApproved($entry));
+        }
+
+        return $entry;
     }
 
     /**
@@ -278,7 +305,15 @@ final readonly class EntryService
             ProcessPayoutJob::dispatch($payout->id);
         }
 
-        return $entry->fresh();
+        $fresh = $entry->fresh();
+
+        // Notify contest winner
+        $creatorUser = $fresh->creator->user ?? null;
+        if ($creatorUser) {
+            $creatorUser->notify(new EntryWon($fresh));
+        }
+
+        return $fresh;
     }
 
     /**
@@ -297,7 +332,15 @@ final readonly class EntryService
             'rejection_reason' => $reason,
         ]);
 
-        return $entry->fresh();
+        $entry = $entry->fresh();
+
+        // Notify creator
+        $creatorUser = $entry->creator->user ?? null;
+        if ($creatorUser) {
+            $creatorUser->notify(new EntryRejected($entry));
+        }
+
+        return $entry;
     }
 
     /**
@@ -318,6 +361,12 @@ final readonly class EntryService
         ]);
 
         $entry->update(['status' => 'draft']);
+
+        // Notify creator
+        $creatorUser = $entry->creator->user ?? null;
+        if ($creatorUser) {
+            $creatorUser->notify(new EntryEditRequested($editRequest->load('entry.campaign')));
+        }
 
         return $editRequest;
     }
