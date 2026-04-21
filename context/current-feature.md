@@ -1,6 +1,6 @@
 # Current Feature
 
-## 6.8 — Escrow Refund on Campaign Cancellation
+## 6.10 — Minimum Payout Threshold
 
 ## Status
 
@@ -8,8 +8,8 @@ Completed
 
 ## Goals
 
-Refund unspent escrow budget to brand on campaign cancellation.
+Hold payout transfers until creator pending_earnings >= min_creator_payout.
 
 ## History
 
-- 2026-04-21: Implemented — migration added refund fields, CampaignService::cancel() now issues Stripe partial refund
+- 2026-04-21: Implemented — threshold guard in executeTransfer(), ReleaseHeldPayoutsJob scheduled hourly

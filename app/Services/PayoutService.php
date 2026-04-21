@@ -8,6 +8,7 @@ use App\DTOs\PayoutAmounts;
 use App\Jobs\ProcessPayoutJob;
 use App\Models\Entry;
 use App\Models\Payout;
+use App\Models\PlatformSetting;
 use App\Models\User;
 use App\Notifications\PayoutFailureAlert;
 use Illuminate\Support\Facades\DB;
@@ -88,6 +89,13 @@ final readonly class PayoutService
         if (! $creator->stripe_connect_id || $creator->stripe_connect_status !== 'active') {
             $this->markFailed($payout, 'Creator Stripe Connect account is not active.');
 
+            return;
+        }
+
+        $minPayout = (float) (PlatformSetting::current()->min_creator_payout ?? 0);
+
+        if ($minPayout > 0 && (float) $creator->pending_earnings < $minPayout) {
+            // Balance below minimum — hold payout until threshold is reached.
             return;
         }
 

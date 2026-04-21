@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Jobs\RefreshSocialTokensJob;
+use App\Jobs\ReleaseHeldPayoutsJob;
 use App\Jobs\ResolveContestDeadlineJob;
 use App\Jobs\SyncAllLiveEntriesJob;
 use App\Models\Campaign;
@@ -13,6 +14,11 @@ use Illuminate\Support\Facades\Schedule;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+Schedule::job(new ReleaseHeldPayoutsJob)
+    ->hourly()
+    ->name('release-held-payouts')
+    ->withoutOverlapping();
 
 if ((bool) config('social_oauth.sync.enabled', true)) {
     $frequencyHours = max(1, (int) config('social_oauth.sync.frequency_hours', 6));
