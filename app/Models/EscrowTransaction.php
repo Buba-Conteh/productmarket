@@ -19,9 +19,11 @@ final class EscrowTransaction extends Model
         'total_released',
         'total_refunded',
         'stripe_payment_intent_id',
+        'stripe_refund_id',
         'status',
         'held_at',
         'fully_released_at',
+        'refunded_at',
     ];
 
     protected function casts(): array
@@ -32,6 +34,7 @@ final class EscrowTransaction extends Model
             'total_refunded' => 'decimal:2',
             'held_at' => 'datetime',
             'fully_released_at' => 'datetime',
+            'refunded_at' => 'datetime',
         ];
     }
 

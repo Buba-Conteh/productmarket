@@ -1,6 +1,6 @@
 # Current Feature
 
-## 6.7 — Payout Retry Logic
+## 6.8 — Escrow Refund on Campaign Cancellation
 
 ## Status
 
@@ -8,8 +8,8 @@ Completed
 
 ## Goals
 
-Auto-retry failed payouts once (30-min delay), then alert admins after 2 total failures.
+Refund unspent escrow budget to brand on campaign cancellation.
 
 ## History
 
-- 2026-04-21: Implemented — PayoutService::markFailed() now retries on 1st failure, alerts admins on 2nd
+- 2026-04-21: Implemented — migration added refund fields, CampaignService::cancel() now issues Stripe partial refund

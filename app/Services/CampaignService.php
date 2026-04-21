@@ -10,9 +10,19 @@ use App\Models\EscrowTransaction;
 use App\Models\PlatformSetting;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Stripe\Exception\ApiErrorException;
+use Stripe\StripeClient;
 
 final readonly class CampaignService
 {
+    private StripeClient $stripe;
+
+    public function __construct()
+    {
+        $this->stripe = new StripeClient(config('cashier.secret'));
+    }
+
     /**
      * Create a new campaign in draft status.
      *
@@ -135,7 +145,7 @@ final readonly class CampaignService
     }
 
     /**
-     * Cancel a campaign — returns escrow to brand.
+     * Cancel a campaign — refunds unspent escrow budget to the brand.
      */
     public function cancel(Campaign $campaign): Campaign
     {
@@ -150,9 +160,18 @@ final readonly class CampaignService
 
             if ($escrow && $escrow->status !== 'refunded') {
                 $refundable = (float) $escrow->total_held - (float) $escrow->total_released;
+
+                $stripeRefundId = null;
+
+                if ($refundable > 0) {
+                    $stripeRefundId = $this->issueStripeRefund($escrow, $refundable);
+                }
+
                 $escrow->update([
                     'total_refunded' => $refundable,
+                    'stripe_refund_id' => $stripeRefundId,
                     'status' => 'refunded',
+                    'refunded_at' => now(),
                 ]);
             }
 
@@ -160,6 +179,40 @@ final readonly class CampaignService
 
             return $campaign->fresh();
         });
+    }
+
+    /**
+     * Issue a Stripe refund for unspent escrow. Returns the Stripe refund ID on success.
+     * Skips silently for placeholder PaymentIntent IDs (pre-Stripe-integration campaigns).
+     */
+    private function issueStripeRefund(EscrowTransaction $escrow, float $refundable): ?string
+    {
+        // Placeholder IDs are set during publish() until real Stripe escrow is wired up.
+        if (str_starts_with($escrow->stripe_payment_intent_id, 'pending_')) {
+            return null;
+        }
+
+        try {
+            $refund = $this->stripe->refunds->create([
+                'payment_intent' => $escrow->stripe_payment_intent_id,
+                'amount' => (int) round($refundable * 100),
+                'metadata' => [
+                    'campaign_id' => $escrow->campaign_id,
+                    'escrow_id' => $escrow->id,
+                ],
+            ]);
+
+            return $refund->id;
+        } catch (ApiErrorException $e) {
+            Log::error('Stripe escrow refund failed', [
+                'escrow_id' => $escrow->id,
+                'campaign_id' => $escrow->campaign_id,
+                'refundable' => $refundable,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
     }
 
     /**
