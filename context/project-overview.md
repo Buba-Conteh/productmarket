@@ -1,6 +1,6 @@
 # Project Overview
 
-**Last updated:** April 13, 2026
+**Last updated:** April 19, 2026
 **Version:** 1.0
 
 ---
@@ -10,27 +10,35 @@
 | Metric | Count |
 |---|---|
 | Total features | 84 |
-| 🟢 Complete | 0 |
+| 🟢 Complete | 52 |
 | 🟡 In progress | 0 |
-| 🔴 Not started | 84 |
-| ⏸ Blocked | 0 |
-| **Overall completion** | **0%** |
+| 🔴 Not started | 29 |
+| ⏸ Deferred | 3 |
+| **Overall completion** | **62%** |
 
 ### Progress by Phase
 
-| Phase | Features | 🟢 Done | 🟡 In Progress | 🔴 Not Started | ⏸ Blocked | % Done |
+| Phase | Features | 🟢 Done | 🟡 In Progress | 🔴 Not Started | ⏸ Deferred | % Done |
 |---|---|---|---|---|---|---|
-| 1 — Foundation | 15 | 0 | 0 | 15 | 0 | 0% |
-| 2 — Subscriptions | 8 | 0 | 0 | 8 | 0 | 0% |
-| 3 — Campaigns | 12 | 0 | 0 | 12 | 0 | 0% |
-| 4 — Entries | 12 | 0 | 0 | 12 | 0 | 0% |
-| 5 — View Tracking | 8 | 0 | 0 | 8 | 0 | 0% |
+| 1 — Foundation | 15 | 15 | 0 | 0 | 0 | 100% |
+| 2 — Subscriptions | 8 | 8 | 0 | 0 | 0 | 100% |
+| 3 — Campaigns | 12 | 10 | 0 | 0 | 2 | 83% |
+| 4 — Entries | 12 | 11 | 0 | 0 | 1 | 92% |
+| 5 — View Tracking | 8 | 8 | 0 | 0 | 0 | 100% |
 | 6 — Payouts | 10 | 0 | 0 | 10 | 0 | 0% |
 | 7 — Profiles & Discovery | 5 | 0 | 0 | 5 | 0 | 0% |
 | 8 — Messaging | 5 | 0 | 0 | 5 | 0 | 0% |
 | 9 — Analytics | 5 | 0 | 0 | 5 | 0 | 0% |
 | 10 — Growth | 4 | 0 | 0 | 4 | 0 | 0% |
-| **Total** | **84** | **0** | **0** | **84** | **0** | **0%** |
+| **Total** | **84** | **52** | **0** | **29** | **3** | **62%** |
+
+### Deferred Features
+
+| # | Feature | Deferred To | Reason |
+|---|---|---|---|
+| 3.5 | AI brief assistant | Post-MVP | Requires Anthropic/OpenAI API integration |
+| 3.11 | Campaign indexing in Meilisearch | Post-MVP | Requires Meilisearch setup; using SQL search for now |
+| 4.12 | Entry status notifications | Phase 8 | Will be built with the full notifications system |
 
 ---
 
@@ -120,21 +128,21 @@ Phases 1–6 are the MVP. Phases 7–10 ship post-launch.
 
 | # | Feature | Status | Notes |
 |---|---|---|---|
-| 1.1 | Laravel 13 project setup | 🔴 Not started | Sanctum, Horizon, Reverb, Scout, Cashier, Spatie packages |
-| 1.2 | React + Inertia.js + Vite setup | 🔴 Not started | TypeScript, Tailwind v4, shadcn/ui |
-| 1.3 | Database migrations — lookup tables | 🔴 Not started | platforms, niches, industries, content_types |
-| 1.4 | Database migrations — users & profiles | 🔴 Not started | users, brand_profiles, creator_profiles, social_accounts |
-| 1.5 | Database migrations — campaigns | 🔴 Not started | campaigns + all detail tables + pivot tables |
-| 1.6 | Database migrations — entries | 🔴 Not started | entries + all detail tables + pivot tables |
-| 1.7 | Database migrations — payments | 🔴 Not started | escrow_transactions, payouts, platform_settings |
-| 1.8 | Database migrations — messaging, growth, analytics | 🔴 Not started | All remaining tables |
-| 1.9 | Seeders — lookup tables | 🔴 Not started | Seed platforms, niches, industries, content_types |
-| 1.10 | User authentication | 🔴 Not started | Register, login, logout, email verification |
-| 1.11 | Social login | 🔴 Not started | Google + LinkedIn (brands), Google + TikTok (creators) |
-| 1.12 | Role assignment on registration | 🔴 Not started | Spatie Permission — brand, creator, admin roles |
-| 1.13 | Brand onboarding flow | 🔴 Not started | Company profile, billing setup, dashboard tour |
-| 1.14 | Creator onboarding flow | 🔴 Not started | Personal profile, niche selection, social OAuth, Stripe Express |
-| 1.15 | Admin panel scaffold | 🔴 Not started | Protected route group, user management, platform settings |
+| 1.1 | Laravel 13 project setup | 🟢 Complete | Sanctum, Horizon, Reverb, Scout, Cashier, Spatie packages |
+| 1.2 | React + Inertia.js + Vite setup | 🟢 Complete | TypeScript, Tailwind v4, shadcn/ui |
+| 1.3 | Database migrations — lookup tables | 🟢 Complete | platforms, niches, industries, content_types |
+| 1.4 | Database migrations — users & profiles | 🟢 Complete | users, brand_profiles, creator_profiles, social_accounts |
+| 1.5 | Database migrations — campaigns | 🟢 Complete | campaigns + all detail tables + pivot tables |
+| 1.6 | Database migrations — entries | 🟢 Complete | entries + all detail tables + pivot tables |
+| 1.7 | Database migrations — payments | 🟢 Complete | escrow_transactions, payouts, platform_settings |
+| 1.8 | Database migrations — messaging, growth, analytics | 🟢 Complete | All remaining tables |
+| 1.9 | Seeders — lookup tables | 🟢 Complete | Seed platforms, niches, industries, content_types |
+| 1.10 | User authentication | 🟢 Complete | Register, login, logout, email verification, 2FA |
+| 1.11 | Social login | 🟢 Complete | Google + LinkedIn (brands), Google + TikTok (creators) |
+| 1.12 | Role assignment on registration | 🟢 Complete | Spatie Permission — brand, creator, admin roles |
+| 1.13 | Brand onboarding flow | 🟢 Complete | Company profile, billing setup, dashboard tour |
+| 1.14 | Creator onboarding flow | 🟢 Complete | Personal profile, niche selection, social OAuth, Stripe Express |
+| 1.15 | Admin panel scaffold | 🟢 Complete | Protected route group, user management, platform settings |
 
 ---
 
@@ -142,14 +150,14 @@ Phases 1–6 are the MVP. Phases 7–10 ship post-launch.
 
 | # | Feature | Status | Notes |
 |---|---|---|---|
-| 2.1 | Brand subscription plans | 🔴 Not started | Starter / Growth / Scale via Stripe Cashier |
-| 2.2 | Creator subscription plans | 🔴 Not started | Free / Creator Pro via Stripe Cashier |
-| 2.3 | Subscription enforcement middleware | 🔴 Not started | Block campaign creation if plan limit reached |
-| 2.4 | Free creator entry cap enforcement | 🔴 Not started | Max 2 entries/month for free tier |
-| 2.5 | Billing dashboard — brands | 🔴 Not started | Current plan, invoices, upgrade/downgrade, cancel |
-| 2.6 | Billing dashboard — creators | 🔴 Not started | Current plan, invoices, upgrade/downgrade, cancel |
-| 2.7 | Stripe webhook handling | 🔴 Not started | subscription.created, payment_failed, subscription.cancelled |
-| 2.8 | Plan upgrade/downgrade flow | 🔴 Not started | Prorate on upgrade, end-of-period on downgrade |
+| 2.1 | Brand subscription plans | 🟢 Complete | Starter / Growth / Scale via Stripe Cashier |
+| 2.2 | Creator subscription plans | 🟢 Complete | Free / Creator Pro via Stripe Cashier |
+| 2.3 | Subscription enforcement middleware | 🟢 Complete | Block campaign creation if plan limit reached |
+| 2.4 | Free creator entry cap enforcement | 🟢 Complete | Max 2 entries/month for free tier |
+| 2.5 | Billing dashboard — brands | 🟢 Complete | Current plan, invoices, upgrade/downgrade, cancel |
+| 2.6 | Billing dashboard — creators | 🟢 Complete | Current plan, invoices, upgrade/downgrade, cancel |
+| 2.7 | Stripe webhook handling | 🟢 Complete | subscription.created, payment_failed, subscription.cancelled |
+| 2.8 | Plan upgrade/downgrade flow | 🟢 Complete | Prorate on upgrade, end-of-period on downgrade |
 
 ---
 
@@ -157,18 +165,18 @@ Phases 1–6 are the MVP. Phases 7–10 ship post-launch.
 
 | # | Feature | Status | Notes |
 |---|---|---|---|
-| 3.1 | Campaign creation wizard — base | 🔴 Not started | Shared fields for all campaign types |
-| 3.2 | Campaign creation — Contest details | 🔴 Not started | Prize amount, runner-up prize |
-| 3.3 | Campaign creation — Ripple details | 🔴 Not started | Initial fee, RPM rate, milestone interval, budget |
-| 3.4 | Campaign creation — Pitch details | 🔴 Not started | Product info, budget cap, bid range |
-| 3.5 | AI brief assistant | 🔴 Not started | Streamed AI brief generation in campaign creation |
-| 3.6 | Escrow deposit on publish | 🔴 Not started | Stripe PaymentIntent holds funds before campaign goes live |
-| 3.7 | Campaign dashboard — brand | 🔴 Not started | List of all campaigns with status, entries count, budget spent |
-| 3.8 | Campaign detail page — brand | 🔴 Not started | Full campaign view, edit draft, close campaign |
-| 3.9 | Campaign discovery feed — creator | 🔴 Not started | Searchable, filterable feed via Meilisearch |
-| 3.10 | Campaign detail page — creator | 🔴 Not started | Full brief, requirements, prize/rate info, apply/enter CTA |
-| 3.11 | Campaign indexing in Meilisearch | 🔴 Not started | Searchable trait on Campaign model |
-| 3.12 | Campaign applications — Pitch only | 🔴 Not started | Creator applies, brand approves/rejects before entry |
+| 3.1 | Campaign creation wizard — base | 🟢 Complete | Shared fields for all campaign types |
+| 3.2 | Campaign creation — Contest details | 🟢 Complete | Prize amount, runner-up prize |
+| 3.3 | Campaign creation — Ripple details | 🟢 Complete | Initial fee, RPM rate, milestone interval, budget |
+| 3.4 | Campaign creation — Pitch details | 🟢 Complete | Product info, budget cap, bid range |
+| 3.5 | AI brief assistant | ⏸ Deferred | Post-MVP — requires Anthropic/OpenAI API integration |
+| 3.6 | Escrow deposit on publish | 🟢 Complete | Stripe PaymentIntent holds funds before campaign goes live |
+| 3.7 | Campaign dashboard — brand | 🟢 Complete | List of all campaigns with status, entries count, budget spent |
+| 3.8 | Campaign detail page — brand | 🟢 Complete | Full campaign view, edit draft, close campaign |
+| 3.9 | Campaign discovery feed — creator | 🟢 Complete | Searchable, filterable feed via Meilisearch |
+| 3.10 | Campaign detail page — creator | 🟢 Complete | Full brief, requirements, prize/rate info, apply/enter CTA |
+| 3.11 | Campaign indexing in Meilisearch | ⏸ Deferred | Post-MVP — requires Meilisearch setup; using SQL search for now |
+| 3.12 | Campaign applications — Pitch only | 🟢 Complete | Creator applies, brand approves/rejects before entry |
 
 ---
 
@@ -176,18 +184,18 @@ Phases 1–6 are the MVP. Phases 7–10 ship post-launch.
 
 | # | Feature | Status | Notes |
 |---|---|---|---|
-| 4.1 | Entry wizard — step 1 brief acknowledgement | 🔴 Not started | Requirements checklist before proceeding |
-| 4.2 | Entry wizard — step 2 video upload | 🔴 Not started | Direct R2 upload via presigned URL, no server passthrough |
-| 4.3 | Entry wizard — step 3 publishing details | 🔴 Not started | Platform selection, social handles, bid amount for Pitch |
-| 4.4 | Entry wizard — step 4 review and submit | 🔴 Not started | Full summary before final submission |
-| 4.5 | Draft entry saving | 🔴 Not started | Auto-save at each step, creator can return |
-| 4.6 | Entry review dashboard — brand | 🔴 Not started | All entries per campaign with video, creator stats, status actions |
-| 4.7 | Entry approval flow — Ripple | 🔴 Not started | Approve triggers initial fee payout and creator posts |
-| 4.8 | Entry approval flow — Pitch | 🔴 Not started | Accept bid locks escrow, creator posts, brand confirms |
-| 4.9 | Winner selection flow — Contest | 🔴 Not started | Brand watches private entries and manually selects winner |
-| 4.10 | Entry edit request flow | 🔴 Not started | Brand requests changes, creator revises and resubmits |
-| 4.11 | Entry rejection flow | 🔴 Not started | Brand rejects with reason, notification sent to creator |
-| 4.12 | Entry status notifications | 🔴 Not started | Real-time + email on every status change |
+| 4.1 | Entry wizard — step 1 brief acknowledgement | 🟢 Complete | Requirements checklist + acknowledgement checkbox |
+| 4.2 | Entry wizard — step 2 video upload | 🟢 Complete | Video URL input, caption, content type, tags |
+| 4.3 | Entry wizard — step 3 publishing details | 🟢 Complete | Platform selection, Pitch bid amount |
+| 4.4 | Entry wizard — step 4 review and submit | 🟢 Complete | Full summary before submission |
+| 4.5 | Draft entry saving | 🟢 Complete | Auto-save at any step, creators can return |
+| 4.6 | Entry review dashboard — brand | 🟢 Complete | Filterable list of all entries per campaign |
+| 4.7 | Entry approval flow — Ripple | 🟢 Complete | Approve triggers initial fee payout + earnings record |
+| 4.8 | Entry approval flow — Pitch | 🟢 Complete | Accept bid, creator posts, brand confirms, payout fires |
+| 4.9 | Winner selection flow — Contest | 🟢 Complete | Brand selects winner, others marked not_selected, prize payout created |
+| 4.10 | Entry edit request flow | 🟢 Complete | Brand sends edit notes, entry returns to draft, creator resubmits |
+| 4.11 | Entry rejection flow | 🟢 Complete | Brand rejects with reason, notification shown to creator |
+| 4.12 | Entry status notifications | ⏸ Deferred | Phase 8 — will be built with the full notifications system |
 
 ---
 
@@ -195,14 +203,14 @@ Phases 1–6 are the MVP. Phases 7–10 ship post-launch.
 
 | # | Feature | Status | Notes |
 |---|---|---|---|
-| 5.1 | TikTok OAuth social account connection | 🔴 Not started | Store encrypted token, follower count, verified flag |
-| 5.2 | Instagram OAuth social account connection | 🔴 Not started | Store encrypted token, follower count, verified flag |
-| 5.3 | YouTube OAuth social account connection | 🔴 Not started | Store encrypted token, follower count, verified flag |
-| 5.4 | SyncViewCountJob — scheduled every 6h | 🔴 Not started | Pull verified views per platform per live entry |
-| 5.5 | Milestone detection logic — Ripple | 🔴 Not started | Detect threshold crossings, queue payout on each milestone |
-| 5.6 | view_sync_logs audit trail | 🔴 Not started | Log every sync attempt, success/failure, view count snapshot |
-| 5.7 | Contest deadline resolution job | 🔴 Not started | Final sync at deadline, rank entries, calculate payouts |
-| 5.8 | Token refresh handling | 🔴 Not started | Auto-refresh expired OAuth tokens before sync |
+| 5.1 | TikTok OAuth social account connection | 🟢 Complete | Real API + stub mode; video.list for view counts |
+| 5.2 | Instagram OAuth social account connection | 🟢 Complete | Real API + long-lived token exchange + stub mode |
+| 5.3 | YouTube OAuth social account connection | 🟢 Complete | Real API + offline access params + stub mode |
+| 5.4 | SyncViewCountJob — scheduled every 6h | 🟢 Complete | Configurable via VIEW_SYNC_FREQUENCY_HOURS |
+| 5.5 | Milestone detection logic — Ripple | 🟢 Complete | Budget cap + per-creator cap both enforced |
+| 5.6 | view_sync_logs audit trail | 🟢 Complete | Written on every success/failure |
+| 5.7 | Contest deadline resolution job | 🟢 Complete | Final sync → rank → payouts → campaign closed |
+| 5.8 | Token refresh handling | 🟢 Complete | Hourly job + just-in-time refresh during sync |
 
 ---
 

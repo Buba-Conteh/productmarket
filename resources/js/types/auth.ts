@@ -10,8 +10,15 @@ export type User = {
     [key: string]: unknown;
 };
 
+export type BillingState = {
+    plan: string | null;
+    subscribed: boolean;
+};
+
 export type Auth = {
     user: User;
+    roles?: string[];
+    billing?: BillingState | null;
 };
 
 export type TwoFactorSetupData = {

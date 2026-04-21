@@ -11,6 +11,7 @@ final class PlatformSetting extends Model
     public $incrementing = false;
 
     public const UPDATED_AT = 'updated_at';
+
     public const CREATED_AT = null;
 
     protected $fillable = [

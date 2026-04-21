@@ -37,6 +37,19 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
+        {{-- Polyfill crypto.randomUUID for non-secure HTTP contexts (Vite HMR requires it) --}}
+        <script>
+            if (typeof crypto !== 'undefined' && !crypto.randomUUID) {
+                crypto.randomUUID = function () {
+                    return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, function (c) {
+                        var n = parseInt(c, 10);
+                        return (n ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> n / 4).toString(16);
+                    });
+                };
+            }
+        </script>
+
+        @routes
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         <x-inertia::head>

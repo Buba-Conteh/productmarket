@@ -1,11 +1,17 @@
 <?php
 
+use App\Http\Middleware\EnsureBrandCampaignLimit;
+use App\Http\Middleware\EnsureBrandSubscription;
+use App\Http\Middleware\EnsureCreatorEntryLimit;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Spatie\Permission\Middleware\PermissionMiddleware;
+use Spatie\Permission\Middleware\RoleMiddleware;
+use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,6 +26,15 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+        ]);
+
+        $middleware->alias([
+            'role' => RoleMiddleware::class,
+            'permission' => PermissionMiddleware::class,
+            'role_or_permission' => RoleOrPermissionMiddleware::class,
+            'brand.subscribed' => EnsureBrandSubscription::class,
+            'brand.campaign_limit' => EnsureBrandCampaignLimit::class,
+            'creator.entry_limit' => EnsureCreatorEntryLimit::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

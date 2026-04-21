@@ -22,13 +22,20 @@ final class BrandProfile extends Model
         'logo',
         'stripe_customer_id',
         'is_agency',
+        'onboarding_completed_at',
     ];
 
     protected function casts(): array
     {
         return [
             'is_agency' => 'boolean',
+            'onboarding_completed_at' => 'datetime',
         ];
+    }
+
+    public function isOnboarded(): bool
+    {
+        return $this->onboarding_completed_at !== null;
     }
 
     public function user(): BelongsTo

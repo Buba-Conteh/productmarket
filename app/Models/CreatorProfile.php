@@ -22,6 +22,7 @@ final class CreatorProfile extends Model
         'stripe_connect_status',
         'total_earned',
         'pending_earnings',
+        'onboarding_completed_at',
     ];
 
     protected function casts(): array
@@ -29,7 +30,13 @@ final class CreatorProfile extends Model
         return [
             'total_earned' => 'decimal:2',
             'pending_earnings' => 'decimal:2',
+            'onboarding_completed_at' => 'datetime',
         ];
+    }
+
+    public function isOnboarded(): bool
+    {
+        return $this->onboarding_completed_at !== null;
     }
 
     public function user(): BelongsTo

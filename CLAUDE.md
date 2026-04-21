@@ -108,6 +108,7 @@ Read the following to get the full context of the project:
 - @context/project-overview.md 
 - @context/detailed-project.md 
 - @context/database-schema.md 
+- @context/ai-interaction.md
 
 ## Project Roadmap
 

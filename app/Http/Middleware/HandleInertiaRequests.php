@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\BillingService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -35,13 +36,38 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        $billing = null;
+
+        if ($user) {
+            $billingService = app(BillingService::class);
+
+            if ($user->hasRole('brand')) {
+                $billing = [
+                    'plan' => $billingService->brandPlanKey($user),
+                    'subscribed' => $user->subscribed('brand'),
+                ];
+            } elseif ($user->hasRole('creator')) {
+                $billing = [
+                    'plan' => $billingService->creatorPlanKey($user),
+                    'subscribed' => $user->subscribed('creator'),
+                ];
+            }
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
+                'roles' => $user?->getRoleNames() ?? [],
+                'billing' => $billing,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+            ],
         ];
     }
 }

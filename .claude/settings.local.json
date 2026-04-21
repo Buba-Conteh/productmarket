@@ -2,7 +2,40 @@
   "permissions": {
     "allow": [
       "Bash(php artisan:*)",
-      "Bash(\"/c/Users/lenovo/.config/herd/bin/herd.bat\" php:*)"
+      "Bash(\"/c/Users/lenovo/.config/herd/bin/herd.bat\" php:*)",
+      "Bash(git push *)",
+      "Bash(git checkout *)",
+      "Bash(/c/Users/lenovo/.config/herd/bin/herd.bat php *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(composer show *)",
+      "Bash(/c/Users/lenovo/.config/herd/bin/composer.bat require *)",
+      "Bash(/c/Users/lenovo/.config/herd/bin/php.bat artisan *)",
+      "Bash(npm run *)",
+      "Bash(/c/Users/lenovo/.config/herd/bin/php.bat ./vendor/bin/pint)",
+      "Bash(cmd.exe /c \"cd /d C:\\\\Users\\\\lenovo\\\\Herd\\\\tritech\\\\productmarket && php artisan tinker --execute=\\\\\"echo App\\\\Models\\\\User::where\\('email', 'contehbuba21@gmail.com'\\)->first\\(\\);\\\\\"\")",
+      "Bash(cmd.exe /c \"type C:\\\\Users\\\\lenovo\\\\Herd\\\\tritech\\\\productmarket\\\\.env\")",
+      "Bash(findstr /i \"MAIL\")",
+      "Read(//c/Users/lenovo/AppData/Local/herd/**)",
+      "Read(//c/Users/lenovo/AppData/Roaming/Herd/**)",
+      "Bash(cmd.exe /c \"where php 2>&1\")",
+      "Bash(cmd.exe /c \"php --version 2>&1\")",
+      "Bash(cmd.exe /c \"cd /d C:\\\\\\\\Users\\\\\\\\lenovo\\\\\\\\Herd\\\\\\\\tritech\\\\\\\\productmarket && php artisan test --filter Admin 2>&1\")",
+      "Bash(powershell.exe -Command \"php --version\")",
+      "Bash(powershell.exe -Command \"cd 'C:\\\\Users\\\\lenovo\\\\Herd\\\\tritech\\\\productmarket'; php artisan test --filter Admin 2>&1\")",
+      "Bash(powershell.exe -Command \"cd 'C:\\\\Users\\\\lenovo\\\\Herd\\\\tritech\\\\productmarket'; php artisan test tests/Feature/Onboarding/BrandOnboardingTest.php 2>&1\")",
+      "Bash(powershell.exe -Command \"cd 'C:\\\\Users\\\\lenovo\\\\Herd\\\\tritech\\\\productmarket'; npm run build 2>&1\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"cd 'C:\\\\Users\\\\lenovo\\\\Herd\\\\tritech\\\\productmarket'; npm run build 2>&1\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"cd 'C:\\\\Users\\\\lenovo\\\\Herd\\\\tritech\\\\productmarket'; npx shadcn@latest add table --yes 2>&1\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"cd 'C:\\\\Users\\\\lenovo\\\\Herd\\\\tritech\\\\productmarket'; php artisan test --filter Admin 2>&1\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"cd 'C:\\\\Users\\\\lenovo\\\\Herd\\\\tritech\\\\productmarket'; php artisan test 2>&1\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"cd 'C:\\\\Users\\\\lenovo\\\\Herd\\\\tritech\\\\productmarket'; npm run types:check 2>&1\")",
+      "Bash(cmd /c \"cd /d c:\\\\Users\\\\lenovo\\\\Herd\\\\tritech\\\\productmarket && composer require laravel/cashier 2>&1\")",
+      "Bash(powershell -Command \"Set-Location 'c:\\\\Users\\\\lenovo\\\\Herd\\\\tritech\\\\productmarket'; composer require laravel/cashier 2>&1\")",
+      "Bash(powershell -Command \"Set-Location 'c:\\\\Users\\\\lenovo\\\\Herd\\\\tritech\\\\productmarket'; php artisan cashier:publish 2>&1\")",
+      "Bash(powershell -Command \"Get-Content 'c:\\\\Users\\\\lenovo\\\\Herd\\\\tritech\\\\productmarket\\\\resources\\\\js\\\\components\\\\heading.tsx'\")",
+      "Bash(find /c/Users/lenovo/Herd/tritech/productmarket/routes -type f -name \"*.php\" -exec grep -l \"campaign\" {} \\\\;)",
+      "Bash(npx prettier *)"
     ]
   }
 }
