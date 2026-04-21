@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(php vendor/bin/pint --test app/Services/PayoutService.php app/Jobs/ReleaseHeldPayoutsJob.php routes/console.php 2>&1)",
+      "Bash(composer lint *)"
+    ]
+  }
+}

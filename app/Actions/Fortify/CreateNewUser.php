@@ -5,6 +5,7 @@ namespace App\Actions\Fortify;
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\User;
+use App\Services\ReferralService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -27,14 +28,22 @@ class CreateNewUser implements CreatesNewUsers
             'role' => ['required', Rule::in(['brand', 'creator'])],
         ])->validate();
 
-        return DB::transaction(function () use ($input): User {
+        $referralService = app(ReferralService::class);
+
+        return DB::transaction(function () use ($input, $referralService): User {
             $user = User::create([
                 'name' => $input['name'],
                 'email' => $input['email'],
                 'password' => $input['password'],
+                'referral_code' => $referralService->generateCode(new User),
             ]);
 
             $user->assignRole($input['role']);
+
+            // Attach referral if an invite code was passed
+            if (! empty($input['ref'])) {
+                $referralService->attachReferral($user, $input['ref'], $input['role']);
+            }
 
             return $user;
         });

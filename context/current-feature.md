@@ -1,7 +1,7 @@
-# Phase 9 — Analytics
+# Phase 10 — Growth Features
 
 **Status:** In Progress
-**Branch:** feature/phase-9-analytics
+**Branch:** feature/phase-10-growth
 **Started:** 2026-04-21
 
 ---
@@ -10,44 +10,43 @@
 
 | # | Feature | Status |
 |---|---|---|
-| 9.1 | Campaign analytics snapshots job | 🟡 In Progress |
-| 9.2 | Creator analytics snapshots job | 🟡 In Progress |
-| 9.3 | Brand analytics dashboard | 🟡 In Progress |
-| 9.4 | Creator analytics dashboard | 🟡 In Progress |
-| 9.5 | Admin analytics dashboard | 🟡 In Progress |
+| 10.1 | Referral system — creators | 🟡 In Progress |
+| 10.2 | Referral system — brands | 🟡 In Progress |
+| 10.3 | Co-brand campaigns | 🟡 In Progress |
+| 10.4 | Agency white-label mode | 🟡 In Progress |
 
 ---
 
 ## Overview
 
-Daily/weekly aggregation jobs populate `campaign_analytics` and `creator_analytics` tables. Three dashboards consume this data: brand (campaign ROI), creator (earnings & views), admin (platform GMV). Charts via Recharts.
+Final phase. Referral codes for both user types, co-sponsored campaigns (two brands), and agency team management under a parent brand account.
 
 ---
 
 ## Implementation Plan
 
-### Backend
+### 10.1 & 10.2 — Referral System
+- `Referral` model already exists with referral_code, type (creator/brand), status (pending/qualified/rewarded)
+- `ReferralService` — generate code on registration, track referred signups, pay bonus via ProcessPayoutJob
+- Referral code shown in profile settings, shareable link
+- On registration: check referral_code query param, create Referral record
+- Qualified trigger: creator = first entry submitted; brand = first campaign published
+- Reward: creator bonus from platform_settings.referral_creator_bonus; brand credit applied as Cashier balance
 
-1. **Jobs**
-   - `AggregateCampaignAnalyticsJob` — daily, per active campaign: entries, live count, total views, total paid out, top entry
-   - `AggregateCreatorAnalyticsJob` — weekly, per creator: total views, total earned, entries count, avg engagement rate
+### 10.3 — Co-Brand Campaigns
+- `CampaignCoBrand` model already exists
+- Brand can invite another brand to co-sponsor during campaign creation
+- Invited brand accepts/declines; contribution locked in escrow
+- Both brands can review entries; payout split proportionally
 
-2. **Schedule** — register both jobs in `routes/console.php`
-
-3. **Controllers**
-   - `BrandAnalyticsController` — campaign-level stats for brand's campaigns
-   - `CreatorAnalyticsController` — earnings + view trends for creator
-   - `AdminAnalyticsController` — platform-wide GMV, take rate, top campaigns, user acquisition
-
-### Frontend
-
-- Install `recharts`
-- Brand: views over time, cost-per-view, top creators table, platform breakdown pie
-- Creator: views per entry, earnings per campaign, engagement trend line
-- Admin: GMV bar chart, take rate, top campaigns, user growth
+### 10.4 — Agency White-Label Mode
+- `AgencyMember` model already exists
+- Scale-plan brands can enable agency mode and invite team members
+- Team member roles: owner, manager, viewer
+- Shared campaign dashboard across all team members
 
 ---
 
 ## History
 
-- 2026-04-21: Phase 9 documented, implementation started
+- 2026-04-21: Phase 10 documented, implementation started

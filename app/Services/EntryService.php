@@ -96,6 +96,9 @@ final readonly class EntryService
                 $brandUser->notify(new EntrySubmitted($entry));
             }
 
+            // Qualify any pending creator referral on first entry submitted
+            app(ReferralService::class)->qualify($entry->creator->user);
+
             return $entry;
         });
     }
