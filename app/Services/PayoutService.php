@@ -11,6 +11,7 @@ use App\Models\Payout;
 use App\Models\PlatformSetting;
 use App\Models\User;
 use App\Notifications\PayoutFailureAlert;
+use App\Notifications\PayoutProcessed;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Stripe\Exception\ApiErrorException;
@@ -130,6 +131,12 @@ final readonly class PayoutService
                     (float) $payout->gross_amount,
                 );
             });
+
+            // Notify creator of successful payout
+            $creatorUser = $creator->user ?? null;
+            if ($creatorUser) {
+                $creatorUser->notify(new PayoutProcessed($payout->fresh()));
+            }
         } catch (ApiErrorException $e) {
             Log::error('Stripe transfer failed', [
                 'payout_id' => $payout->id,

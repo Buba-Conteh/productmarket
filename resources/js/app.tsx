@@ -1,5 +1,6 @@
 import { createInertiaApp } from '@inertiajs/react';
 import { route } from 'ziggy-js';
+import echo from '@/echo';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
@@ -14,6 +15,7 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 // The @routes Blade directive injects the Ziggy config into the page
 if (typeof window !== 'undefined') {
     (window as any).route = route;
+    (window as any).Echo = echo;
 }
 
 createInertiaApp({

@@ -19,13 +19,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import type { Campaign, ContentType, PaginatedData, Platform } from '@/types';
+import type { Campaign, PaginatedData, Platform } from '@/types';
 
 type Props = {
     campaigns: PaginatedData<Campaign>;
     filters: Record<string, string | undefined>;
     platforms: Platform[];
-    contentTypes: ContentType[];
 };
 
 const TYPE_LABELS: Record<string, string> = {
@@ -74,7 +73,6 @@ export default function CreatorCampaignDiscovery({
     campaigns,
     filters,
     platforms,
-    contentTypes,
 }: Props) {
     const [search, setSearch] = useState(filters.search ?? '');
 
@@ -90,7 +88,7 @@ export default function CreatorCampaignDiscovery({
         });
     }
 
-    function handleSearch(e: React.FormEvent) {
+    function handleSearch(e: React.SyntheticEvent) {
         e.preventDefault();
         applyFilter('search', search);
     }
@@ -124,16 +122,16 @@ export default function CreatorCampaignDiscovery({
 
                     <div className="flex flex-wrap gap-3">
                         <Select
-                            value={filters.type ?? ''}
+                            value={filters.type ?? 'all'}
                             onValueChange={(v) =>
-                                applyFilter('type', v || undefined)
+                                applyFilter('type', v === 'all' ? undefined : v)
                             }
                         >
                             <SelectTrigger className="w-[140px]">
                                 <SelectValue placeholder="All types" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">All types</SelectItem>
+                                <SelectItem value="all">All types</SelectItem>
                                 <SelectItem value="contest">Contest</SelectItem>
                                 <SelectItem value="ripple">Ripple</SelectItem>
                                 <SelectItem value="pitch">Pitch</SelectItem>
@@ -141,16 +139,16 @@ export default function CreatorCampaignDiscovery({
                         </Select>
 
                         <Select
-                            value={filters.platform_id ?? ''}
+                            value={filters.platform_id ?? 'all'}
                             onValueChange={(v) =>
-                                applyFilter('platform_id', v || undefined)
+                                applyFilter('platform_id', v === 'all' ? undefined : v)
                             }
                         >
                             <SelectTrigger className="w-[160px]">
                                 <SelectValue placeholder="All platforms" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">All platforms</SelectItem>
+                                <SelectItem value="all">All platforms</SelectItem>
                                 {platforms.map((p) => (
                                     <SelectItem key={p.id} value={p.id}>
                                         {p.name}

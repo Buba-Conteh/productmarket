@@ -11,6 +11,7 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             sidebarOpen: boolean;
+            unreadNotifications: number;
             flash: {
                 success?: string | null;
                 error?: string | null;
@@ -19,3 +20,10 @@ declare module '@inertiajs/core' {
         };
     }
 }
+
+export type SharedData = {
+    auth: Auth;
+    unreadNotifications: number;
+    flash: { success?: string | null; error?: string | null };
+    [key: string]: unknown;
+};
