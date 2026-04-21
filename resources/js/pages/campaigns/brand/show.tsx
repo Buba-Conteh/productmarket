@@ -5,9 +5,12 @@ import {
     Calendar,
     CheckCircle2,
     DollarSign,
+    Download,
     ExternalLink,
     Hash,
+    Link2,
     Megaphone,
+    Paperclip,
     TrendingUp,
     Trophy,
     Users,
@@ -25,6 +28,37 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import type { Campaign, CampaignStatus } from '@/types';
+
+function getYoutubeThumbnail(url: string): string | null {
+    try {
+        const parsed = new URL(url);
+        let videoId: string | null = null;
+        if (
+            parsed.hostname === 'www.youtube.com' ||
+            parsed.hostname === 'youtube.com'
+        ) {
+            if (parsed.pathname === '/watch')
+                videoId = parsed.searchParams.get('v');
+            else if (parsed.pathname.startsWith('/embed/'))
+                videoId = parsed.pathname.split('/embed/')[1].split('/')[0];
+            else if (parsed.pathname.startsWith('/shorts/'))
+                videoId = parsed.pathname.split('/shorts/')[1].split('/')[0];
+        } else if (parsed.hostname === 'youtu.be') {
+            videoId = parsed.pathname.slice(1).split('/')[0];
+        }
+        if (videoId)
+            return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+    } catch {
+        // invalid URL
+    }
+    return null;
+}
+
+function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 type Props = {
     campaign: Campaign;
@@ -213,6 +247,17 @@ export default function BrandCampaignShow({ campaign }: Props) {
                     </div>
                 </div>
 
+                {/* Thumbnail */}
+                {campaign.thumbnail_url && (
+                    <div className="mb-6">
+                        <img
+                            src={campaign.thumbnail_url}
+                            alt={campaign.title}
+                            className="h-48 w-full rounded-xl object-cover shadow-sm sm:h-64"
+                        />
+                    </div>
+                )}
+
                 <div className="grid gap-6 lg:grid-cols-3">
                     {/* Main content */}
                     <div className="space-y-6 lg:col-span-2">
@@ -256,6 +301,55 @@ export default function BrandCampaignShow({ campaign }: Props) {
                                                 ),
                                             )}
                                         </ul>
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                        {/* Inspiration links */}
+                        {campaign.inspiration_links &&
+                            campaign.inspiration_links.length > 0 && (
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="text-base">
+                                            Inspiration
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="grid gap-3 sm:grid-cols-2">
+                                            {campaign.inspiration_links.map(
+                                                (l, i) => {
+                                                    const thumb =
+                                                        getYoutubeThumbnail(l);
+                                                    return (
+                                                        <a
+                                                            key={i}
+                                                            href={l}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="group overflow-hidden rounded-lg border transition-colors hover:border-primary/50"
+                                                        >
+                                                            {thumb ? (
+                                                                <img
+                                                                    src={thumb}
+                                                                    alt=""
+                                                                    className="h-24 w-full object-cover"
+                                                                />
+                                                            ) : (
+                                                                <div className="flex h-24 w-full items-center justify-center bg-muted/30">
+                                                                    <Link2 className="size-8 text-muted-foreground/40" />
+                                                                </div>
+                                                            )}
+                                                            <div className="flex items-center gap-1 px-2 py-1.5 text-xs text-muted-foreground group-hover:text-foreground">
+                                                                <ExternalLink className="size-3 shrink-0" />
+                                                                <span className="truncate">
+                                                                    {l}
+                                                                </span>
+                                                            </div>
+                                                        </a>
+                                                    );
+                                                },
+                                            )}
+                                        </div>
                                     </CardContent>
                                 </Card>
                             )}
@@ -646,6 +740,46 @@ export default function BrandCampaignShow({ campaign }: Props) {
                                     </CardContent>
                                 </Card>
                             )}
+
+                        {/* Brand resources */}
+                        {campaign.resources && campaign.resources.length > 0 && (
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-base">
+                                        Brand resources
+                                    </CardTitle>
+                                    <CardDescription className="text-xs">
+                                        Assets provided by the brand for your
+                                        content.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-1.5">
+                                    {campaign.resources.map((r) => (
+                                        <a
+                                            key={r.id}
+                                            href={r.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            download={r.original_name}
+                                            className="flex items-center justify-between rounded-md border px-3 py-2 text-sm transition-colors hover:border-primary/50 hover:bg-muted/30"
+                                        >
+                                            <div className="flex min-w-0 items-center gap-2">
+                                                <Paperclip className="size-3.5 shrink-0 text-muted-foreground" />
+                                                <span className="truncate font-medium">
+                                                    {r.original_name}
+                                                </span>
+                                            </div>
+                                            <div className="ml-2 flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+                                                <span>
+                                                    {formatFileSize(r.size)}
+                                                </span>
+                                                <Download className="size-3.5" />
+                                            </div>
+                                        </a>
+                                    ))}
+                                </CardContent>
+                            </Card>
+                        )}
                     </div>
                 </div>
             </div>

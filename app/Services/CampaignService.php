@@ -129,7 +129,10 @@ final readonly class CampaignService
             ]);
 
             // Qualify any pending brand referral on first campaign published
-            app(ReferralService::class)->qualify($campaign->brandProfile->user);
+            $brandUser = $campaign->brand?->user;
+            if ($brandUser) {
+                app(ReferralService::class)->qualify($brandUser);
+            }
 
             return $campaign->fresh();
         });
@@ -289,6 +292,7 @@ final readonly class CampaignService
             'rippleDetails',
             'pitchDetails',
             'escrowTransaction',
+            'resources',
         ])->loadCount('entries');
     }
 

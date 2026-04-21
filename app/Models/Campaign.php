@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Storage;
 
 final class Campaign extends Model
 {
@@ -30,7 +31,10 @@ final class Campaign extends Model
         'deadline',
         'max_creators',
         'ai_brief_used',
+        'thumbnail',
     ];
+
+    protected $appends = ['thumbnail_url'];
 
     protected function casts(): array
     {
@@ -44,6 +48,15 @@ final class Campaign extends Model
             'deadline' => 'datetime',
             'ai_brief_used' => 'boolean',
         ];
+    }
+
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        if ($this->thumbnail === null) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($this->thumbnail);
     }
 
     public function brand(): BelongsTo
@@ -104,5 +117,10 @@ final class Campaign extends Model
     public function analytics(): HasMany
     {
         return $this->hasMany(CampaignAnalytic::class);
+    }
+
+    public function resources(): HasMany
+    {
+        return $this->hasMany(CampaignResource::class);
     }
 }

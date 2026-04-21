@@ -8,11 +8,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Campaign\StoreCampaignRequest;
 use App\Http\Requests\Campaign\UpdateCampaignRequest;
 use App\Models\Campaign;
+use App\Models\CampaignResource;
 use App\Models\ContentType;
 use App\Models\Platform;
 use App\Services\CampaignService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -64,6 +67,9 @@ final class BrandCampaignController extends Controller
         $brand = $request->user()->brandProfile;
         $campaign = $this->campaignService->createDraft($brand, $request->validated());
 
+        $this->handleThumbnailUpload($request, $campaign);
+        $this->handleResourceUploads($request, $campaign);
+
         return redirect()
             ->route('campaigns.brand.edit', $campaign)
             ->with('success', 'Campaign draft created.');
@@ -105,6 +111,26 @@ final class BrandCampaignController extends Controller
     public function update(UpdateCampaignRequest $request, Campaign $campaign): RedirectResponse
     {
         $this->campaignService->updateDraft($campaign, $request->validated());
+
+        if ($request->boolean('remove_thumbnail') && $campaign->thumbnail) {
+            Storage::disk('public')->delete($campaign->thumbnail);
+            $campaign->update(['thumbnail' => null]);
+        }
+
+        $this->handleThumbnailUpload($request, $campaign);
+
+        if ($request->has('remove_resource_ids')) {
+            $toRemove = CampaignResource::whereIn('id', $request->input('remove_resource_ids', []))
+                ->where('campaign_id', $campaign->id)
+                ->get();
+
+            foreach ($toRemove as $resource) {
+                Storage::disk('public')->delete($resource->path);
+                $resource->delete();
+            }
+        }
+
+        $this->handleResourceUploads($request, $campaign);
 
         return redirect()
             ->route('campaigns.brand.edit', $campaign)
@@ -148,6 +174,40 @@ final class BrandCampaignController extends Controller
         return redirect()
             ->route('campaigns.brand.index')
             ->with('success', 'Campaign cancelled.');
+    }
+
+    private function handleThumbnailUpload(Request $request, Campaign $campaign): void
+    {
+        if (! $request->hasFile('thumbnail')) {
+            return;
+        }
+
+        if ($campaign->thumbnail) {
+            Storage::disk('public')->delete($campaign->thumbnail);
+        }
+
+        $path = $request->file('thumbnail')->store('campaigns/thumbnails', 'public');
+        $campaign->update(['thumbnail' => $path]);
+    }
+
+    private function handleResourceUploads(Request $request, Campaign $campaign): void
+    {
+        if (! $request->hasFile('resources')) {
+            return;
+        }
+
+        foreach ($request->file('resources') as $file) {
+            $fileName = Str::ulid().'.'.$file->getClientOriginalExtension();
+            $path = $file->storeAs('campaigns/resources', $fileName, 'public');
+
+            $campaign->resources()->create([
+                'original_name' => $file->getClientOriginalName(),
+                'file_name' => $fileName,
+                'mime_type' => $file->getMimeType() ?? $file->getClientMimeType(),
+                'size' => $file->getSize(),
+                'path' => $path,
+            ]);
+        }
     }
 
     /**

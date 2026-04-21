@@ -3,13 +3,19 @@ import {
     AlertCircle,
     ArrowLeft,
     CheckCircle2,
+    Download,
+    ExternalLink,
+    ImageIcon,
+    Link2,
     Megaphone,
+    Paperclip,
     Save,
     Send,
     TrendingUp,
     Trophy,
+    X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,6 +28,7 @@ import { cn } from '@/lib/utils';
 import type {
     Campaign,
     CampaignFormData,
+    CampaignResource,
     ContentType,
     Platform,
 } from '@/types';
@@ -31,6 +38,42 @@ type Props = {
     platforms: Platform[];
     contentTypes: ContentType[];
 };
+
+function getYoutubeThumbnail(url: string): string | null {
+    try {
+        const parsed = new URL(url);
+        let videoId: string | null = null;
+
+        if (
+            parsed.hostname === 'www.youtube.com' ||
+            parsed.hostname === 'youtube.com'
+        ) {
+            if (parsed.pathname === '/watch') {
+                videoId = parsed.searchParams.get('v');
+            } else if (parsed.pathname.startsWith('/embed/')) {
+                videoId = parsed.pathname.split('/embed/')[1].split('/')[0];
+            } else if (parsed.pathname.startsWith('/shorts/')) {
+                videoId = parsed.pathname.split('/shorts/')[1].split('/')[0];
+            }
+        } else if (parsed.hostname === 'youtu.be') {
+            videoId = parsed.pathname.slice(1).split('/')[0];
+        }
+
+        if (videoId) {
+            return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        }
+    } catch {
+        // invalid URL
+    }
+
+    return null;
+}
+
+function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 export default function EditCampaign({
     campaign,
@@ -78,6 +121,22 @@ export default function EditCampaign({
     const [newHashtag, setNewHashtag] = useState('');
     const [newLink, setNewLink] = useState('');
 
+    // Thumbnail state
+    const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+    const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(
+        campaign.thumbnail_url ?? null,
+    );
+    const [removeThumbnail, setRemoveThumbnail] = useState(false);
+    const thumbnailInputRef = useRef<HTMLInputElement>(null);
+
+    // Resources state
+    const [existingResources, setExistingResources] = useState<
+        CampaignResource[]
+    >(campaign.resources ?? []);
+    const [removedResourceIds, setRemovedResourceIds] = useState<string[]>([]);
+    const [newResourceFiles, setNewResourceFiles] = useState<File[]>([]);
+    const resourceInputRef = useRef<HTMLInputElement>(null);
+
     function update<K extends keyof CampaignFormData>(
         key: K,
         value: CampaignFormData[K],
@@ -104,17 +163,9 @@ export default function EditCampaign({
         setter: (v: string) => void,
     ) {
         const trimmed = value.trim();
-
-        if (!trimmed) {
-            return;
-        }
-
+        if (!trimmed) return;
         const current = form[key] as string[];
-
-        if (!current.includes(trimmed)) {
-            update(key, [...current, trimmed]);
-        }
-
+        if (!current.includes(trimmed)) update(key, [...current, trimmed]);
         setter('');
     }
 
@@ -127,9 +178,102 @@ export default function EditCampaign({
         update(key, current);
     }
 
+    function handleThumbnailChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0] ?? null;
+        setThumbnailFile(file);
+        setRemoveThumbnail(false);
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (ev) =>
+                setThumbnailPreview(ev.target?.result as string);
+            reader.readAsDataURL(file);
+        } else {
+            setThumbnailPreview(campaign.thumbnail_url ?? null);
+        }
+    }
+
+    function handleRemoveThumbnail() {
+        setThumbnailFile(null);
+        setThumbnailPreview(null);
+        setRemoveThumbnail(true);
+        if (thumbnailInputRef.current) thumbnailInputRef.current.value = '';
+    }
+
+    function handleResourceChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const files = Array.from(e.target.files ?? []);
+        setNewResourceFiles((prev) => {
+            const combined = [...prev, ...files];
+            return combined.slice(0, 10 - existingResources.length);
+        });
+        if (resourceInputRef.current) resourceInputRef.current.value = '';
+    }
+
+    function removeExistingResource(id: string) {
+        setExistingResources((prev) => prev.filter((r) => r.id !== id));
+        setRemovedResourceIds((prev) => [...prev, id]);
+    }
+
+    function removeNewResource(index: number) {
+        setNewResourceFiles((prev) => prev.filter((_, i) => i !== index));
+    }
+
     function save() {
         setSaving(true);
-        router.put(`/campaigns/${campaign.id}`, form, {
+
+        const data = new FormData();
+        data.append('_method', 'PUT');
+
+        const scalarFields: (keyof CampaignFormData)[] = [
+            'type',
+            'title',
+            'brief',
+            'deadline',
+            'max_creators',
+            'ai_brief_used',
+            'prize_amount',
+            'runner_up_prize',
+            'initial_fee',
+            'rpm_rate',
+            'milestone_interval',
+            'max_payout_per_creator',
+            'total_budget',
+            'product_name',
+            'product_description',
+            'product_url',
+            'budget_cap',
+            'min_bid',
+            'max_bid',
+        ];
+
+        for (const field of scalarFields) {
+            const val = form[field];
+            if (val !== '' && val !== null && val !== undefined) {
+                data.append(field, String(val));
+            }
+        }
+
+        form.requirements.forEach((v) => data.append('requirements[]', v));
+        form.required_hashtags.forEach((v) =>
+            data.append('required_hashtags[]', v),
+        );
+        form.target_regions.forEach((v) => data.append('target_regions[]', v));
+        form.inspiration_links.forEach((v) =>
+            data.append('inspiration_links[]', v),
+        );
+        form.platform_ids.forEach((v) => data.append('platform_ids[]', v));
+        form.content_type_ids.forEach((v) =>
+            data.append('content_type_ids[]', v),
+        );
+
+        if (removeThumbnail) data.append('remove_thumbnail', '1');
+        if (thumbnailFile) data.append('thumbnail', thumbnailFile);
+
+        removedResourceIds.forEach((id) =>
+            data.append('remove_resource_ids[]', id),
+        );
+        newResourceFiles.forEach((f) => data.append('resources[]', f));
+
+        router.post(`/campaigns/${campaign.id}`, data, {
             onError: (serverErrors) => {
                 setErrors(serverErrors);
                 setSaving(false);
@@ -139,10 +283,8 @@ export default function EditCampaign({
     }
 
     function publish() {
-        if (!confirm('Publish this campaign? It will go live immediately.')) {
+        if (!confirm('Publish this campaign? It will go live immediately.'))
             return;
-        }
-
         router.post(`/campaigns/${campaign.id}/publish`);
     }
 
@@ -151,7 +293,6 @@ export default function EditCampaign({
             <Head title={`Edit: ${campaign.title}`} />
 
             <div className="mx-auto max-w-3xl px-4 py-6">
-                {/* Flash */}
                 {flash?.success && (
                     <div className="mb-4 flex items-center gap-2 rounded-lg bg-green-50 p-3 text-sm text-green-700">
                         <CheckCircle2 className="size-4 shrink-0" />
@@ -243,6 +384,70 @@ export default function EditCampaign({
                                     />
                                 </div>
                             </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Thumbnail */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base">
+                                Campaign thumbnail
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <p className="text-xs text-muted-foreground">
+                                Cover image displayed on campaign cards.
+                            </p>
+                            {thumbnailPreview ? (
+                                <div className="relative w-full max-w-sm">
+                                    <img
+                                        src={thumbnailPreview}
+                                        alt="Thumbnail"
+                                        className="h-40 w-full rounded-lg border object-cover"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleRemoveThumbnail}
+                                        className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-background/80 text-muted-foreground shadow hover:text-destructive"
+                                    >
+                                        <X className="size-3" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        thumbnailInputRef.current?.click()
+                                    }
+                                    className="flex h-32 w-full max-w-sm flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                                >
+                                    <ImageIcon className="size-6" />
+                                    Click to upload image
+                                    <span className="text-xs">
+                                        PNG, JPG, WEBP up to 5 MB
+                                    </span>
+                                </button>
+                            )}
+                            {thumbnailPreview === null &&
+                                !removeThumbnail &&
+                                campaign.thumbnail_url && (
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            thumbnailInputRef.current?.click()
+                                        }
+                                        className="text-xs text-primary underline"
+                                    >
+                                        Replace thumbnail
+                                    </button>
+                                )}
+                            <input
+                                ref={thumbnailInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleThumbnailChange}
+                            />
                         </CardContent>
                     </Card>
 
@@ -616,7 +821,9 @@ export default function EditCampaign({
                             <div className="flex gap-2">
                                 <Input
                                     value={newLink}
-                                    onChange={(e) => setNewLink(e.target.value)}
+                                    onChange={(e) =>
+                                        setNewLink(e.target.value)
+                                    }
                                     placeholder="https://..."
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
@@ -643,29 +850,162 @@ export default function EditCampaign({
                                     Add
                                 </Button>
                             </div>
-                            <div className="space-y-1">
-                                {form.inspiration_links.map((l, i) => (
-                                    <div
-                                        key={i}
-                                        className="flex items-center gap-2 text-sm"
-                                    >
-                                        <span className="truncate text-muted-foreground">
-                                            {l}
-                                        </span>
-                                        <button
-                                            onClick={() =>
-                                                removeFromList(
-                                                    'inspiration_links',
-                                                    i,
-                                                )
-                                            }
-                                            className="shrink-0 text-xs text-muted-foreground hover:text-destructive"
+                            {form.inspiration_links.length > 0 && (
+                                <div className="grid gap-2 sm:grid-cols-2">
+                                    {form.inspiration_links.map((l, i) => {
+                                        const thumb = getYoutubeThumbnail(l);
+                                        return (
+                                            <div
+                                                key={i}
+                                                className="overflow-hidden rounded-lg border bg-muted/30"
+                                            >
+                                                {thumb ? (
+                                                    <img
+                                                        src={thumb}
+                                                        alt=""
+                                                        className="h-24 w-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-24 w-full items-center justify-center">
+                                                        <Link2 className="size-8 text-muted-foreground/40" />
+                                                    </div>
+                                                )}
+                                                <div className="flex items-center justify-between gap-2 px-2 py-1.5">
+                                                    <a
+                                                        href={l}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                                                    >
+                                                        <ExternalLink className="size-3 shrink-0" />
+                                                        <span className="truncate">
+                                                            {l}
+                                                        </span>
+                                                    </a>
+                                                    <button
+                                                        onClick={() =>
+                                                            removeFromList(
+                                                                'inspiration_links',
+                                                                i,
+                                                            )
+                                                        }
+                                                        className="shrink-0 text-muted-foreground hover:text-destructive"
+                                                    >
+                                                        <X className="size-3" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Brand resources */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base">
+                                Brand resources
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <p className="text-xs text-muted-foreground">
+                                Files creators can download when making their
+                                content.
+                            </p>
+
+                            {/* Existing resources */}
+                            {existingResources.length > 0 && (
+                                <div className="space-y-1">
+                                    {existingResources.map((r) => (
+                                        <div
+                                            key={r.id}
+                                            className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"
                                         >
-                                            Remove
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
+                                            <div className="flex min-w-0 items-center gap-2">
+                                                <Paperclip className="size-3.5 shrink-0 text-muted-foreground" />
+                                                <span className="truncate font-medium">
+                                                    {r.original_name}
+                                                </span>
+                                                <span className="shrink-0 text-xs text-muted-foreground">
+                                                    {formatFileSize(r.size)}
+                                                </span>
+                                            </div>
+                                            <div className="ml-2 flex shrink-0 items-center gap-1">
+                                                <a
+                                                    href={r.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-muted-foreground hover:text-primary"
+                                                >
+                                                    <Download className="size-3.5" />
+                                                </a>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        removeExistingResource(
+                                                            r.id,
+                                                        )
+                                                    }
+                                                    className="text-muted-foreground hover:text-destructive"
+                                                >
+                                                    <X className="size-3.5" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* New files */}
+                            {newResourceFiles.length > 0 && (
+                                <div className="space-y-1">
+                                    {newResourceFiles.map((file, i) => (
+                                        <div
+                                            key={i}
+                                            className="flex items-center justify-between rounded-md border border-dashed px-3 py-2 text-sm"
+                                        >
+                                            <div className="flex min-w-0 items-center gap-2">
+                                                <Paperclip className="size-3.5 shrink-0 text-primary" />
+                                                <span className="truncate font-medium">
+                                                    {file.name}
+                                                </span>
+                                                <span className="shrink-0 text-xs text-muted-foreground">
+                                                    {formatFileSize(file.size)}
+                                                </span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    removeNewResource(i)
+                                                }
+                                                className="ml-2 shrink-0 text-muted-foreground hover:text-destructive"
+                                            >
+                                                <X className="size-3.5" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    resourceInputRef.current?.click()
+                                }
+                                className="flex h-20 w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                            >
+                                <Paperclip className="size-4" />
+                                Attach more files
+                            </button>
+                            <input
+                                ref={resourceInputRef}
+                                type="file"
+                                multiple
+                                className="hidden"
+                                onChange={handleResourceChange}
+                            />
                         </CardContent>
                     </Card>
 

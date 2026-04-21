@@ -45,6 +45,12 @@ final class UpdateCampaignRequest extends FormRequest
             'content_type_ids' => ['nullable', 'array'],
             'content_type_ids.*' => ['string', 'exists:content_types,id'],
             'ai_brief_used' => ['nullable', 'boolean'],
+            'thumbnail' => ['nullable', 'image', 'max:5120'],
+            'remove_thumbnail' => ['nullable', 'boolean'],
+            'resources' => ['nullable', 'array', 'max:10'],
+            'resources.*' => ['file', 'max:20480', 'mimes:jpg,jpeg,png,gif,webp,pdf,mp4,mov,zip,doc,docx,xls,xlsx,ppt,pptx'],
+            'remove_resource_ids' => ['nullable', 'array'],
+            'remove_resource_ids.*' => ['string', 'exists:campaign_resources,id'],
         ];
 
         if ($type === 'contest') {

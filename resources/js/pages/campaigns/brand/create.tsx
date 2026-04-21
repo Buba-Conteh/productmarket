@@ -3,13 +3,18 @@ import {
     ArrowLeft,
     ArrowRight,
     DollarSign,
+    ExternalLink,
     FileText,
+    ImageIcon,
+    Link2,
     Megaphone,
+    Paperclip,
     Settings2,
     Trophy,
     TrendingUp,
+    X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -60,8 +65,7 @@ const CAMPAIGN_TYPES: {
     {
         key: 'pitch',
         name: 'Pitch',
-        description:
-            'List your product — creators pitch themselves with a bid.',
+        description: 'List your product — creators pitch themselves with a bid.',
         icon: Megaphone,
     },
 ];
@@ -96,6 +100,42 @@ const initialFormData: CampaignFormData = {
     max_bid: '',
 };
 
+function getYoutubeThumbnail(url: string): string | null {
+    try {
+        const parsed = new URL(url);
+        let videoId: string | null = null;
+
+        if (
+            parsed.hostname === 'www.youtube.com' ||
+            parsed.hostname === 'youtube.com'
+        ) {
+            if (parsed.pathname === '/watch') {
+                videoId = parsed.searchParams.get('v');
+            } else if (parsed.pathname.startsWith('/embed/')) {
+                videoId = parsed.pathname.split('/embed/')[1].split('/')[0];
+            } else if (parsed.pathname.startsWith('/shorts/')) {
+                videoId = parsed.pathname.split('/shorts/')[1].split('/')[0];
+            }
+        } else if (parsed.hostname === 'youtu.be') {
+            videoId = parsed.pathname.slice(1).split('/')[0];
+        }
+
+        if (videoId) {
+            return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        }
+    } catch {
+        // invalid URL
+    }
+
+    return null;
+}
+
+function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export default function CreateCampaign({ platforms, contentTypes }: Props) {
     const [step, setStep] = useState(0);
     const [form, setForm] = useState<CampaignFormData>(initialFormData);
@@ -105,6 +145,15 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
     const [newHashtag, setNewHashtag] = useState('');
     const [newLink, setNewLink] = useState('');
 
+    const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+    const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(
+        null,
+    );
+    const [resourceFiles, setResourceFiles] = useState<File[]>([]);
+
+    const thumbnailInputRef = useRef<HTMLInputElement>(null);
+    const resourceInputRef = useRef<HTMLInputElement>(null);
+
     function update<K extends keyof CampaignFormData>(
         key: K,
         value: CampaignFormData[K],
@@ -113,7 +162,6 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
         setErrors((prev) => {
             const next = { ...prev };
             delete next[key];
-
             return next;
         });
     }
@@ -137,17 +185,11 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
         setter: (v: string) => void,
     ) {
         const trimmed = value.trim();
-
-        if (!trimmed) {
-            return;
-        }
-
+        if (!trimmed) return;
         const current = form[key] as string[];
-
         if (!current.includes(trimmed)) {
             update(key, [...current, trimmed]);
         }
-
         setter('');
     }
 
@@ -160,62 +202,83 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
         update(key, current);
     }
 
+    function handleThumbnailChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0] ?? null;
+        setThumbnailFile(file);
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (ev) =>
+                setThumbnailPreview(ev.target?.result as string);
+            reader.readAsDataURL(file);
+        } else {
+            setThumbnailPreview(null);
+        }
+    }
+
+    function removeThumbnail() {
+        setThumbnailFile(null);
+        setThumbnailPreview(null);
+        if (thumbnailInputRef.current) {
+            thumbnailInputRef.current.value = '';
+        }
+    }
+
+    function handleResourceChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const files = Array.from(e.target.files ?? []);
+        setResourceFiles((prev) => {
+            const combined = [...prev, ...files];
+            return combined.slice(0, 10);
+        });
+        if (resourceInputRef.current) {
+            resourceInputRef.current.value = '';
+        }
+    }
+
+    function removeResource(index: number) {
+        setResourceFiles((prev) => prev.filter((_, i) => i !== index));
+    }
+
     function validateStep(): boolean {
         const errs: Record<string, string> = {};
 
         if (step === 1) {
-            if (!form.title.trim()) {
-                errs.title = 'Title is required.';
-            }
+            if (!form.title.trim()) errs.title = 'Title is required.';
 
             if (form.type === 'contest') {
-                if (!form.prize_amount || Number(form.prize_amount) <= 0) {
+                if (!form.prize_amount || Number(form.prize_amount) <= 0)
                     errs.prize_amount = 'Prize amount is required.';
-                }
             }
 
             if (form.type === 'ripple') {
-                if (!form.initial_fee && form.initial_fee !== '0') {
+                if (!form.initial_fee && form.initial_fee !== '0')
                     errs.initial_fee = 'Initial fee is required.';
-                }
-
-                if (!form.rpm_rate || Number(form.rpm_rate) <= 0) {
+                if (!form.rpm_rate || Number(form.rpm_rate) <= 0)
                     errs.rpm_rate = 'RPM rate is required.';
-                }
-
-                if (!form.total_budget || Number(form.total_budget) <= 0) {
+                if (!form.total_budget || Number(form.total_budget) <= 0)
                     errs.total_budget = 'Total budget is required.';
-                }
             }
 
             if (form.type === 'pitch') {
-                if (!form.product_name.trim()) {
+                if (!form.product_name.trim())
                     errs.product_name = 'Product name is required.';
-                }
             }
         }
 
         if (step === 2) {
-            if (!form.brief.trim()) {
-                errs.brief = 'Brief is required.';
-            }
+            if (!form.brief.trim()) errs.brief = 'Brief is required.';
         }
 
         if (step === 3) {
-            if (form.platform_ids.length === 0) {
+            if (form.platform_ids.length === 0)
                 errs.platform_ids = 'Select at least one platform.';
-            }
         }
 
         setErrors(errs);
-
         return Object.keys(errs).length === 0;
     }
 
     function next() {
-        if (validateStep()) {
-            setStep((s) => Math.min(s + 1, STEPS.length - 1));
-        }
+        if (validateStep()) setStep((s) => Math.min(s + 1, STEPS.length - 1));
     }
 
     function back() {
@@ -223,12 +286,61 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
     }
 
     function submit() {
-        if (!validateStep()) {
-            return;
-        }
+        if (!validateStep()) return;
 
         setSubmitting(true);
-        router.post('/campaigns', form, {
+
+        const data = new FormData();
+
+        // Scalar fields
+        const scalarFields: (keyof CampaignFormData)[] = [
+            'type',
+            'title',
+            'brief',
+            'deadline',
+            'max_creators',
+            'ai_brief_used',
+            'prize_amount',
+            'runner_up_prize',
+            'initial_fee',
+            'rpm_rate',
+            'milestone_interval',
+            'max_payout_per_creator',
+            'total_budget',
+            'product_name',
+            'product_description',
+            'product_url',
+            'budget_cap',
+            'min_bid',
+            'max_bid',
+        ];
+
+        for (const field of scalarFields) {
+            const val = form[field];
+            if (val !== '' && val !== null && val !== undefined) {
+                data.append(field, String(val));
+            }
+        }
+
+        // Array fields
+        form.requirements.forEach((v) => data.append('requirements[]', v));
+        form.required_hashtags.forEach((v) =>
+            data.append('required_hashtags[]', v),
+        );
+        form.target_regions.forEach((v) => data.append('target_regions[]', v));
+        form.inspiration_links.forEach((v) =>
+            data.append('inspiration_links[]', v),
+        );
+        form.platform_ids.forEach((v) => data.append('platform_ids[]', v));
+        form.content_type_ids.forEach((v) =>
+            data.append('content_type_ids[]', v),
+        );
+
+        // Files
+        if (thumbnailFile) data.append('thumbnail', thumbnailFile);
+        resourceFiles.forEach((f) => data.append('resources[]', f));
+
+        router.post('/campaigns', data, {
             onError: (serverErrors) => {
                 setErrors(serverErrors);
                 setSubmitting(false);
@@ -253,9 +365,7 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
                         <div key={label} className="flex items-center gap-2">
                             <button
                                 onClick={() => {
-                                    if (i < step) {
-                                        setStep(i);
-                                    }
+                                    if (i < step) setStep(i);
                                 }}
                                 className={cn(
                                     'flex size-8 items-center justify-center rounded-full text-xs font-medium transition-colors',
@@ -662,6 +772,52 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
                     <div className="space-y-6">
                         <h3 className="text-lg font-medium">Campaign brief</h3>
 
+                        {/* Thumbnail */}
+                        <div className="space-y-2">
+                            <Label>Campaign thumbnail</Label>
+                            <p className="text-xs text-muted-foreground">
+                                Used as the cover image on campaign cards.
+                            </p>
+                            {thumbnailPreview ? (
+                                <div className="relative w-full max-w-sm">
+                                    <img
+                                        src={thumbnailPreview}
+                                        alt="Thumbnail preview"
+                                        className="h-40 w-full rounded-lg border object-cover"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={removeThumbnail}
+                                        className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-background/80 text-muted-foreground shadow hover:text-destructive"
+                                    >
+                                        <X className="size-3" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        thumbnailInputRef.current?.click()
+                                    }
+                                    className="flex h-32 w-full max-w-sm flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                                >
+                                    <ImageIcon className="size-6" />
+                                    Click to upload image
+                                    <span className="text-xs">
+                                        PNG, JPG, WEBP up to 5 MB
+                                    </span>
+                                </button>
+                            )}
+                            <input
+                                ref={thumbnailInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleThumbnailChange}
+                            />
+                        </div>
+
+                        {/* Brief */}
                         <div className="space-y-2">
                             <Label htmlFor="brief">Brief</Label>
                             <Textarea
@@ -806,7 +962,9 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
                             <div className="flex gap-2">
                                 <Input
                                     value={newLink}
-                                    onChange={(e) => setNewLink(e.target.value)}
+                                    onChange={(e) =>
+                                        setNewLink(e.target.value)
+                                    }
                                     placeholder="https://..."
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
@@ -834,29 +992,111 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
                                     Add
                                 </Button>
                             </div>
-                            <div className="space-y-1">
-                                {form.inspiration_links.map((l, i) => (
-                                    <div
-                                        key={i}
-                                        className="flex items-center gap-2 text-sm"
-                                    >
-                                        <span className="truncate text-muted-foreground">
-                                            {l}
-                                        </span>
-                                        <button
-                                            onClick={() =>
-                                                removeFromList(
-                                                    'inspiration_links',
-                                                    i,
-                                                )
-                                            }
-                                            className="shrink-0 text-xs text-muted-foreground hover:text-destructive"
+                            {form.inspiration_links.length > 0 && (
+                                <div className="grid gap-2 sm:grid-cols-2">
+                                    {form.inspiration_links.map((l, i) => {
+                                        const thumb = getYoutubeThumbnail(l);
+                                        return (
+                                            <div
+                                                key={i}
+                                                className="group relative overflow-hidden rounded-lg border bg-muted/30"
+                                            >
+                                                {thumb ? (
+                                                    <img
+                                                        src={thumb}
+                                                        alt=""
+                                                        className="h-24 w-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-24 w-full items-center justify-center">
+                                                        <Link2 className="size-8 text-muted-foreground/40" />
+                                                    </div>
+                                                )}
+                                                <div className="flex items-center justify-between gap-2 px-2 py-1.5">
+                                                    <a
+                                                        href={l}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                                                    >
+                                                        <ExternalLink className="size-3 shrink-0" />
+                                                        <span className="truncate">
+                                                            {l}
+                                                        </span>
+                                                    </a>
+                                                    <button
+                                                        onClick={() =>
+                                                            removeFromList(
+                                                                'inspiration_links',
+                                                                i,
+                                                            )
+                                                        }
+                                                        className="shrink-0 text-muted-foreground hover:text-destructive"
+                                                    >
+                                                        <X className="size-3" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Resources */}
+                        <div className="space-y-2">
+                            <Label>Brand resources</Label>
+                            <p className="text-xs text-muted-foreground">
+                                Upload assets creators can use — brand
+                                guidelines, logos, product shots, scripts.
+                                Up to 10 files, 20 MB each.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    resourceInputRef.current?.click()
+                                }
+                                className="flex h-20 w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                            >
+                                <Paperclip className="size-4" />
+                                Click to attach files
+                            </button>
+                            <input
+                                ref={resourceInputRef}
+                                type="file"
+                                multiple
+                                className="hidden"
+                                onChange={handleResourceChange}
+                            />
+                            {resourceFiles.length > 0 && (
+                                <div className="space-y-1">
+                                    {resourceFiles.map((file, i) => (
+                                        <div
+                                            key={i}
+                                            className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"
                                         >
-                                            Remove
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
+                                            <div className="flex min-w-0 items-center gap-2">
+                                                <Paperclip className="size-3.5 shrink-0 text-muted-foreground" />
+                                                <span className="truncate font-medium">
+                                                    {file.name}
+                                                </span>
+                                                <span className="shrink-0 text-xs text-muted-foreground">
+                                                    {formatFileSize(file.size)}
+                                                </span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    removeResource(i)
+                                                }
+                                                className="ml-2 shrink-0 text-muted-foreground hover:text-destructive"
+                                            >
+                                                <X className="size-3.5" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
@@ -949,6 +1189,13 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-2 text-sm">
+                                {thumbnailPreview && (
+                                    <img
+                                        src={thumbnailPreview}
+                                        alt="Thumbnail"
+                                        className="mb-3 h-24 w-full rounded-md object-cover"
+                                    />
+                                )}
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">
                                         Type
@@ -1003,6 +1250,19 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
                                         {form.platform_ids.length} selected
                                     </span>
                                 </div>
+                                {resourceFiles.length > 0 && (
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">
+                                            Resources
+                                        </span>
+                                        <span className="font-medium">
+                                            {resourceFiles.length} file
+                                            {resourceFiles.length !== 1
+                                                ? 's'
+                                                : ''}
+                                        </span>
+                                    </div>
+                                )}
                                 {form.deadline && (
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">
