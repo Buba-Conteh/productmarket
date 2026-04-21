@@ -1,12 +1,12 @@
 import { Head, useForm } from '@inertiajs/react';
 import { Users } from 'lucide-react';
 import Heading from '@/components/heading';
+import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/input-error';
 
 interface CoBrand {
     id: string;

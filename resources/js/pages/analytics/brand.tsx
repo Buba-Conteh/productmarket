@@ -13,10 +13,10 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
-import Heading from '@/components/heading';
 import { StatCard } from '@/components/dashboard/stat-card';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe'];
 

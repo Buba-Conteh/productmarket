@@ -11,10 +11,10 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
-import Heading from '@/components/heading';
 import { StatCard } from '@/components/dashboard/stat-card';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Props {
     gmv_by_month: { month: string; gmv: number; revenue: number }[];

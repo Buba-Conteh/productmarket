@@ -1,8 +1,8 @@
 import { Head } from '@inertiajs/react';
 import { CheckCircle, Clock, Copy, Gift, Users } from 'lucide-react';
 import { useState } from 'react';
-import Heading from '@/components/heading';
 import { StatCard } from '@/components/dashboard/stat-card';
+import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

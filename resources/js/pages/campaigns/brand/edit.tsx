@@ -70,8 +70,14 @@ function getYoutubeThumbnail(url: string): string | null {
 }
 
 function formatFileSize(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024) {
+return `${bytes} B`;
+}
+
+    if (bytes < 1024 * 1024) {
+return `${(bytes / 1024).toFixed(1)} KB`;
+}
+
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
@@ -163,9 +169,17 @@ export default function EditCampaign({
         setter: (v: string) => void,
     ) {
         const trimmed = value.trim();
-        if (!trimmed) return;
+
+        if (!trimmed) {
+return;
+}
+
         const current = form[key] as string[];
-        if (!current.includes(trimmed)) update(key, [...current, trimmed]);
+
+        if (!current.includes(trimmed)) {
+update(key, [...current, trimmed]);
+}
+
         setter('');
     }
 
@@ -182,6 +196,7 @@ export default function EditCampaign({
         const file = e.target.files?.[0] ?? null;
         setThumbnailFile(file);
         setRemoveThumbnail(false);
+
         if (file) {
             const reader = new FileReader();
             reader.onload = (ev) =>
@@ -196,16 +211,23 @@ export default function EditCampaign({
         setThumbnailFile(null);
         setThumbnailPreview(null);
         setRemoveThumbnail(true);
-        if (thumbnailInputRef.current) thumbnailInputRef.current.value = '';
+
+        if (thumbnailInputRef.current) {
+thumbnailInputRef.current.value = '';
+}
     }
 
     function handleResourceChange(e: React.ChangeEvent<HTMLInputElement>) {
         const files = Array.from(e.target.files ?? []);
         setNewResourceFiles((prev) => {
             const combined = [...prev, ...files];
+
             return combined.slice(0, 10 - existingResources.length);
         });
-        if (resourceInputRef.current) resourceInputRef.current.value = '';
+
+        if (resourceInputRef.current) {
+resourceInputRef.current.value = '';
+}
     }
 
     function removeExistingResource(id: string) {
@@ -247,6 +269,7 @@ export default function EditCampaign({
 
         for (const field of scalarFields) {
             const val = form[field];
+
             if (val !== '' && val !== null && val !== undefined) {
                 data.append(field, String(val));
             }
@@ -265,8 +288,13 @@ export default function EditCampaign({
             data.append('content_type_ids[]', v),
         );
 
-        if (removeThumbnail) data.append('remove_thumbnail', '1');
-        if (thumbnailFile) data.append('thumbnail', thumbnailFile);
+        if (removeThumbnail) {
+data.append('remove_thumbnail', '1');
+}
+
+        if (thumbnailFile) {
+data.append('thumbnail', thumbnailFile);
+}
 
         removedResourceIds.forEach((id) =>
             data.append('remove_resource_ids[]', id),
@@ -283,8 +311,10 @@ export default function EditCampaign({
     }
 
     function publish() {
-        if (!confirm('Publish this campaign? It will go live immediately.'))
-            return;
+        if (!confirm('Publish this campaign? It will go live immediately.')) {
+return;
+}
+
         router.post(`/campaigns/${campaign.id}/publish`);
     }
 
@@ -854,6 +884,7 @@ export default function EditCampaign({
                                 <div className="grid gap-2 sm:grid-cols-2">
                                     {form.inspiration_links.map((l, i) => {
                                         const thumb = getYoutubeThumbnail(l);
+
                                         return (
                                             <div
                                                 key={i}

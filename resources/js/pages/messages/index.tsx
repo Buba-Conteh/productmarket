@@ -1,9 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
-import { MessageSquare } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { MessageSquare } from 'lucide-react';
+import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import Heading from '@/components/heading';
 
 interface Thread {
     id: string;

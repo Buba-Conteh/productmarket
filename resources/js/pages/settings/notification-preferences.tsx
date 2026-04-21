@@ -1,11 +1,11 @@
 import { Head, useForm } from '@inertiajs/react';
 import { Bell } from 'lucide-react';
+import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { toast } from 'sonner';
 
 const TYPE_LABELS: Record<string, string> = {
     entry_submitted: 'Entry submitted',

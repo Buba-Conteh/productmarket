@@ -31,8 +31,14 @@ type Props = {
 };
 
 function formatCount(n: number): string {
-    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-    if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+    if (n >= 1_000_000) {
+return `${(n / 1_000_000).toFixed(1)}M`;
+}
+
+    if (n >= 1_000) {
+return `${(n / 1_000).toFixed(1)}K`;
+}
+
     return String(n);
 }
 
@@ -46,7 +52,11 @@ export default function BrandCreatorSearch({
 
     function applyFilter(key: string, value: string | undefined) {
         const updated = { ...filters, [key]: value || undefined };
-        if (!value) delete updated[key];
+
+        if (!value) {
+delete updated[key];
+}
+
         router.get('/creators', updated, { preserveState: true });
     }
 

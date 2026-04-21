@@ -16,8 +16,8 @@ import {
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { dashboard } from '@/routes/admin';
-import { index as adminUsersIndex } from '@/routes/admin/users';
 import { edit as adminSettingsEdit } from '@/routes/admin/settings';
+import { index as adminUsersIndex } from '@/routes/admin/users';
 import type { NavItem } from '@/types';
 
 const overviewItems: NavItem[] = [

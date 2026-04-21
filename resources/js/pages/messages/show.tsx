@@ -1,7 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Send } from 'lucide-react';
 import { format } from 'date-fns';
+import { ArrowLeft, Send } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
@@ -43,7 +43,10 @@ export default function MessagesShow({ thread, messages: initialMessages, auth_u
     // Listen for real-time messages via Reverb
     useEffect(() => {
         const echo = (window as any).Echo;
-        if (!echo) return;
+
+        if (!echo) {
+return;
+}
 
         const channel = echo.private(`thread.${thread.id}`);
         channel.listen('.message.sent', (event: Message) => {
@@ -59,7 +62,10 @@ export default function MessagesShow({ thread, messages: initialMessages, auth_u
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!data.body.trim()) return;
+
+        if (!data.body.trim()) {
+return;
+}
 
         const optimistic: Message = {
             id: `temp-${Date.now()}`,

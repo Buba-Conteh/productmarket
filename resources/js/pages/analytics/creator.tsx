@@ -11,8 +11,8 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
-import Heading from '@/components/heading';
 import { StatCard } from '@/components/dashboard/stat-card';
+import Heading from '@/components/heading';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Props {

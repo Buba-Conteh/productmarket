@@ -7,6 +7,7 @@ const echo =
     typeof window !== 'undefined' && key
         ? (() => {
               (window as any).Pusher = Pusher;
+
               return new Echo({
                   broadcaster: 'reverb',
                   key,

@@ -131,8 +131,14 @@ function getYoutubeThumbnail(url: string): string | null {
 }
 
 function formatFileSize(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024) {
+return `${bytes} B`;
+}
+
+    if (bytes < 1024 * 1024) {
+return `${(bytes / 1024).toFixed(1)} KB`;
+}
+
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
@@ -162,6 +168,7 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
         setErrors((prev) => {
             const next = { ...prev };
             delete next[key];
+
             return next;
         });
     }
@@ -185,11 +192,17 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
         setter: (v: string) => void,
     ) {
         const trimmed = value.trim();
-        if (!trimmed) return;
+
+        if (!trimmed) {
+return;
+}
+
         const current = form[key] as string[];
+
         if (!current.includes(trimmed)) {
             update(key, [...current, trimmed]);
         }
+
         setter('');
     }
 
@@ -205,6 +218,7 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
     function handleThumbnailChange(e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0] ?? null;
         setThumbnailFile(file);
+
         if (file) {
             const reader = new FileReader();
             reader.onload = (ev) =>
@@ -218,6 +232,7 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
     function removeThumbnail() {
         setThumbnailFile(null);
         setThumbnailPreview(null);
+
         if (thumbnailInputRef.current) {
             thumbnailInputRef.current.value = '';
         }
@@ -227,8 +242,10 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
         const files = Array.from(e.target.files ?? []);
         setResourceFiles((prev) => {
             const combined = [...prev, ...files];
+
             return combined.slice(0, 10);
         });
+
         if (resourceInputRef.current) {
             resourceInputRef.current.value = '';
         }
@@ -242,43 +259,58 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
         const errs: Record<string, string> = {};
 
         if (step === 1) {
-            if (!form.title.trim()) errs.title = 'Title is required.';
+            if (!form.title.trim()) {
+errs.title = 'Title is required.';
+}
 
             if (form.type === 'contest') {
-                if (!form.prize_amount || Number(form.prize_amount) <= 0)
-                    errs.prize_amount = 'Prize amount is required.';
+                if (!form.prize_amount || Number(form.prize_amount) <= 0) {
+errs.prize_amount = 'Prize amount is required.';
+}
             }
 
             if (form.type === 'ripple') {
-                if (!form.initial_fee && form.initial_fee !== '0')
-                    errs.initial_fee = 'Initial fee is required.';
-                if (!form.rpm_rate || Number(form.rpm_rate) <= 0)
-                    errs.rpm_rate = 'RPM rate is required.';
-                if (!form.total_budget || Number(form.total_budget) <= 0)
-                    errs.total_budget = 'Total budget is required.';
+                if (!form.initial_fee && form.initial_fee !== '0') {
+errs.initial_fee = 'Initial fee is required.';
+}
+
+                if (!form.rpm_rate || Number(form.rpm_rate) <= 0) {
+errs.rpm_rate = 'RPM rate is required.';
+}
+
+                if (!form.total_budget || Number(form.total_budget) <= 0) {
+errs.total_budget = 'Total budget is required.';
+}
             }
 
             if (form.type === 'pitch') {
-                if (!form.product_name.trim())
-                    errs.product_name = 'Product name is required.';
+                if (!form.product_name.trim()) {
+errs.product_name = 'Product name is required.';
+}
             }
         }
 
         if (step === 2) {
-            if (!form.brief.trim()) errs.brief = 'Brief is required.';
+            if (!form.brief.trim()) {
+errs.brief = 'Brief is required.';
+}
         }
 
         if (step === 3) {
-            if (form.platform_ids.length === 0)
-                errs.platform_ids = 'Select at least one platform.';
+            if (form.platform_ids.length === 0) {
+errs.platform_ids = 'Select at least one platform.';
+}
         }
 
         setErrors(errs);
+
         return Object.keys(errs).length === 0;
     }
 
     function next() {
-        if (validateStep()) setStep((s) => Math.min(s + 1, STEPS.length - 1));
+        if (validateStep()) {
+setStep((s) => Math.min(s + 1, STEPS.length - 1));
+}
     }
 
     function back() {
@@ -286,7 +318,9 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
     }
 
     function submit() {
-        if (!validateStep()) return;
+        if (!validateStep()) {
+return;
+}
 
         setSubmitting(true);
 
@@ -317,6 +351,7 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
 
         for (const field of scalarFields) {
             const val = form[field];
+
             if (val !== '' && val !== null && val !== undefined) {
                 data.append(field, String(val));
             }
@@ -337,7 +372,10 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
         );
 
         // Files
-        if (thumbnailFile) data.append('thumbnail', thumbnailFile);
+        if (thumbnailFile) {
+data.append('thumbnail', thumbnailFile);
+}
+
         resourceFiles.forEach((f) => data.append('resources[]', f));
 
         router.post('/campaigns', data, {
@@ -365,7 +403,9 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
                         <div key={label} className="flex items-center gap-2">
                             <button
                                 onClick={() => {
-                                    if (i < step) setStep(i);
+                                    if (i < step) {
+setStep(i);
+}
                                 }}
                                 className={cn(
                                     'flex size-8 items-center justify-center rounded-full text-xs font-medium transition-colors',
@@ -996,6 +1036,7 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
                                 <div className="grid gap-2 sm:grid-cols-2">
                                     {form.inspiration_links.map((l, i) => {
                                         const thumb = getYoutubeThumbnail(l);
+
                                         return (
                                             <div
                                                 key={i}
