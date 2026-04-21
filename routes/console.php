@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Jobs\AggregateCampaignAnalyticsJob;
+use App\Jobs\AggregateCreatorAnalyticsJob;
 use App\Jobs\RefreshSocialTokensJob;
 use App\Jobs\ReleaseHeldPayoutsJob;
 use App\Jobs\ResolveContestDeadlineJob;
@@ -14,6 +16,16 @@ use Illuminate\Support\Facades\Schedule;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+Schedule::job(new AggregateCampaignAnalyticsJob)
+    ->dailyAt('02:00')
+    ->name('aggregate-campaign-analytics')
+    ->withoutOverlapping();
+
+Schedule::job(new AggregateCreatorAnalyticsJob)
+    ->weeklyOn(1, '03:00') // every Monday at 3am
+    ->name('aggregate-creator-analytics')
+    ->withoutOverlapping();
 
 Schedule::job(new ReleaseHeldPayoutsJob)
     ->hourly()

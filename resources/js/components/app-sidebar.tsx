@@ -65,6 +65,7 @@ const creatorSections: NavSection[] = [
     {
         label: 'Earnings',
         items: [
+            { title: 'Analytics', href: '/creator/analytics', icon: BarChart3 },
             { title: 'Wallet', href: '/wallet', icon: Wallet },
             { title: 'Achievements', href: '/achievements', icon: Trophy },
             { title: 'Billing', href: '/billing', icon: CreditCard },
