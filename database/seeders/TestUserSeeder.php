@@ -10,7 +10,9 @@ use App\Models\Industry;
 use App\Models\Niche;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 final class TestUserSeeder extends Seeder
 {
@@ -18,6 +20,7 @@ final class TestUserSeeder extends Seeder
     {
         $this->createAdmin();
         $this->createBrand();
+        $this->createBrandGrowth();
         $this->createCreator();
         $this->createCreatorPro();
     }
@@ -64,6 +67,57 @@ final class TestUserSeeder extends Seeder
                 'onboarding_completed_at' => now(),
             ],
         );
+    }
+
+    private function createBrandGrowth(): void
+    {
+        $user = User::updateOrCreate(
+            ['email' => 'brand.pro@productmarket.test'],
+            [
+                'name' => 'Pro Brand',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+                'status' => 'active',
+            ],
+        );
+
+        $user->syncRoles(['brand']);
+
+        $industry = Industry::where('slug', 'technology-software')->first();
+
+        BrandProfile::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'company_name' => 'Pro Brand Co',
+                'website' => 'https://probrand.example.com',
+                'industry_id' => $industry?->id,
+                'description' => 'A growth-stage brand running multiple creator campaigns.',
+                'is_agency' => false,
+                'stripe_customer_id' => 'cus_test_brand_growth',
+                'onboarding_completed_at' => now(),
+            ],
+        );
+
+        // Fake active Growth subscription so middleware passes without real Stripe
+        $exists = DB::table('subscriptions')
+            ->where('user_id', $user->id)
+            ->where('type', 'brand')
+            ->exists();
+
+        if (! $exists) {
+            DB::table('subscriptions')->insert([
+                'user_id' => $user->id,
+                'type' => 'brand',
+                'stripe_id' => 'sub_test_brand_growth_' . Str::random(8),
+                'stripe_status' => 'active',
+                'stripe_price' => config('billing.brand_plans.growth.stripe_monthly'),
+                'quantity' => 1,
+                'trial_ends_at' => null,
+                'ends_at' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
     }
 
     private function createCreator(): void

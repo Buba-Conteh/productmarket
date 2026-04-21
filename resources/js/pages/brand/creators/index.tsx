@@ -50,7 +50,7 @@ export default function BrandCreatorSearch({
         router.get('/creators', updated, { preserveState: true });
     }
 
-    function handleSearch(e: React.FormEvent) {
+    function handleSearch(e: React.SyntheticEvent<HTMLFormElement>) {
         e.preventDefault();
         applyFilter('search', search);
     }
@@ -86,16 +86,16 @@ export default function BrandCreatorSearch({
 
                     <div className="flex flex-wrap gap-3">
                         <Select
-                            value={filters.niche_id ?? ''}
+                            value={filters.niche_id ?? 'all'}
                             onValueChange={(v) =>
-                                applyFilter('niche_id', v || undefined)
+                                applyFilter('niche_id', v === 'all' ? undefined : v)
                             }
                         >
                             <SelectTrigger className="w-[160px]">
                                 <SelectValue placeholder="All niches" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">All niches</SelectItem>
+                                <SelectItem value="all">All niches</SelectItem>
                                 {niches.map((n) => (
                                     <SelectItem key={n.id} value={n.id}>
                                         {n.name}
@@ -105,16 +105,16 @@ export default function BrandCreatorSearch({
                         </Select>
 
                         <Select
-                            value={filters.platform_id ?? ''}
+                            value={filters.platform_id ?? 'all'}
                             onValueChange={(v) =>
-                                applyFilter('platform_id', v || undefined)
+                                applyFilter('platform_id', v === 'all' ? undefined : v)
                             }
                         >
                             <SelectTrigger className="w-[160px]">
                                 <SelectValue placeholder="All platforms" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">All platforms</SelectItem>
+                                <SelectItem value="all">All platforms</SelectItem>
                                 {platforms.map((p) => (
                                     <SelectItem key={p.id} value={p.id}>
                                         {p.name}
