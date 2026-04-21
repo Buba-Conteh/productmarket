@@ -171,14 +171,22 @@ final readonly class EntryService
         abort_unless($entry->type === 'pitch', 403);
         abort_unless($entry->status === 'live', 403, 'Entry must be live before confirming.');
 
-        return DB::transaction(function () use ($entry) {
+        $payout = null;
+
+        $entry = DB::transaction(function () use ($entry, &$payout) {
             $pitchDetails = $entry->pitchDetails;
             $gross = number_format((float) ($pitchDetails?->accepted_bid ?? 0), 2, '.', '');
 
-            $this->payoutService->createPayout($entry, 'pitch_payment', $gross);
+            $payout = $this->payoutService->createPayout($entry, 'pitch_payment', $gross);
 
-            return $entry;
+            return $entry->fresh();
         });
+
+        if ($payout) {
+            ProcessPayoutJob::dispatch($payout->id);
+        }
+
+        return $entry;
     }
 
     /**

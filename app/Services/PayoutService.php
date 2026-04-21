@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\DTOs\PayoutAmounts;
+use App\Jobs\ProcessPayoutJob;
 use App\Models\Entry;
 use App\Models\Payout;
+use App\Models\User;
+use App\Notifications\PayoutFailureAlert;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Stripe\Exception\ApiErrorException;
@@ -139,13 +142,37 @@ final readonly class PayoutService
 
     private function markFailed(Payout $payout, string $reason): void
     {
+        $newRetryCount = $payout->retry_count + 1;
+
+        if ($newRetryCount < 2) {
+            // First failure — keep pending and schedule a retry in 30 minutes.
+            $payout->update([
+                'failure_reason' => $reason,
+                'retry_count' => $newRetryCount,
+            ]);
+
+            ProcessPayoutJob::dispatch($payout->id)->delay(now()->addMinutes(30));
+
+            return;
+        }
+
+        // Second failure — mark definitively failed and alert admins.
         $payout->update([
             'status' => 'failed',
             'failure_reason' => $reason,
-            'retry_count' => $payout->retry_count + 1,
+            'retry_count' => $newRetryCount,
         ]);
 
-        // Return the pending amount to the creator profile since the transfer didn't go through.
         $payout->creator->decrement('pending_earnings', (float) $payout->net_amount);
+
+        Log::error('Payout failed after max retries — admin alerted', [
+            'payout_id' => $payout->id,
+            'retry_count' => $newRetryCount,
+            'reason' => $reason,
+        ]);
+
+        User::role('admin')->each(
+            fn (User $admin) => $admin->notify(new PayoutFailureAlert($payout)),
+        );
     }
 }
