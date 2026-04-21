@@ -14,7 +14,6 @@ import {
     TrendingUp,
     Trophy,
     Users,
-    XCircle,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -33,30 +32,41 @@ function getYoutubeThumbnail(url: string): string | null {
     try {
         const parsed = new URL(url);
         let videoId: string | null = null;
+
         if (
             parsed.hostname === 'www.youtube.com' ||
             parsed.hostname === 'youtube.com'
         ) {
-            if (parsed.pathname === '/watch')
-                videoId = parsed.searchParams.get('v');
-            else if (parsed.pathname.startsWith('/embed/'))
-                videoId = parsed.pathname.split('/embed/')[1].split('/')[0];
-            else if (parsed.pathname.startsWith('/shorts/'))
-                videoId = parsed.pathname.split('/shorts/')[1].split('/')[0];
+            if (parsed.pathname === '/watch') {
+videoId = parsed.searchParams.get('v');
+} else if (parsed.pathname.startsWith('/embed/')) {
+videoId = parsed.pathname.split('/embed/')[1].split('/')[0];
+} else if (parsed.pathname.startsWith('/shorts/')) {
+videoId = parsed.pathname.split('/shorts/')[1].split('/')[0];
+}
         } else if (parsed.hostname === 'youtu.be') {
             videoId = parsed.pathname.slice(1).split('/')[0];
         }
-        if (videoId)
-            return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+
+        if (videoId) {
+return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+}
     } catch {
         // invalid URL
     }
+
     return null;
 }
 
 function formatFileSize(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024) {
+return `${bytes} B`;
+}
+
+    if (bytes < 1024 * 1024) {
+return `${(bytes / 1024).toFixed(1)} KB`;
+}
+
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
@@ -320,6 +330,7 @@ export default function BrandCampaignShow({ campaign }: Props) {
                                                 (l, i) => {
                                                     const thumb =
                                                         getYoutubeThumbnail(l);
+
                                                     return (
                                                         <a
                                                             key={i}

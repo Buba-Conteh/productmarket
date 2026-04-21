@@ -2,14 +2,12 @@ import { Head, router, usePage } from '@inertiajs/react';
 import {
     AlertCircle,
     CheckCircle2,
-    CreditCard,
     ExternalLink,
     FileText,
     Zap,
 } from 'lucide-react';
 import { useState } from 'react';
 import Heading from '@/components/heading';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Card,

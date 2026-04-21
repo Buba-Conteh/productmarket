@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
 import { usePage } from '@inertiajs/react';
+import { useCallback, useEffect, useState } from 'react';
 import type { SharedData } from '@/types/global';
 
 export interface AppNotification {
@@ -17,8 +17,9 @@ export function useNotifications() {
     const [unreadCount, setUnreadCount] = useState<number>(initialUnread ?? 0);
     const [loading, setLoading] = useState(false);
 
-    const fetchNotifications = async () => {
+    const fetchNotifications = useCallback(async () => {
         setLoading(true);
+
         try {
             const res = await fetch('/notifications', {
                 headers: { Accept: 'application/json' },
@@ -29,11 +30,14 @@ export function useNotifications() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         const echo = (window as any).Echo;
-        if (!echo || !auth?.user?.id) return;
+
+        if (!echo || !auth?.user?.id) {
+return;
+}
 
         const channel = echo.private(`notifications.${auth.user.id}`);
         channel.listen('.notification.created', (event: { data: AppNotification }) => {

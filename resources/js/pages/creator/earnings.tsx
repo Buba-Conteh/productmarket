@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import { StatCard } from '@/components/dashboard/stat-card';
 import Heading from '@/components/heading';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
@@ -77,7 +76,9 @@ function StatusBadge({ status }: { status: Payout['status'] }) {
 }
 
 function StripeStatusIndicator({ status }: { status: Props['stripe_connect_status'] }) {
-    if (status === 'active') return null;
+    if (status === 'active') {
+return null;
+}
 
     return (
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800 dark:border-yellow-800/40 dark:bg-yellow-900/20 dark:text-yellow-300">

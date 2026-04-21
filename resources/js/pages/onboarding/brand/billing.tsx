@@ -2,14 +2,6 @@ import { Head, router } from '@inertiajs/react';
 import { CheckCircle2, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 const BRAND_STEPS = [

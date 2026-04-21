@@ -1,7 +1,6 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import { CheckCircle2, ExternalLink, Link2Off, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
 import { connect, disconnect } from '@/routes/creator/social';
 
 const CREATOR_STEPS = [
@@ -52,8 +51,14 @@ const PLATFORMS: { slug: string; name: string; description: string; color: strin
 ];
 
 function formatFollowers(count: number): string {
-    if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;
-    if (count >= 1_000) return `${(count / 1_000).toFixed(1)}K`;
+    if (count >= 1_000_000) {
+return `${(count / 1_000_000).toFixed(1)}M`;
+}
+
+    if (count >= 1_000) {
+return `${(count / 1_000).toFixed(1)}K`;
+}
+
     return String(count);
 }
 
@@ -65,7 +70,7 @@ export default function CreatorSocial({ socialAccounts }: Props) {
     );
 
     function connectPlatform(slug: string) {
-        window.location.href = connect.url({ platform: slug });
+        window.location.assign(connect.url({ platform: slug }));
     }
 
     function disconnectPlatform(slug: string) {

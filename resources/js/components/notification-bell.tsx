@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
 import { Link } from '@inertiajs/react';
-import { Bell } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { Bell } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -22,7 +22,7 @@ export function NotificationBell() {
         if (open) {
             fetchNotifications();
         }
-    }, [open]);
+    }, [open, fetchNotifications]);
 
     return (
         <DropdownMenu open={open} onOpenChange={setOpen}>
