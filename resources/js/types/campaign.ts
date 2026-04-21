@@ -69,6 +69,17 @@ export type EscrowTransaction = {
     status: string;
 };
 
+export type CampaignResource = {
+    id: string;
+    campaign_id: string;
+    original_name: string;
+    file_name: string;
+    mime_type: string;
+    size: number;
+    url: string;
+    created_at: string;
+};
+
 export type Campaign = {
     id: string;
     brand_profile_id: string;
@@ -85,6 +96,8 @@ export type Campaign = {
     deadline: string | null;
     max_creators: number | null;
     ai_brief_used: boolean;
+    thumbnail: string | null;
+    thumbnail_url: string | null;
     created_at: string;
     updated_at: string;
     entries_count?: number;
@@ -95,6 +108,7 @@ export type Campaign = {
     ripple_details?: RippleDetails | null;
     pitch_details?: PitchDetails | null;
     escrow_transaction?: EscrowTransaction | null;
+    resources?: CampaignResource[];
 };
 
 export type CampaignApplication = {

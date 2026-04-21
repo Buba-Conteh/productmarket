@@ -40,6 +40,9 @@ final class StoreCampaignRequest extends FormRequest
             'content_type_ids' => ['nullable', 'array'],
             'content_type_ids.*' => ['string', 'exists:content_types,id'],
             'ai_brief_used' => ['nullable', 'boolean'],
+            'thumbnail' => ['nullable', 'image', 'max:5120'],
+            'resources' => ['nullable', 'array', 'max:10'],
+            'resources.*' => ['file', 'max:20480', 'mimes:jpg,jpeg,png,gif,webp,pdf,mp4,mov,zip,doc,docx,xls,xlsx,ppt,pptx'],
         ];
 
         // Type-specific validation
