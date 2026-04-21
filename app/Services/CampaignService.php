@@ -128,6 +128,9 @@ final readonly class CampaignService
                 'published_at' => now(),
             ]);
 
+            // Qualify any pending brand referral on first campaign published
+            app(ReferralService::class)->qualify($campaign->brandProfile->user);
+
             return $campaign->fresh();
         });
     }

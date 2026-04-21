@@ -6,6 +6,7 @@ import {
     CreditCard,
     FileVideo,
     FolderGit2,
+    Gift,
     LayoutGrid,
     LifeBuoy,
     Megaphone,
@@ -47,6 +48,7 @@ const brandSections: NavSection[] = [
         label: 'Insights',
         items: [
             { title: 'Analytics', href: '/analytics', icon: BarChart3 },
+            { title: 'Referrals', href: '/referrals', icon: Gift },
             { title: 'Billing', href: '/billing', icon: CreditCard },
         ],
     },
@@ -66,6 +68,7 @@ const creatorSections: NavSection[] = [
         label: 'Earnings',
         items: [
             { title: 'Analytics', href: '/creator/analytics', icon: BarChart3 },
+            { title: 'Referrals', href: '/referrals', icon: Gift },
             { title: 'Wallet', href: '/wallet', icon: Wallet },
             { title: 'Achievements', href: '/achievements', icon: Trophy },
             { title: 'Billing', href: '/billing', icon: CreditCard },
