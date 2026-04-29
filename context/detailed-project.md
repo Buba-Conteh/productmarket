@@ -180,7 +180,6 @@ A shareable media kit link generates a clean, print-friendly version brands can 
 ### 16. Brand Public Profile
 
 Brands have a profile page showing active campaigns, past campaigns, and aggregate stats (total campaigns, total views generated, total creator payouts). Builds credibility with creators evaluating whether to submit.
-
 ---
 
 ## Phase 6 — Communication & Real-time

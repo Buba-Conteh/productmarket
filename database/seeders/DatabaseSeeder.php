@@ -17,10 +17,7 @@ final class DatabaseSeeder extends Seeder
             ContentTypeSeeder::class,
             PlatformSettingSeeder::class,
             RoleSeeder::class,
+            AdminSeeder::class,
         ]);
-
-        if (app()->environment('local', 'staging')) {
-            $this->call(TestUserSeeder::class);
-        }
     }
 }

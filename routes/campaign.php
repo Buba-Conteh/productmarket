@@ -25,8 +25,7 @@ Route::middleware(['auth', 'verified', EnsureOnboardingComplete::class, 'role:br
             ->name('campaigns.brand.index');
 
         Route::get('/create', [BrandCampaignController::class, 'create'])
-            ->name('campaigns.brand.create')
-            ->middleware(['brand.subscribed', 'brand.campaign_limit']);
+            ->name('campaigns.brand.create');
 
         Route::post('/', [BrandCampaignController::class, 'store'])
             ->name('campaigns.brand.store')

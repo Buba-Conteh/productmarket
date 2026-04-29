@@ -91,7 +91,7 @@ export default function BrandBillingSettings({
         router.post(
             '/billing/brand/checkout',
             { plan: planKey, interval },
-            { onFinish: () => setLoading(null) },
+            { onError: () => setLoading(null) },
         );
     }
 

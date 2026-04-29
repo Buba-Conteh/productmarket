@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Support\FileUploader;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Facades\Storage;
 
 final class Campaign extends Model
 {
@@ -52,11 +52,7 @@ final class Campaign extends Model
 
     public function getThumbnailUrlAttribute(): ?string
     {
-        if ($this->thumbnail === null) {
-            return null;
-        }
-
-        return Storage::disk('public')->url($this->thumbnail);
+        return FileUploader::url($this->thumbnail);
     }
 
     public function brand(): BelongsTo

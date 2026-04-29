@@ -77,4 +77,7 @@ Route::middleware(['auth', 'verified', EnsureOnboardingComplete::class, 'role:cr
 Route::middleware(['auth', 'verified', 'role:brand'])->group(function () {
     Route::post('/billing/onboarding/brand/checkout', [BillingController::class, 'onboardingBrandCheckout'])
         ->name('billing.onboarding.brand.checkout');
+
+    Route::get('/billing/onboarding/brand/success', [BillingController::class, 'onboardingBrandSuccess'])
+        ->name('billing.onboarding.brand.success');
 });

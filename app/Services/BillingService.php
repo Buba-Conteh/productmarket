@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\SubscriptionStatus;
 use App\Models\User;
+use Laravel\Cashier\Cashier;
 use Laravel\Cashier\Subscription;
 
 final readonly class BillingService
@@ -53,6 +55,37 @@ final readonly class BillingService
         }
 
         return 'free';
+    }
+
+    /**
+     * Upsert the subscription_statuses row for the given user + role.
+     * Call this after any subscription change (webhook, checkout, cancel, resume).
+     */
+    public function syncStatus(User $user, string $role): SubscriptionStatus
+    {
+        $planKey = match ($role) {
+            'brand' => $this->brandPlanKey($user),
+            'creator' => $this->creatorPlanKey($user),
+            default => null,
+        };
+
+        $subscription = $user->subscription($role);
+        $stripeStatus = $subscription?->stripe_status;
+
+        // For creators with no paid subscription the plan is 'free' but there
+        // is no Stripe subscription row — treat stripe_status as 'active'.
+        if ($role === 'creator' && $planKey === 'free') {
+            $stripeStatus = 'active';
+        }
+
+        return SubscriptionStatus::updateOrCreate(
+            ['user_id' => $user->id, 'role' => $role],
+            [
+                'plan_key' => $planKey,
+                'stripe_status' => $stripeStatus,
+                'synced_at' => now(),
+            ]
+        );
     }
 
     /**
@@ -166,6 +199,102 @@ final readonly class BillingService
         } catch (\Throwable) {
             return [];
         }
+    }
+
+    /**
+     * Sync a Cashier subscription from a Stripe Checkout session ID.
+     * Webhooks can't reach localhost, so success handlers call this directly.
+     */
+    public function syncFromCheckoutSession(User $user, string $sessionId, string $role): void
+    {
+        if (! $user->stripe_id || ! $sessionId) {
+            return;
+        }
+
+        try {
+            $session = Cashier::stripe()->checkout->sessions->retrieve($sessionId);
+            $stripeSubId = $session->subscription;
+
+            if (! $stripeSubId) {
+                return;
+            }
+
+            $stripeSub = Cashier::stripe()->subscriptions->retrieve($stripeSubId, ['expand' => ['items']]);
+            $item = $stripeSub->items->data[0] ?? null;
+            $priceId = $item?->price->id;
+
+            $localSub = $user->subscriptions()->updateOrCreate(
+                ['stripe_id' => $stripeSubId],
+                [
+                    'type' => $role,
+                    'stripe_status' => $stripeSub->status,
+                    'stripe_price' => $priceId,
+                    'quantity' => $item?->quantity ?? 1,
+                    'trial_ends_at' => $stripeSub->trial_end ? now()->setTimestamp($stripeSub->trial_end) : null,
+                    'ends_at' => $stripeSub->cancel_at ? now()->setTimestamp($stripeSub->cancel_at) : null,
+                ]
+            );
+
+            foreach ($stripeSub->items->data as $lineItem) {
+                $localSub->items()->updateOrCreate(
+                    ['stripe_id' => $lineItem->id],
+                    [
+                        'stripe_product' => $lineItem->price->product,
+                        'stripe_price' => $lineItem->price->id,
+                        'quantity' => $lineItem->quantity ?? 1,
+                    ]
+                );
+            }
+        } catch (\Throwable) {
+            // Falls back to webhook sync in production
+        }
+    }
+
+    /**
+     * Fetch live unit_amount values from Stripe for each plan's price IDs.
+     * Falls back to config values when Stripe is unreachable or price IDs are missing.
+     *
+     * @param  array<string, mixed>  $plans
+     * @return array<string, mixed>
+     */
+    public function plansWithLivePrices(array $plans): array
+    {
+        $priceIds = [];
+
+        foreach ($plans as $plan) {
+            if (! empty($plan['stripe_monthly'])) {
+                $priceIds[] = $plan['stripe_monthly'];
+            }
+            if (! empty($plan['stripe_annual'])) {
+                $priceIds[] = $plan['stripe_annual'];
+            }
+        }
+
+        if (empty($priceIds)) {
+            return $plans;
+        }
+
+        try {
+            $stripePrices = [];
+
+            foreach ($priceIds as $id) {
+                $price = Cashier::stripe()->prices->retrieve($id);
+                $stripePrices[$id] = $price->unit_amount;
+            }
+
+            foreach ($plans as &$plan) {
+                if (! empty($plan['stripe_monthly']) && isset($stripePrices[$plan['stripe_monthly']])) {
+                    $plan['monthly_price'] = $stripePrices[$plan['stripe_monthly']];
+                }
+                if (! empty($plan['stripe_annual']) && isset($stripePrices[$plan['stripe_annual']])) {
+                    $plan['annual_price'] = $stripePrices[$plan['stripe_annual']];
+                }
+            }
+        } catch (\Throwable) {
+            // Keep config prices as fallback
+        }
+
+        return $plans;
     }
 
     /**

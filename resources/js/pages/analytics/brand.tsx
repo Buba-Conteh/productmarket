@@ -96,7 +96,7 @@ export default function BrandAnalytics({ views_over_time, campaigns, platform_br
                                                 <Cell key={i} fill={COLORS[i % COLORS.length]} />
                                             ))}
                                         </Pie>
-                                        <Tooltip formatter={(v: number) => v.toLocaleString()} />
+                                        <Tooltip formatter={(v) => Number(v).toLocaleString()} />
                                     </PieChart>
                                 </ResponsiveContainer>
                             )}

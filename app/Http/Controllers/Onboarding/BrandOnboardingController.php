@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Onboarding;
 
 use App\Http\Controllers\Controller;
 use App\Models\Industry;
+use App\Services\BillingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -14,6 +15,8 @@ use Inertia\Response;
 
 final class BrandOnboardingController extends Controller
 {
+    public function __construct(private readonly BillingService $billing) {}
+
     public function company(Request $request): Response|RedirectResponse
     {
         if ($this->isOnboarded($request)) {
@@ -69,7 +72,7 @@ final class BrandOnboardingController extends Controller
 
         return Inertia::render('onboarding/brand/billing', [
             'profile' => $profile,
-            'plans' => config('billing.brand_plans'),
+            'plans' => $this->billing->plansWithLivePrices(config('billing.brand_plans')),
             'subscribed' => $subscribed,
         ]);
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Campaign;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -12,6 +13,16 @@ final class StoreCampaignRequest extends FormRequest
     public function authorize(): bool
     {
         return $this->user()?->hasRole('brand') ?? false;
+    }
+
+    protected function failedValidation(Validator $validator): void
+    {
+        logger()->warning('Campaign validation failed', [
+            'errors' => $validator->errors()->toArray(),
+            'input' => $this->except(['thumbnail', 'resources']),
+        ]);
+
+        parent::failedValidation($validator);
     }
 
     /**

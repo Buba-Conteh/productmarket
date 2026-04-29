@@ -25,6 +25,8 @@ type Plan = {
     annual_price: number;
     entry_limit: number | null;
     features: string[];
+    stripe_monthly: string | null;
+    stripe_annual: string | null;
 };
 
 type Subscription = {
@@ -96,7 +98,7 @@ export default function CreatorBillingSettings({
         router.post(
             '/billing/creator/checkout',
             { interval },
-            { onFinish: () => setLoading(false) },
+            { onError: () => setLoading(false) },
         );
     }
 

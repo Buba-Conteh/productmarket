@@ -41,7 +41,7 @@ export default function BrandBilling({ plans, subscribed }: Props) {
         router.post(
             '/billing/onboarding/brand/checkout',
             { plan: selectedPlan, interval },
-            { onFinish: () => setLoading(false) },
+            { onError: () => setLoading(false) },
         );
     }
 

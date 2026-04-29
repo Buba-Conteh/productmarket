@@ -75,7 +75,7 @@ export default function CreatorAnalytics({ weekly_snapshots, entry_views, earnin
                                         <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                                         <XAxis type="number" tick={{ fontSize: 11 }} />
                                         <YAxis dataKey="title" type="category" tick={{ fontSize: 11 }} width={110} />
-                                        <Tooltip formatter={(v: number) => `$${v.toFixed(2)}`} />
+                                        <Tooltip formatter={(v) => `$${Number(v).toFixed(2)}`} />
                                         <Bar dataKey="total_earned" name="Earned ($)" fill="#6366f1" radius={[0, 4, 4, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
@@ -118,7 +118,7 @@ export default function CreatorAnalytics({ weekly_snapshots, entry_views, earnin
                                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                                     <XAxis dataKey="week" tick={{ fontSize: 11 }} />
                                     <YAxis tick={{ fontSize: 11 }} />
-                                    <Tooltip formatter={(v: number) => `$${v.toFixed(2)}`} />
+                                    <Tooltip formatter={(v) => `$${Number(v).toFixed(2)}`} />
                                     <Bar dataKey="earned" name="Earned ($)" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>

@@ -64,4 +64,14 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(UserNotificationPreference::class);
     }
+
+    public function subscriptionStatuses(): HasMany
+    {
+        return $this->hasMany(SubscriptionStatus::class);
+    }
+
+    public function subscriptionStatus(string $role): ?SubscriptionStatus
+    {
+        return $this->subscriptionStatuses()->where('role', $role)->first();
+    }
 }

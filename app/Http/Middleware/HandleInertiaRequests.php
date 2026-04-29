@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Services\BillingService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -40,17 +39,17 @@ class HandleInertiaRequests extends Middleware
         $billing = null;
 
         if ($user) {
-            $billingService = app(BillingService::class);
-
             if ($user->hasRole('brand')) {
+                $status = $user->subscriptionStatuses()->where('role', 'brand')->first();
                 $billing = [
-                    'plan' => $billingService->brandPlanKey($user),
-                    'subscribed' => $user->subscribed('brand'),
+                    'plan' => $status?->plan_key,
+                    'subscribed' => $status?->isActive() ?? false,
                 ];
             } elseif ($user->hasRole('creator')) {
+                $status = $user->subscriptionStatuses()->where('role', 'creator')->first();
                 $billing = [
-                    'plan' => $billingService->creatorPlanKey($user),
-                    'subscribed' => $user->subscribed('creator'),
+                    'plan' => $status?->plan_key ?? 'free',
+                    'subscribed' => $status?->isActive() ?? true, // creators are always 'subscribed' (free tier is valid)
                 ];
             }
         }

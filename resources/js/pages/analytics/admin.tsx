@@ -59,7 +59,7 @@ export default function AdminAnalytics({ gmv_by_month, top_campaigns, user_growt
                                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                                     <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                                     <YAxis tick={{ fontSize: 11 }} />
-                                    <Tooltip formatter={(v: number) => `$${v.toLocaleString()}`} />
+                                    <Tooltip formatter={(v) => `$${Number(v).toLocaleString()}`} />
                                     <Bar dataKey="gmv" name="GMV ($)" fill="#6366f1" radius={[4, 4, 0, 0]} />
                                     <Bar dataKey="revenue" name="Revenue ($)" fill="#a78bfa" radius={[4, 4, 0, 0]} />
                                 </BarChart>

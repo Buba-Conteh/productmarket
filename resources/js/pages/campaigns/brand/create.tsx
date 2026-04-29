@@ -353,7 +353,10 @@ return;
             const val = form[field];
 
             if (val !== '' && val !== null && val !== undefined) {
-                data.append(field, String(val));
+                data.append(
+                    field,
+                    typeof val === 'boolean' ? (val ? '1' : '0') : String(val),
+                );
             }
         }
 

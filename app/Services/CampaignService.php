@@ -14,15 +14,8 @@ use Illuminate\Support\Facades\Log;
 use Stripe\Exception\ApiErrorException;
 use Stripe\StripeClient;
 
-final readonly class CampaignService
+final class CampaignService
 {
-    private StripeClient $stripe;
-
-    public function __construct()
-    {
-        $this->stripe = new StripeClient(config('cashier.secret'));
-    }
-
     /**
      * Create a new campaign in draft status.
      *
@@ -199,7 +192,8 @@ final readonly class CampaignService
         }
 
         try {
-            $refund = $this->stripe->refunds->create([
+            $stripe = new StripeClient(config('cashier.secret'));
+            $refund = $stripe->refunds->create([
                 'payment_intent' => $escrow->stripe_payment_intent_id,
                 'amount' => (int) round($refundable * 100),
                 'metadata' => [
