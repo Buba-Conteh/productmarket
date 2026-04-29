@@ -49,7 +49,6 @@ const brandSections: NavSection[] = [
         items: [
             { title: 'Analytics', href: '/analytics', icon: BarChart3 },
             { title: 'Referrals', href: '/referrals', icon: Gift },
-            { title: 'Billing', href: '/billing', icon: CreditCard },
         ],
     },
 ];

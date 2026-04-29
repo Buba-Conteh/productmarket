@@ -65,6 +65,7 @@ export type CreatorSearchResult = {
         platform: { name: string; slug: string };
         handle: string;
         follower_count: number;
+        avg_views: number | null;
         engagement_rate: string | null;
     }[];
 };

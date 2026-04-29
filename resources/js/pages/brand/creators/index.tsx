@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Filter, Search, Users } from 'lucide-react';
+import { Eye, Filter, Search, Users } from 'lucide-react';
 import { useState } from 'react';
 import Heading from '@/components/heading';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -207,9 +207,6 @@ delete updated[key];
                                 .slice(0, 2)
                                 .toUpperCase();
 
-                            const topAccount =
-                                creator.social_accounts[0] ?? null;
-
                             return (
                                 <Link
                                     key={creator.id}
@@ -269,21 +266,34 @@ delete updated[key];
                                                 </div>
                                             )}
 
-                                            {topAccount && (
-                                                <div className="flex items-center justify-between rounded-md border p-2 text-xs">
-                                                    <span className="font-medium">
-                                                        {
-                                                            topAccount.platform
-                                                                .name
-                                                        }{' '}
-                                                        @{topAccount.handle}
-                                                    </span>
-                                                    <span className="font-semibold">
-                                                        {formatCount(
-                                                            topAccount.follower_count,
-                                                        )}{' '}
-                                                        followers
-                                                    </span>
+                                            {creator.social_accounts.length > 0 && (
+                                                <div className="space-y-1.5">
+                                                    {creator.social_accounts.map((account) => (
+                                                        <div
+                                                            key={account.platform.slug}
+                                                            className="flex items-center justify-between rounded-md border px-2 py-1.5 text-xs"
+                                                        >
+                                                            <span className="font-medium text-muted-foreground">
+                                                                {account.platform.name}
+                                                            </span>
+                                                            <div className="flex items-center gap-3">
+                                                                <span className="flex items-center gap-1">
+                                                                    <Users className="size-3 text-muted-foreground" />
+                                                                    <span className="font-semibold">
+                                                                        {formatCount(account.follower_count)}
+                                                                    </span>
+                                                                </span>
+                                                                {account.avg_views != null && (
+                                                                    <span className="flex items-center gap-1">
+                                                                        <Eye className="size-3 text-muted-foreground" />
+                                                                        <span className="font-semibold">
+                                                                            {formatCount(account.avg_views)}
+                                                                        </span>
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             )}
                                         </CardContent>

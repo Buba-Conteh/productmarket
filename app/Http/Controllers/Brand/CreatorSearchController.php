@@ -78,6 +78,7 @@ final class CreatorSearchController
                     'platform' => ['name' => $a->platform->name, 'slug' => $a->platform->slug],
                     'handle' => $a->handle,
                     'follower_count' => $a->follower_count,
+                    'avg_views' => $a->avg_views,
                     'engagement_rate' => $a->engagement_rate,
                 ]),
         ]);

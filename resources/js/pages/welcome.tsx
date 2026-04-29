@@ -883,9 +883,23 @@ export default function Welcome({
                                     </Link>
                                 )}
                             </div>
-                            <p className="text-xs text-gray-600">
-                                © {new Date().getFullYear()} ProductMarket
-                            </p>
+                            <div className="flex gap-4 text-xs text-gray-600">
+                                <Link
+                                    href="/terms"
+                                    className="hover:text-gray-400"
+                                >
+                                    Terms
+                                </Link>
+                                <Link
+                                    href="/privacy"
+                                    className="hover:text-gray-400"
+                                >
+                                    Privacy
+                                </Link>
+                                <span>
+                                    © {new Date().getFullYear()} ProductMarket
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </footer>
