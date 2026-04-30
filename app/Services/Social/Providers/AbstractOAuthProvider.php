@@ -24,12 +24,21 @@ abstract class AbstractOAuthProvider implements PlatformProvider
 
     abstract protected function clientSecretKey(): string;
 
+    /**
+     * The query-string parameter name for the client ID in the authorization URL.
+     * TikTok uses "client_key" instead of the standard "client_id".
+     */
+    protected function clientIdParamName(): string
+    {
+        return 'client_id';
+    }
+
     public function getAuthorizationUrl(string $state): string
     {
         $this->assertConfigured();
 
         $params = array_merge([
-            'client_id' => $this->config[$this->clientIdKey()],
+            $this->clientIdParamName() => $this->config[$this->clientIdKey()],
             'redirect_uri' => $this->redirectUri(),
             'response_type' => 'code',
             'scope' => implode(' ', $this->config['scopes'] ?? []),

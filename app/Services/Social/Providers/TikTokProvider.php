@@ -31,6 +31,11 @@ final class TikTokProvider extends AbstractOAuthProvider
         return 'client_secret';
     }
 
+    protected function clientIdParamName(): string
+    {
+        return 'client_key';
+    }
+
     public function fetchAccountProfile(TokenSet $tokens): ConnectedAccount
     {
         if ($this->stubMode()) {
