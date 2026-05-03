@@ -1,23 +1,13 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
-    BarChart3,
-    BookOpen,
     Compass,
-    CreditCard,
     FileVideo,
-    FolderGit2,
-    Gift,
     LayoutGrid,
-    LifeBuoy,
     Megaphone,
-    MessageSquare,
     Settings,
-    Trophy,
-    Users,
     Wallet,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -40,15 +30,6 @@ const brandSections: NavSection[] = [
         items: [
             { title: 'Dashboard', href: '/dashboard', icon: LayoutGrid },
             { title: 'Campaigns', href: '/campaigns', icon: Megaphone },
-            { title: 'Creators', href: '/creators', icon: Users },
-            { title: 'Messages', href: '/messages', icon: MessageSquare },
-        ],
-    },
-    {
-        label: 'Insights',
-        items: [
-            { title: 'Analytics', href: '/analytics', icon: BarChart3 },
-            { title: 'Referrals', href: '/referrals', icon: Gift },
         ],
     },
 ];
@@ -60,17 +41,12 @@ const creatorSections: NavSection[] = [
             { title: 'Dashboard', href: '/dashboard', icon: LayoutGrid },
             { title: 'Discover', href: '/discover', icon: Compass },
             { title: 'My Entries', href: '/entries', icon: FileVideo },
-            { title: 'Messages', href: '/messages', icon: MessageSquare },
         ],
     },
     {
         label: 'Earnings',
         items: [
-            { title: 'Analytics', href: '/creator/analytics', icon: BarChart3 },
-            { title: 'Referrals', href: '/referrals', icon: Gift },
             { title: 'Wallet', href: '/wallet', icon: Wallet },
-            { title: 'Achievements', href: '/achievements', icon: Trophy },
-            { title: 'Billing', href: '/billing', icon: CreditCard },
         ],
     },
 ];
@@ -84,20 +60,6 @@ const defaultSections: NavSection[] = [
 
 const supportItems: NavItem[] = [
     { title: 'Settings', href: '/settings/profile', icon: Settings },
-    { title: 'Help Center', href: '/support', icon: LifeBuoy },
-];
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: FolderGit2,
-    },
 ];
 
 export function AppSidebar() {
@@ -136,7 +98,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
