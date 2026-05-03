@@ -33,6 +33,15 @@ abstract class AbstractOAuthProvider implements PlatformProvider
         return 'client_id';
     }
 
+    /**
+     * Separator between scopes in the authorization URL.
+     * TikTok requires comma-separated scopes; most providers use a space.
+     */
+    protected function scopeSeparator(): string
+    {
+        return ' ';
+    }
+
     public function getAuthorizationUrl(string $state): string
     {
         $this->assertConfigured();
@@ -41,7 +50,7 @@ abstract class AbstractOAuthProvider implements PlatformProvider
             $this->clientIdParamName() => $this->config[$this->clientIdKey()],
             'redirect_uri' => $this->redirectUri(),
             'response_type' => 'code',
-            'scope' => implode(' ', $this->config['scopes'] ?? []),
+            'scope' => implode($this->scopeSeparator(), $this->config['scopes'] ?? []),
             'state' => $state,
         ], $this->extraAuthParams());
 

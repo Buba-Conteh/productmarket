@@ -7,7 +7,7 @@ return [
         'client_key' => env('TIKTOK_CLIENT_KEY'),
         'client_secret' => env('TIKTOK_CLIENT_SECRET'),
         'redirect' => env('TIKTOK_REDIRECT_URI', '/auth/tiktok/callback'),
-        'scopes' => ['user.info.basic', 'user.info.stats'],
+        'scopes' => ['user.info.basic', 'user.info.stats', 'video.list'],
         'authorize_url' => 'https://www.tiktok.com/v2/auth/authorize/',
         'token_url' => 'https://open.tiktokapis.com/v2/oauth/token/',
     ],
