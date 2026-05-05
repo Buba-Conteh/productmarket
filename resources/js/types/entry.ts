@@ -87,6 +87,7 @@ export type Entry = {
     content_type_id: string | null;
     type: EntryType;
     video_url: string | null;
+    video_full_url: string | null;
     video_duration_sec: number | null;
     caption: string | null;
     tags: string[];
@@ -111,7 +112,6 @@ export type Entry = {
 export type EntryFormData = {
     save_draft: boolean;
     requirements_acknowledged: boolean;
-    video_url: string;
     video_duration_sec: string;
     caption: string;
     tags: string[];

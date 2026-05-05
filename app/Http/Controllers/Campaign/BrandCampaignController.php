@@ -35,15 +35,22 @@ final class BrandCampaignController extends Controller
 
         $campaigns = $this->campaignService->brandCampaigns($brand, $status);
 
+        $statusCounts = $brand->campaigns()
+            ->selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
         return Inertia::render('campaigns/brand/index', [
             'campaigns' => $campaigns,
             'filters' => ['status' => $status],
             'counts' => [
-                'all' => $brand->campaigns()->count(),
-                'draft' => $brand->campaigns()->where('status', 'draft')->count(),
-                'active' => $brand->campaigns()->where('status', 'active')->count(),
-                'closed' => $brand->campaigns()->where('status', 'closed')->count(),
-                'completed' => $brand->campaigns()->where('status', 'completed')->count(),
+                'all' => array_sum($statusCounts),
+                'draft' => $statusCounts['draft'] ?? 0,
+                'active' => $statusCounts['active'] ?? 0,
+                'closed' => $statusCounts['closed'] ?? 0,
+                'completed' => $statusCounts['completed'] ?? 0,
+                'cancelled' => $statusCounts['cancelled'] ?? 0,
             ],
         ]);
     }
@@ -171,6 +178,19 @@ final class BrandCampaignController extends Controller
     }
 
     /**
+     * Republish a closed or cancelled campaign.
+     */
+    public function republish(Request $request, Campaign $campaign): RedirectResponse
+    {
+        $this->authorizeBrand($request, $campaign);
+        $this->campaignService->republish($campaign);
+
+        return redirect()
+            ->route('campaigns.brand.show', $campaign)
+            ->with('success', 'Campaign is live again and accepting entries.');
+    }
+
+    /**
      * Cancel a campaign.
      */
     public function cancel(Request $request, Campaign $campaign): RedirectResponse
@@ -192,7 +212,7 @@ final class BrandCampaignController extends Controller
             $path = FileUploader::store($file, 'campaigns/resources');
 
             $campaign->resources()->create([
-                'original_name' => $file->getClientOriginalName(),
+                'original_name' => basename($file->getClientOriginalName()),
                 'file_name' => basename($path),
                 'mime_type' => $file->getMimeType() ?? $file->getClientMimeType(),
                 'size' => $file->getSize(),

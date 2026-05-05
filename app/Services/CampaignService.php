@@ -144,6 +144,40 @@ final class CampaignService
     }
 
     /**
+     * Republish a closed or cancelled campaign — moves it back to active.
+     * For cancelled campaigns a fresh escrow record is created.
+     */
+    public function republish(Campaign $campaign): Campaign
+    {
+        abort_unless(
+            in_array($campaign->status, ['closed', 'cancelled']),
+            403,
+            'Only closed or cancelled campaigns can be republished.'
+        );
+
+        return DB::transaction(function () use ($campaign) {
+            if ($campaign->status === 'cancelled') {
+                $escrowAmount = $this->calculateEscrowAmount($campaign);
+
+                EscrowTransaction::create([
+                    'campaign_id' => $campaign->id,
+                    'brand_profile_id' => $campaign->brand_profile_id,
+                    'total_held' => $escrowAmount,
+                    'total_released' => 0,
+                    'total_refunded' => 0,
+                    'stripe_payment_intent_id' => 'pending_'.$campaign->id.'_'.now()->timestamp,
+                    'status' => 'held',
+                    'held_at' => now(),
+                ]);
+            }
+
+            $campaign->update(['status' => 'active']);
+
+            return $campaign->fresh();
+        });
+    }
+
+    /**
      * Cancel a campaign — refunds unspent escrow budget to the brand.
      */
     public function cancel(Campaign $campaign): Campaign

@@ -7,6 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { Entry, EntryStatus, PaginatedData } from '@/types';
 
+const TYPE_GRADIENTS: Record<string, string> = {
+    contest: 'from-purple-500 to-indigo-600',
+    ripple: 'from-blue-500 to-cyan-600',
+    pitch: 'from-orange-500 to-rose-600',
+};
+
 type Props = {
     entries: PaginatedData<Entry>;
     filters: { status: string };
@@ -115,22 +121,49 @@ export default function CreatorEntries({ entries, filters, counts }: Props) {
                                 href={`/entries/${entry.id}`}
                                 className="block"
                             >
-                                <Card className="h-full transition-colors hover:border-primary/50">
-                                    <CardHeader className="pb-3">
-                                        <div className="flex items-start justify-between gap-2">
-                                            <CardTitle className="line-clamp-1 text-base">
-                                                {entry.campaign?.title ??
-                                                    'Campaign'}
-                                            </CardTitle>
+                                <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
+                                    {/* Campaign thumbnail */}
+                                    <div className="relative h-36 w-full overflow-hidden">
+                                        {entry.campaign?.thumbnail_url ? (
+                                            <img
+                                                src={entry.campaign.thumbnail_url}
+                                                alt={entry.campaign.title}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        ) : (
+                                            <div
+                                                className={cn(
+                                                    'flex h-full w-full items-center justify-center bg-gradient-to-br',
+                                                    TYPE_GRADIENTS[entry.type] ?? 'from-gray-400 to-gray-600',
+                                                )}
+                                            >
+                                                <span className="text-2xl font-bold text-white/20">
+                                                    {(entry.campaign?.title ?? 'C').charAt(0).toUpperCase()}
+                                                </span>
+                                            </div>
+                                        )}
+                                        <div className="absolute top-2 left-2 right-2 flex items-start justify-between">
+                                            <Badge
+                                                variant="secondary"
+                                                className="bg-black/50 text-white backdrop-blur-sm hover:bg-black/50 capitalize border-0 text-xs"
+                                            >
+                                                {entry.type}
+                                            </Badge>
                                             <span
                                                 className={cn(
-                                                    'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
+                                                    'rounded-full px-2 py-0.5 text-xs font-medium',
                                                     STATUS_STYLES[entry.status],
                                                 )}
                                             >
                                                 {STATUS_LABELS[entry.status]}
                                             </span>
                                         </div>
+                                    </div>
+
+                                    <CardHeader className="pb-3">
+                                        <CardTitle className="line-clamp-1 text-base">
+                                            {entry.campaign?.title ?? 'Campaign'}
+                                        </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-2">
                                         <div className="flex items-center gap-2 text-xs text-muted-foreground">

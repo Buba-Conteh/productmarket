@@ -11,6 +11,7 @@ use App\Models\ContentType;
 use App\Models\Entry;
 use App\Models\Platform;
 use App\Services\EntryService;
+use App\Support\FileUploader;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -32,16 +33,22 @@ final class CreatorEntryController extends Controller
 
         $entries = $this->entryService->creatorEntries($creator, $status);
 
+        $statusCounts = $creator->entries()
+            ->selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
         return Inertia::render('entries/creator/index', [
             'entries' => $entries,
             'filters' => ['status' => $status],
             'counts' => [
-                'all' => $creator->entries()->count(),
-                'draft' => $creator->entries()->where('status', 'draft')->count(),
-                'pending_review' => $creator->entries()->where('status', 'pending_review')->count(),
-                'approved' => $creator->entries()->where('status', 'approved')->count(),
-                'live' => $creator->entries()->where('status', 'live')->count(),
-                'rejected' => $creator->entries()->where('status', 'rejected')->count(),
+                'all' => array_sum($statusCounts),
+                'draft' => $statusCounts['draft'] ?? 0,
+                'pending_review' => $statusCounts['pending_review'] ?? 0,
+                'approved' => $statusCounts['approved'] ?? 0,
+                'live' => $statusCounts['live'] ?? 0,
+                'rejected' => $statusCounts['rejected'] ?? 0,
             ],
         ]);
     }
@@ -49,7 +56,7 @@ final class CreatorEntryController extends Controller
     /**
      * Entry submission wizard — create form.
      */
-    public function create(Request $request, Campaign $campaign): Response
+    public function create(Request $request, Campaign $campaign): Response|RedirectResponse
     {
         $creator = $request->user()->creatorProfile;
 
@@ -88,8 +95,20 @@ final class CreatorEntryController extends Controller
         $creator = $request->user()->creatorProfile;
         $data = $request->validated();
 
+        if ($request->hasFile('video')) {
+            $data['video_url'] = FileUploader::store($request->file('video'), 'entries/videos');
+        } else {
+            $data['video_url'] = Entry::where('campaign_id', $campaign->id)
+                ->where('creator_profile_id', $creator->id)
+                ->value('video_url');
+        }
+
+        if (! $request->boolean('save_draft') && empty($data['video_url'])) {
+            return back()->withErrors(['video' => 'A video is required to submit your entry.']);
+        }
+
         if ($request->boolean('save_draft')) {
-            $entry = $this->entryService->saveDraft($creator, $campaign, $data);
+            $this->entryService->saveDraft($creator, $campaign, $data);
 
             return redirect()
                 ->route('entries.creator.create', $campaign)
@@ -124,12 +143,18 @@ final class CreatorEntryController extends Controller
     {
         $this->authorizeCreator($request, $entry);
 
+        $entryPlatformIds = $entry->platforms()->pluck('platforms.id')->all();
+
         $validated = $request->validate([
             'platform_urls' => ['nullable', 'array'],
             'platform_urls.*' => ['nullable', 'url', 'max:2048'],
         ]);
 
-        $this->entryService->markLive($entry, $validated['platform_urls'] ?? []);
+        $platformUrls = collect($validated['platform_urls'] ?? [])
+            ->only($entryPlatformIds)
+            ->all();
+
+        $this->entryService->markLive($entry, $platformUrls);
 
         return redirect()
             ->route('entries.creator.show', $entry)
@@ -148,6 +173,12 @@ final class CreatorEntryController extends Controller
             ->where('creator_profile_id', $creator->id)
             ->where('status', 'draft')
             ->firstOrFail();
+
+        if ($request->hasFile('video')) {
+            $data['video_url'] = FileUploader::replace($entry->video_url, $request->file('video'), 'entries/videos');
+        } else {
+            $data['video_url'] = $entry->video_url;
+        }
 
         // Address any pending edit requests
         $pendingEdit = $entry->editRequests()->where('status', 'pending')->latest()->first();

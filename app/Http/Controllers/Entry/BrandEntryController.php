@@ -10,6 +10,7 @@ use App\Models\Entry;
 use App\Services\EntryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -36,17 +37,32 @@ final class BrandEntryController extends Controller
             'pitchDetails',
         ]);
 
+        $applications = $campaign->type === 'pitch'
+            ? $campaign->applications()->with(['creator.user', 'creator.niches'])->latest()->get()
+            : Collection::make([]);
+
+        $statusCounts = $campaign->entries()
+            ->selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
+        $allCount = collect($statusCounts)
+            ->except(['draft'])
+            ->sum();
+
         return Inertia::render('entries/brand/index', [
             'campaign' => $campaign,
             'entries' => $entries,
             'filters' => ['status' => $status],
             'counts' => [
-                'all' => $campaign->entries()->where('status', '!=', 'draft')->count(),
-                'pending_review' => $campaign->entries()->where('status', 'pending_review')->count(),
-                'approved' => $campaign->entries()->where('status', 'approved')->count(),
-                'live' => $campaign->entries()->where('status', 'live')->count(),
-                'rejected' => $campaign->entries()->where('status', 'rejected')->count(),
+                'all' => $allCount,
+                'pending_review' => $statusCounts['pending_review'] ?? 0,
+                'approved' => $statusCounts['approved'] ?? 0,
+                'live' => $statusCounts['live'] ?? 0,
+                'rejected' => $statusCounts['rejected'] ?? 0,
             ],
+            'applications' => $applications,
         ]);
     }
 

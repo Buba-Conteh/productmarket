@@ -6,7 +6,9 @@ namespace App\Http\Controllers\Campaign;
 
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
+use App\Models\CampaignApplication;
 use App\Models\ContentType;
+use App\Models\Entry;
 use App\Models\Platform;
 use App\Services\CampaignService;
 use Illuminate\Http\Request;
@@ -28,11 +30,28 @@ final class CreatorCampaignController extends Controller
 
         $campaigns = $this->campaignService->discoveryCampaigns($filters);
 
+        $enteredCampaignIds = [];
+        $applicationStatuses = [];
+
+        $creatorProfile = $request->user()?->creatorProfile;
+
+        if ($creatorProfile) {
+            $enteredCampaignIds = Entry::where('creator_profile_id', $creatorProfile->id)
+                ->pluck('campaign_id')
+                ->toArray();
+
+            $applicationStatuses = CampaignApplication::where('creator_profile_id', $creatorProfile->id)
+                ->pluck('status', 'campaign_id')
+                ->toArray();
+        }
+
         return Inertia::render('campaigns/creator/index', [
             'campaigns' => $campaigns,
             'filters' => $filters,
             'platforms' => Platform::where('is_active', true)->orderBy('sort_order')->get(),
             'contentTypes' => ContentType::where('is_active', true)->orderBy('sort_order')->get(),
+            'enteredCampaignIds' => $enteredCampaignIds,
+            'applicationStatuses' => $applicationStatuses,
         ]);
     }
 
@@ -59,6 +78,7 @@ final class CreatorCampaignController extends Controller
 
             $hasEntry = $campaign->entries()
                 ->where('creator_profile_id', $creatorProfile->id)
+                ->where('status', '!=', 'draft')
                 ->exists();
         }
 

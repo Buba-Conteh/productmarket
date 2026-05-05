@@ -20,7 +20,7 @@ final class MessageThreadController extends Controller
         $threads = MessageThread::with([
             'entry.campaign',
             'entry.creator.user',
-            'entry.campaign.brandProfile.user',
+            'entry.campaign.brand.user',
             'messages' => fn ($q) => $q->latest()->limit(1),
         ])
             ->whereHas('entry', function ($q) use ($user) {
@@ -43,7 +43,7 @@ final class MessageThreadController extends Controller
                 'campaign_title' => $thread->entry->campaign->title,
                 'other_party' => $user->hasRole('brand')
                     ? ['name' => $thread->entry->creator->display_name]
-                    : ['name' => $thread->entry->campaign->brandProfile->user->name],
+                    : ['name' => $thread->entry->campaign->brand->user->name],
                 'last_message' => $thread->messages->first()?->body,
                 'last_message_at' => $thread->last_message_at,
                 'unread_count' => $thread->unread_count,
@@ -85,7 +85,7 @@ final class MessageThreadController extends Controller
 
         $otherParty = $user->hasRole('brand')
             ? ['name' => $entry->creator->display_name]
-            : ['name' => $entry->campaign->brandProfile->user->name];
+            : ['name' => $entry->campaign->brand->user->name];
 
         return Inertia::render('messages/show', [
             'thread' => [
@@ -101,7 +101,7 @@ final class MessageThreadController extends Controller
 
     private function authorizeThreadAccess(mixed $user, Entry $entry): void
     {
-        $brandUserId = $entry->campaign->brandProfile->user_id ?? null;
+        $brandUserId = $entry->campaign->brand->user_id ?? null;
         $creatorUserId = $entry->creator->user_id ?? null;
 
         abort_unless(

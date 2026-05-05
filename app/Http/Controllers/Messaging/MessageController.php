@@ -46,9 +46,9 @@ final class MessageController extends Controller
 
     private function authorizeThreadAccess(mixed $user, MessageThread $thread): void
     {
-        $thread->load('entry.campaign.brandProfile', 'entry.creator');
+        $thread->load('entry.campaign.brand', 'entry.creator');
 
-        $brandUserId = $thread->entry->campaign->brandProfile->user_id ?? null;
+        $brandUserId = $thread->entry->campaign->brand->user_id ?? null;
         $creatorUserId = $thread->entry->creator->user_id ?? null;
 
         abort_unless(
@@ -59,7 +59,7 @@ final class MessageController extends Controller
 
     private function getOtherPartyUser(mixed $currentUser, MessageThread $thread): mixed
     {
-        $brandUser = $thread->entry->campaign->brandProfile->user ?? null;
+        $brandUser = $thread->entry->campaign->brand->user ?? null;
         $creatorUser = $thread->entry->creator->user ?? null;
 
         if ($currentUser->id === $brandUser?->id) {

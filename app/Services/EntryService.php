@@ -20,7 +20,10 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class EntryService
 {
-    public function __construct(private readonly PayoutService $payoutService) {}
+    public function __construct(
+        private readonly PayoutService $payoutService,
+        private readonly ReferralService $referralService,
+    ) {}
 
     /**
      * Create or update a draft entry for a creator.
@@ -91,13 +94,13 @@ final readonly class EntryService
             $entry = $entry->fresh();
 
             // Notify the brand
-            $brandUser = $campaign->brandProfile->user ?? null;
+            $brandUser = $campaign->brand->user ?? null;
             if ($brandUser) {
                 $brandUser->notify(new EntrySubmitted($entry));
             }
 
             // Qualify any pending creator referral on first entry submitted
-            app(ReferralService::class)->qualify($entry->creator->user);
+            $this->referralService->qualify($entry->creator->user);
 
             return $entry;
         });
@@ -406,6 +409,7 @@ final readonly class EntryService
                 'pitchDetails',
                 'editRequests' => fn ($q) => $q->latest(),
             ])
+            ->where('status', '!=', 'draft')
             ->latest('submitted_at');
 
         if ($status && $status !== 'all') {

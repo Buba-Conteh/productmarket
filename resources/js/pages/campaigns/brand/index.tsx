@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Calendar, Eye, Plus, Users } from 'lucide-react';
 import Heading from '@/components/heading';
+import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,7 +11,6 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
 import type { Campaign, CampaignStatus, PaginatedData } from '@/types';
 
 type Props = {
@@ -25,6 +25,7 @@ const STATUS_TABS: { key: string; label: string }[] = [
     { key: 'active', label: 'Active' },
     { key: 'closed', label: 'Closed' },
     { key: 'completed', label: 'Completed' },
+    { key: 'cancelled', label: 'Cancelled' },
 ];
 
 const STATUS_STYLES: Record<CampaignStatus, string> = {
@@ -40,6 +41,12 @@ const TYPE_LABELS: Record<string, string> = {
     contest: 'Contest',
     ripple: 'Ripple',
     pitch: 'Pitch',
+};
+
+const TYPE_GRADIENTS: Record<string, string> = {
+    contest: 'from-purple-500 to-indigo-600',
+    ripple: 'from-blue-500 to-cyan-600',
+    pitch: 'from-orange-500 to-rose-600',
 };
 
 function formatDate(date: string | null): string {
@@ -136,38 +143,51 @@ export default function BrandCampaignIndex({
                                 }
                                 className="block"
                             >
-                                <Card className="h-full transition-shadow hover:shadow-md">
-                                    <CardHeader className="pb-3">
-                                        <div className="flex items-start justify-between gap-2">
-                                            <div className="space-y-1">
-                                                <CardTitle className="line-clamp-1 text-base">
-                                                    {campaign.title}
-                                                </CardTitle>
-                                                <CardDescription className="flex items-center gap-2">
-                                                    <Badge
-                                                        variant="outline"
-                                                        className="text-xs"
-                                                    >
-                                                        {TYPE_LABELS[
-                                                            campaign.type
-                                                        ] ?? campaign.type}
-                                                    </Badge>
-                                                </CardDescription>
-                                            </div>
-                                            <span
+                                <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
+                                    {/* Thumbnail */}
+                                    <div className="relative h-36 w-full overflow-hidden">
+                                        {campaign.thumbnail_url ? (
+                                            <img
+                                                src={campaign.thumbnail_url}
+                                                alt={campaign.title}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        ) : (
+                                            <div
                                                 className={cn(
-                                                    'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
-                                                    STATUS_STYLES[
-                                                        campaign.status
-                                                    ] ??
-                                                        'bg-muted text-muted-foreground',
+                                                    'flex h-full w-full items-center justify-center bg-gradient-to-br',
+                                                    TYPE_GRADIENTS[campaign.type] ?? 'from-gray-400 to-gray-600',
                                                 )}
                                             >
-                                                {campaign.status.replace(
-                                                    '_',
-                                                    ' ',
+                                                <span className="text-2xl font-bold text-white/20">
+                                                    {campaign.title.charAt(0).toUpperCase()}
+                                                </span>
+                                            </div>
+                                        )}
+                                        <div className="absolute top-2 left-2 right-2 flex items-start justify-between">
+                                            <Badge
+                                                variant="secondary"
+                                                className="bg-black/50 text-white backdrop-blur-sm hover:bg-black/50 capitalize border-0 text-xs"
+                                            >
+                                                {TYPE_LABELS[campaign.type] ?? campaign.type}
+                                            </Badge>
+                                            <span
+                                                className={cn(
+                                                    'rounded-full px-2 py-0.5 text-xs font-medium',
+                                                    STATUS_STYLES[campaign.status] ?? 'bg-muted text-muted-foreground',
                                                 )}
+                                            >
+                                                {campaign.status.replace('_', ' ')}
                                             </span>
+                                        </div>
+                                    </div>
+
+                                    <CardHeader className="pb-3">
+                                        <div className="space-y-1">
+                                            <CardTitle className="line-clamp-1 text-base">
+                                                {campaign.title}
+                                            </CardTitle>
+                                            <CardDescription className="flex items-center gap-2" />
                                         </div>
                                     </CardHeader>
                                     <CardContent>

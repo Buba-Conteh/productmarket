@@ -39,20 +39,24 @@ class HandleInertiaRequests extends Middleware
         $billing = null;
 
         if ($user) {
-            if ($user->hasRole('brand')) {
-                $status = $user->subscriptionStatuses()->where('role', 'brand')->first();
-                $billing = [
-                    'plan' => $status?->plan_key,
-                    'subscribed' => $status?->isActive() ?? false,
-                ];
-            } elseif ($user->hasRole('creator')) {
-                $status = $user->subscriptionStatuses()->where('role', 'creator')->first();
-                $billing = [
-                    'plan' => $status?->plan_key ?? 'free',
-                    'subscribed' => $status?->isActive() ?? true, // creators are always 'subscribed' (free tier is valid)
-                ];
+            $role = $user->hasRole('brand') ? 'brand' : ($user->hasRole('creator') ? 'creator' : null);
+
+            if ($role) {
+                $status = cache()->remember(
+                    "sub_status_{$user->id}_{$role}",
+                    300,
+                    fn () => $user->subscriptionStatuses()->where('role', $role)->first()
+                );
+
+                $billing = $role === 'brand'
+                    ? ['plan' => $status?->plan_key, 'subscribed' => $status?->isActive() ?? false]
+                    : ['plan' => $status?->plan_key ?? 'free', 'subscribed' => $status?->isActive() ?? true];
             }
         }
+
+        $unreadCount = $user
+            ? cache()->remember("unread_notifications_{$user->id}", 30, fn () => $user->unreadNotifications()->count())
+            : 0;
 
         return [
             ...parent::share($request),
@@ -67,7 +71,7 @@ class HandleInertiaRequests extends Middleware
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
             ],
-            'unreadNotifications' => $user ? $user->unreadNotifications()->count() : 0,
+            'unreadNotifications' => $unreadCount,
         ];
     }
 }
