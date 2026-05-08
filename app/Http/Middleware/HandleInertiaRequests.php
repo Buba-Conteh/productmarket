@@ -45,12 +45,16 @@ class HandleInertiaRequests extends Middleware
                 $status = cache()->remember(
                     "sub_status_{$user->id}_{$role}",
                     300,
-                    fn () => $user->subscriptionStatuses()->where('role', $role)->first()
+                    function () use ($user, $role): ?array {
+                        $s = $user->subscriptionStatuses()->where('role', $role)->first();
+
+                        return $s ? ['plan_key' => $s->plan_key, 'is_active' => $s->isActive()] : null;
+                    }
                 );
 
                 $billing = $role === 'brand'
-                    ? ['plan' => $status?->plan_key, 'subscribed' => $status?->isActive() ?? false]
-                    : ['plan' => $status?->plan_key ?? 'free', 'subscribed' => $status?->isActive() ?? true];
+                    ? ['plan' => $status['plan_key'] ?? null, 'subscribed' => $status['is_active'] ?? false]
+                    : ['plan' => $status['plan_key'] ?? 'free', 'subscribed' => $status['is_active'] ?? true];
             }
         }
 

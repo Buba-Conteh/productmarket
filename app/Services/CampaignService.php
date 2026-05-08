@@ -8,6 +8,8 @@ use App\Models\BrandProfile;
 use App\Models\Campaign;
 use App\Models\EscrowTransaction;
 use App\Models\PlatformSetting;
+use App\Notifications\CampaignCancelled;
+use App\Notifications\CampaignClosed;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -140,7 +142,18 @@ final class CampaignService
 
         $campaign->update(['status' => 'closed']);
 
-        return $campaign->fresh();
+        $fresh = $campaign->fresh();
+
+        // Notify all creators who have non-draft entries
+        $fresh->entries()
+            ->whereNotIn('status', ['draft', 'rejected', 'disqualified'])
+            ->with('creator.user')
+            ->get()
+            ->each(function ($entry) use ($fresh): void {
+                $entry->creator?->user?->notify(new CampaignClosed($fresh));
+            });
+
+        return $fresh;
     }
 
     /**
@@ -188,7 +201,7 @@ final class CampaignService
             'This campaign cannot be cancelled.'
         );
 
-        return DB::transaction(function () use ($campaign) {
+        $cancelled = DB::transaction(function () use ($campaign) {
             $escrow = $campaign->escrowTransaction;
 
             if ($escrow && $escrow->status !== 'refunded') {
@@ -212,6 +225,17 @@ final class CampaignService
 
             return $campaign->fresh();
         });
+
+        // Notify all creators who have non-draft entries
+        $cancelled->entries()
+            ->whereNotIn('status', ['draft', 'rejected', 'disqualified'])
+            ->with('creator.user')
+            ->get()
+            ->each(function ($entry) use ($cancelled): void {
+                $entry->creator?->user?->notify(new CampaignCancelled($cancelled));
+            });
+
+        return $cancelled;
     }
 
     /**

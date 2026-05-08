@@ -19,6 +19,9 @@ final class NotificationPreferenceController extends Controller
         'entry_rejected',
         'entry_edit_requested',
         'entry_won',
+        'entry_not_selected',
+        'campaign_closed',
+        'campaign_cancelled',
         'payout_processed',
         'new_message',
     ];

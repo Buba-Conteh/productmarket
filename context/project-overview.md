@@ -1,6 +1,6 @@
 # Project Overview
 
-**Last updated:** April 19, 2026
+**Last updated:** May 8, 2026
 **Version:** 1.0
 
 ---
@@ -10,11 +10,11 @@
 | Metric | Count |
 |---|---|
 | Total features | 84 |
-| 🟢 Complete | 52 |
-| 🟡 In progress | 0 |
-| 🔴 Not started | 29 |
+| 🟢 Complete | 78 |
+| 🟡 In progress | 2 |
+| 🔴 Not started | 1 |
 | ⏸ Deferred | 3 |
-| **Overall completion** | **62%** |
+| **Overall completion** | **93%** |
 
 ### Progress by Phase
 
@@ -25,12 +25,12 @@
 | 3 — Campaigns | 12 | 10 | 0 | 0 | 2 | 83% |
 | 4 — Entries | 12 | 11 | 0 | 0 | 1 | 92% |
 | 5 — View Tracking | 8 | 8 | 0 | 0 | 0 | 100% |
-| 6 — Payouts | 10 | 0 | 0 | 10 | 0 | 0% |
-| 7 — Profiles & Discovery | 5 | 0 | 0 | 5 | 0 | 0% |
-| 8 — Messaging | 5 | 0 | 0 | 5 | 0 | 0% |
-| 9 — Analytics | 5 | 0 | 0 | 5 | 0 | 0% |
-| 10 — Growth | 4 | 0 | 0 | 4 | 0 | 0% |
-| **Total** | **84** | **52** | **0** | **29** | **3** | **62%** |
+| 6 — Payouts | 10 | 10 | 0 | 0 | 0 | 100% |
+| 7 — Profiles & Discovery | 5 | 4 | 0 | 1 | 0 | 80% |
+| 8 — Messaging | 5 | 4 | 1 | 0 | 0 | 80% |
+| 9 — Analytics | 5 | 4 | 1 | 0 | 0 | 80% |
+| 10 — Growth | 4 | 4 | 0 | 0 | 0 | 100% |
+| **Total** | **84** | **78** | **2** | **1** | **3** | **93%** |
 
 ### Deferred Features
 
@@ -218,16 +218,16 @@ Phases 1–6 are the MVP. Phases 7–10 ship post-launch.
 
 | # | Feature | Status | Notes |
 |---|---|---|---|
-| 6.1 | Stripe Connect creator onboarding | 🔴 Not started | Stripe Express account creation during creator onboarding |
-| 6.2 | Platform fee deduction logic | 🔴 Not started | 15% deducted from gross before transfer |
-| 6.3 | Contest prize payout | 🔴 Not started | Released when brand selects winner |
-| 6.4 | Ripple initial fee payout | 🔴 Not started | Released immediately on entry approval |
-| 6.5 | Ripple milestone payout | 🔴 Not started | Released automatically when milestone job detects crossing |
-| 6.6 | Pitch payment payout | 🔴 Not started | Released when brand confirms post is live |
-| 6.7 | Payout retry logic | 🔴 Not started | Auto-retry on failure, admin alert after 2 failures |
-| 6.8 | Escrow refund on campaign cancellation | 🔴 Not started | Unspent Ripple budget returned to brand |
-| 6.9 | Creator earnings dashboard | 🔴 Not started | Total earned, pending, transaction history by campaign |
-| 6.10 | Minimum payout threshold | 🔴 Not started | Hold transfers until creator balance hits minimum |
+| 6.1 | Stripe Connect creator onboarding | 🟢 Complete | StripeConnectService — Express account creation, onboarding link, status sync |
+| 6.2 | Platform fee deduction logic | 🟢 Complete | PayoutService::calculateAmounts() using bcmath for precision |
+| 6.3 | Contest prize payout | 🟢 Complete | Wired in ResolveContestDeadlineJob + EntryService |
+| 6.4 | Ripple initial fee payout | 🟢 Complete | Released immediately on entry approval via EntryService |
+| 6.5 | Ripple milestone payout | 🟢 Complete | Triggered automatically by ViewSyncService when milestone crossed |
+| 6.6 | Pitch payment payout | 🟢 Complete | Released when brand confirms post is live via EntryService |
+| 6.7 | Payout retry logic | 🟢 Complete | 30-min retry via ProcessPayoutJob, admin alert after 2 failures |
+| 6.8 | Escrow refund on campaign cancellation | 🟢 Complete | CampaignService::cancel() refunds unspent escrow via Stripe refunds API |
+| 6.9 | Creator earnings dashboard | 🟢 Complete | EarningsController + creator/earnings page with transaction history |
+| 6.10 | Minimum payout threshold | 🟢 Complete | ReleaseHeldPayoutsJob + threshold check in PayoutService::executeTransfer() |
 
 ---
 
@@ -235,11 +235,11 @@ Phases 1–6 are the MVP. Phases 7–10 ship post-launch.
 
 | # | Feature | Status | Notes |
 |---|---|---|---|
-| 7.1 | Creator public profile | 🔴 Not started | Bio, niches, verified social stats, entry portfolio |
-| 7.2 | Creator media kit | 🔴 Not started | Auto-generated shareable page from profile + stats |
-| 7.3 | Brand public profile | 🔴 Not started | Active/past campaigns, aggregate stats |
-| 7.4 | Creator search — brand side | 🔴 Not started | Meilisearch-powered, filter by niche/platform/followers/region |
-| 7.5 | Creator profile indexing in Meilisearch | 🔴 Not started | Searchable trait on CreatorProfile model |
+| 7.1 | Creator public profile | 🟢 Complete | Bio, niches, verified social stats, entry portfolio — CreatorProfileController + profiles/creator/show.tsx |
+| 7.2 | Creator media kit | 🟢 Complete | Auto-generated shareable page — CreatorProfileController::mediaKit() + profiles/creator/media-kit.tsx |
+| 7.3 | Brand public profile | 🟢 Complete | Active/past campaigns, aggregate stats — BrandProfileController + profiles/brand/show.tsx |
+| 7.4 | Creator search — brand side | 🟢 Complete | Niche, platform, followers, region filters via DB — CreatorSearchController + brand/creators/index.tsx |
+| 7.5 | Creator profile indexing in Meilisearch | 🔴 Not started | No Searchable trait on CreatorProfile; 7.4 uses SQL LIKE queries instead |
 
 ---
 
@@ -247,11 +247,11 @@ Phases 1–6 are the MVP. Phases 7–10 ship post-launch.
 
 | # | Feature | Status | Notes |
 |---|---|---|---|
-| 8.1 | Message threads per entry | 🔴 Not started | One thread per entry scoped to brand + creator |
-| 8.2 | Real-time messaging via Reverb | 🔴 Not started | Instant delivery, unread count in nav |
-| 8.3 | In-app notifications via Reverb | 🔴 Not started | All key platform events |
-| 8.4 | Email notifications via Resend | 🔴 Not started | All key platform events with user-level opt-out preferences |
-| 8.5 | Notification preferences | 🔴 Not started | Per-user toggles for each notification type |
+| 8.1 | Message threads per entry | 🟢 Complete | MessageThread + Message models, MessageThreadController, one thread per entry enforced |
+| 8.2 | Real-time messaging via Reverb | 🟢 Complete | MessageSent broadcasts to private thread.{id} channel, Echo listener in messages/show.tsx |
+| 8.3 | In-app notifications via Reverb | 🟢 Complete | NotificationCreated broadcasts to notifications.{user_id}, 11 notification types implemented |
+| 8.4 | Email notifications via Resend | 🟡 In progress | toMail() implemented on all notifications with opt-out; using Laravel mail driver, not Resend SDK yet |
+| 8.5 | Notification preferences | 🟢 Complete | UserNotificationPreference model, NotificationPreferenceController, RespectsNotificationPreferences trait |
 
 ---
 
@@ -259,11 +259,11 @@ Phases 1–6 are the MVP. Phases 7–10 ship post-launch.
 
 | # | Feature | Status | Notes |
 |---|---|---|---|
-| 9.1 | Campaign analytics snapshots job | 🔴 Not started | Daily aggregation into campaign_analytics |
-| 9.2 | Creator analytics snapshots job | 🔴 Not started | Weekly aggregation into creator_analytics |
-| 9.3 | Brand analytics dashboard | 🔴 Not started | Views, cost per view, top creators, platform breakdown |
-| 9.4 | Creator analytics dashboard | 🔴 Not started | Views, earnings, engagement trend, best niches |
-| 9.5 | Admin analytics dashboard | 🔴 Not started | Platform GMV, take rate, user acquisition, top campaigns |
+| 9.1 | Campaign analytics snapshots job | 🟢 Complete | AggregateCampaignAnalyticsJob — daily snapshots to CampaignAnalytic |
+| 9.2 | Creator analytics snapshots job | 🟢 Complete | AggregateCreatorAnalyticsJob — weekly snapshots to CreatorAnalytic |
+| 9.3 | Brand analytics dashboard | 🟢 Complete | BrandAnalyticsController — views, CPV, top creators, platform breakdown + analytics/brand.tsx |
+| 9.4 | Creator analytics dashboard | 🟡 In progress | CreatorAnalyticsController — views/earnings/trend present; niche performance breakdown missing |
+| 9.5 | Admin analytics dashboard | 🟢 Complete | AdminAnalyticsController — GMV, revenue, take rate, user growth, top campaigns + analytics/admin.tsx |
 
 ---
 
@@ -271,7 +271,7 @@ Phases 1–6 are the MVP. Phases 7–10 ship post-launch.
 
 | # | Feature | Status | Notes |
 |---|---|---|---|
-| 10.1 | Referral system — creators | 🔴 Not started | Bonus on first referred creator entry |
-| 10.2 | Referral system — brands | 🔴 Not started | Credit on first referred brand campaign |
-| 10.3 | Co-brand campaigns | 🔴 Not started | Two brands co-fund a single campaign |
-| 10.4 | Agency white-label mode | 🔴 Not started | Custom subdomain, team members, multi-brand management |
+| 10.1 | Referral system — creators | 🟢 Complete | ReferralService + ReferralController, bonus via pending_earnings, growth/referrals.tsx |
+| 10.2 | Referral system — brands | 🟢 Complete | type='brand' in Referral model, reward via Cashier creditBalance() |
+| 10.3 | Co-brand campaigns | 🟢 Complete | CampaignCoBrand model, CoBrandController invite/accept/decline flow |
+| 10.4 | Agency white-label mode | 🟢 Complete | AgencyMember model, AgencyController, Scale plan gating, growth/agency.tsx |

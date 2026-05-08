@@ -12,6 +12,7 @@ use App\Models\EntryEditRequest;
 use App\Models\EntryRippleEarning;
 use App\Notifications\EntryApproved;
 use App\Notifications\EntryEditRequested;
+use App\Notifications\EntryNotSelected;
 use App\Notifications\EntryRejected;
 use App\Notifications\EntrySubmitted;
 use App\Notifications\EntryWon;
@@ -318,6 +319,16 @@ final readonly class EntryService
         if ($creatorUser) {
             $creatorUser->notify(new EntryWon($fresh));
         }
+
+        // Notify all non-selected creators
+        $campaign->entries()
+            ->where('id', '!=', $entry->id)
+            ->where('status', 'not_selected')
+            ->with('creator.user', 'campaign')
+            ->get()
+            ->each(function ($notSelected): void {
+                $notSelected->creator?->user?->notify(new EntryNotSelected($notSelected));
+            });
 
         return $fresh;
     }

@@ -35,7 +35,7 @@ class CreateNewUser implements CreatesNewUsers
                 'name' => $input['name'],
                 'email' => $input['email'],
                 'password' => $input['password'],
-                'referral_code' => $referralService->generateCode(new User),
+                'referral_code' => $this->referralService->generateCode(new User),
             ]);
 
             $user->assignRole($input['role']);
