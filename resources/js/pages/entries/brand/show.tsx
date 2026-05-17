@@ -402,15 +402,12 @@ export default function BrandEntryShow({ campaign, entry }: Props) {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-3">
-                                {entry.video_url && (
-                                    <div className="text-sm">
-                                        <span className="text-muted-foreground">
-                                            Video:{' '}
-                                        </span>
-                                        <span className="break-all">
-                                            {entry.video_url}
-                                        </span>
-                                    </div>
+                                {entry.video_full_url && (
+                                    <video
+                                        src={entry.video_full_url}
+                                        controls
+                                        className="w-full rounded-lg aspect-video bg-black"
+                                    />
                                 )}
                                 {entry.video_duration_sec && (
                                     <div className="text-sm">

@@ -13,6 +13,9 @@ const TYPE_LABELS: Record<string, string> = {
     entry_rejected: 'Entry not accepted',
     entry_edit_requested: 'Edit requested on entry',
     entry_won: 'Contest won',
+    entry_not_selected: 'Contest entry not selected',
+    campaign_closed: 'Campaign closed',
+    campaign_cancelled: 'Campaign cancelled',
     payout_processed: 'Payout processed',
     new_message: 'New message received',
 };

@@ -12,14 +12,14 @@ use Illuminate\Support\Facades\Broadcast;
 */
 
 Broadcast::channel('thread.{threadId}', function ($user, string $threadId): bool {
-    $thread = MessageThread::with('entry.campaign.brandProfile', 'entry.creatorProfile')->find($threadId);
+    $thread = MessageThread::with('entry.campaign.brand', 'entry.creator')->find($threadId);
 
     if (! $thread) {
         return false;
     }
 
-    $brandUserId = $thread->entry->campaign->brandProfile->user_id ?? null;
-    $creatorUserId = $thread->entry->creatorProfile->user_id ?? null;
+    $brandUserId = $thread->entry->campaign->brand->user_id ?? null;
+    $creatorUserId = $thread->entry->creator->user_id ?? null;
 
     return $user->id === $brandUserId || $user->id === $creatorUserId;
 });

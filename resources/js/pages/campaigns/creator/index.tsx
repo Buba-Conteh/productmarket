@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Calendar, DollarSign, Filter, Search, Users } from 'lucide-react';
+import { Calendar, CheckCircle2, Clock, DollarSign, Filter, Search, Users } from 'lucide-react';
 import { useState } from 'react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
@@ -19,18 +19,27 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 import type { Campaign, PaginatedData, Platform } from '@/types';
 
 type Props = {
     campaigns: PaginatedData<Campaign>;
     filters: Record<string, string | undefined>;
     platforms: Platform[];
+    enteredCampaignIds: string[];
+    applicationStatuses: Record<string, string>;
 };
 
 const TYPE_LABELS: Record<string, string> = {
     contest: 'Contest',
     ripple: 'Ripple',
     pitch: 'Pitch',
+};
+
+const TYPE_GRADIENTS: Record<string, string> = {
+    contest: 'from-purple-500 to-indigo-600',
+    ripple: 'from-blue-500 to-cyan-600',
+    pitch: 'from-orange-500 to-rose-600',
 };
 
 const SORT_OPTIONS = [
@@ -69,10 +78,57 @@ function budgetDisplay(campaign: Campaign): string {
     }
 }
 
+function EntryStatusBadge({
+    campaignId,
+    campaignType,
+    enteredCampaignIds,
+    applicationStatuses,
+}: {
+    campaignId: string;
+    campaignType: string;
+    enteredCampaignIds: string[];
+    applicationStatuses: Record<string, string>;
+}) {
+    const hasEntry = enteredCampaignIds.includes(campaignId);
+    const appStatus = applicationStatuses[campaignId];
+
+    if (hasEntry) {
+        return (
+            <span className="flex items-center gap-1 rounded-full bg-green-500 px-2 py-0.5 text-xs font-medium text-white shadow">
+                <CheckCircle2 className="size-3" />
+                Applied
+            </span>
+        );
+    }
+
+    if (campaignType === 'pitch' && appStatus) {
+        const isPending = appStatus === 'pending';
+        return (
+            <span
+                className={cn(
+                    'flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium shadow',
+                    isPending
+                        ? 'bg-yellow-400 text-yellow-900'
+                        : appStatus === 'approved'
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-400 text-white',
+                )}
+            >
+                <Clock className="size-3" />
+                {appStatus.charAt(0).toUpperCase() + appStatus.slice(1)}
+            </span>
+        );
+    }
+
+    return null;
+}
+
 export default function CreatorCampaignDiscovery({
     campaigns,
     filters,
     platforms,
+    enteredCampaignIds,
+    applicationStatuses,
 }: Props) {
     const [search, setSearch] = useState(filters.search ?? '');
 
@@ -220,26 +276,52 @@ export default function CreatorCampaignDiscovery({
                                 href={`/discover/${campaign.id}`}
                                 className="block"
                             >
-                                <Card className="h-full transition-shadow hover:shadow-md">
-                                    <CardHeader className="pb-3">
-                                        <div className="flex items-start justify-between gap-2">
-                                            <div className="space-y-1">
-                                                <CardTitle className="line-clamp-1 text-base">
-                                                    {campaign.title}
-                                                </CardTitle>
-                                                <CardDescription className="line-clamp-1">
-                                                    {campaign.brand
-                                                        ?.company_name ??
-                                                        'Brand'}
-                                                </CardDescription>
-                                            </div>
-                                            <Badge
-                                                variant="outline"
-                                                className="shrink-0 capitalize"
+                                <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
+                                    {/* Thumbnail */}
+                                    <div className="relative h-40 w-full overflow-hidden">
+                                        {campaign.thumbnail_url ? (
+                                            <img
+                                                src={campaign.thumbnail_url}
+                                                alt={campaign.title}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        ) : (
+                                            <div
+                                                className={cn(
+                                                    'flex h-full w-full items-center justify-center bg-gradient-to-br',
+                                                    TYPE_GRADIENTS[campaign.type] ?? 'from-gray-400 to-gray-600',
+                                                )}
                                             >
-                                                {TYPE_LABELS[campaign.type] ??
-                                                    campaign.type}
+                                                <span className="text-2xl font-bold text-white/20">
+                                                    {campaign.title.charAt(0).toUpperCase()}
+                                                </span>
+                                            </div>
+                                        )}
+                                        {/* Type badge + entry status overlaid on image */}
+                                        <div className="absolute top-2 left-2 right-2 flex items-start justify-between">
+                                            <Badge
+                                                variant="secondary"
+                                                className="bg-black/50 text-white backdrop-blur-sm hover:bg-black/50 capitalize border-0"
+                                            >
+                                                {TYPE_LABELS[campaign.type] ?? campaign.type}
                                             </Badge>
+                                            <EntryStatusBadge
+                                                campaignId={campaign.id}
+                                                campaignType={campaign.type}
+                                                enteredCampaignIds={enteredCampaignIds}
+                                                applicationStatuses={applicationStatuses}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <CardHeader className="pb-3">
+                                        <div className="space-y-1">
+                                            <CardTitle className="line-clamp-1 text-base">
+                                                {campaign.title}
+                                            </CardTitle>
+                                            <CardDescription className="line-clamp-1">
+                                                {campaign.brand?.company_name ?? 'Brand'}
+                                            </CardDescription>
                                         </div>
                                     </CardHeader>
                                     <CardContent>

@@ -50,6 +50,9 @@ Route::middleware(['auth', 'verified', EnsureOnboardingComplete::class, 'role:br
         Route::post('/{campaign}/cancel', [BrandCampaignController::class, 'cancel'])
             ->name('campaigns.brand.cancel');
 
+        Route::post('/{campaign}/republish', [BrandCampaignController::class, 'republish'])
+            ->name('campaigns.brand.republish');
+
         // Pitch applications (brand views & manages)
         Route::get('/{campaign}/applications', [CampaignApplicationController::class, 'index'])
             ->name('campaigns.applications.index');

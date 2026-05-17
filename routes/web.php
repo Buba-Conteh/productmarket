@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\SocialAuthController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Middleware\EnsureOnboardingComplete;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -18,7 +19,7 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware(['auth', 'verified', EnsureOnboardingComplete::class])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
 });
 
 require __DIR__.'/onboarding.php';

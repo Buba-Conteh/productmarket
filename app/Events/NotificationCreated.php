@@ -39,10 +39,11 @@ final class NotificationCreated implements ShouldBroadcastNow
     {
         return [
             'id' => $this->notification->id,
-            'type' => $this->notification->type,
-            'data' => $this->notification->data,
+            'type' => $this->notification->data['type'] ?? null,
+            'message' => $this->notification->data['message'] ?? null,
+            'url' => $this->notification->data['url'] ?? null,
             'read_at' => $this->notification->read_at,
-            'created_at' => $this->notification->created_at,
+            'created_at' => $this->notification->created_at?->toISOString(),
         ];
     }
 }

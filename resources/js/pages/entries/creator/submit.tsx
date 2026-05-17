@@ -1,4 +1,5 @@
 import { Head, router, usePage } from '@inertiajs/react';
+import DOMPurify from 'dompurify';
 import {
     AlertCircle,
     ArrowLeft,
@@ -9,8 +10,10 @@ import {
     FileVideo,
     Globe,
     Send,
+    Upload,
+    X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -47,7 +50,6 @@ function initialForm(entry: Entry | null): EntryFormData {
     return {
         save_draft: false,
         requirements_acknowledged: entry?.requirements_acknowledged ?? false,
-        video_url: entry?.video_url ?? '',
         video_duration_sec: entry?.video_duration_sec?.toString() ?? '',
         caption: entry?.caption ?? '',
         tags: entry?.tags ?? [],
@@ -66,6 +68,11 @@ function formatCurrency(value: string | number | null | undefined): string {
     return `$${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
 }
 
+function formatBytes(bytes: number): string {
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export default function SubmitEntry({
     campaign,
     entry,
@@ -81,6 +88,14 @@ export default function SubmitEntry({
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [submitting, setSubmitting] = useState(false);
     const [newTag, setNewTag] = useState('');
+
+    // Video file state
+    const [videoFile, setVideoFile] = useState<File | null>(null);
+    const [videoPreview, setVideoPreview] = useState<string | null>(null);
+    const videoInputRef = useRef<HTMLInputElement>(null);
+
+    // The existing uploaded video from a saved draft
+    const existingVideoUrl = entry?.video_full_url ?? null;
 
     function update<K extends keyof EntryFormData>(
         key: K,
@@ -125,6 +140,61 @@ export default function SubmitEntry({
         update('tags', next);
     }
 
+    function handleVideoChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0] ?? null;
+        if (!file) return;
+
+        setVideoFile(file);
+        setErrors((prev) => {
+            const next = { ...prev };
+            delete next.video;
+            return next;
+        });
+
+        const url = URL.createObjectURL(file);
+        setVideoPreview(url);
+    }
+
+    function removeVideo() {
+        setVideoFile(null);
+        if (videoPreview) URL.revokeObjectURL(videoPreview);
+        setVideoPreview(null);
+        if (videoInputRef.current) videoInputRef.current.value = '';
+    }
+
+    function buildFormData(isDraft: boolean): FormData {
+        const data = new FormData();
+        data.append('save_draft', isDraft ? '1' : '0');
+        data.append(
+            'requirements_acknowledged',
+            form.requirements_acknowledged ? '1' : '0',
+        );
+
+        if (videoFile) {
+            data.append('video', videoFile);
+        } else if (entry?.video_url) {
+            data.append('existing_video', entry.video_url);
+        }
+
+        if (form.video_duration_sec)
+            data.append('video_duration_sec', form.video_duration_sec);
+        if (form.caption) data.append('caption', form.caption);
+        form.tags.forEach((t) => data.append('tags[]', t));
+        if (form.content_type_id)
+            data.append('content_type_id', form.content_type_id);
+        form.platform_ids.forEach((id) => data.append('platform_ids[]', id));
+
+        if (campaign.type === 'pitch') {
+            if (form.proposed_bid)
+                data.append('proposed_bid', form.proposed_bid);
+            if (form.pitch_text) data.append('pitch_text', form.pitch_text);
+        }
+
+        return data;
+    }
+
+    const hasVideo = videoFile !== null || !!existingVideoUrl;
+
     function validateStep(): boolean {
         const errs: Record<string, string> = {};
 
@@ -136,8 +206,8 @@ export default function SubmitEntry({
         }
 
         if (step === 1) {
-            if (!form.video_url.trim()) {
-                errs.video_url = 'Video is required.';
+            if (!hasVideo) {
+                errs.video = 'A video file is required.';
             }
         }
 
@@ -173,8 +243,9 @@ export default function SubmitEntry({
         setSubmitting(true);
         router.post(
             `/discover/${campaign.id}/entry`,
-            { ...form, save_draft: true },
+            buildFormData(true),
             {
+                forceFormData: true,
                 onError: (serverErrors) => {
                     setErrors(serverErrors);
                     setSubmitting(false);
@@ -192,8 +263,9 @@ export default function SubmitEntry({
         setSubmitting(true);
         router.post(
             `/discover/${campaign.id}/entry`,
-            { ...form, save_draft: false },
+            buildFormData(false),
             {
+                forceFormData: true,
                 onError: (serverErrors) => {
                     setErrors(serverErrors);
                     setSubmitting(false);
@@ -300,7 +372,7 @@ export default function SubmitEntry({
                                 <div
                                     className="prose prose-sm dark:prose-invert max-w-none"
                                     dangerouslySetInnerHTML={{
-                                        __html: campaign.brief,
+                                        __html: DOMPurify.sanitize(campaign.brief),
                                     }}
                                 />
                             </CardContent>
@@ -363,26 +435,92 @@ export default function SubmitEntry({
                             Upload your content
                         </h3>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="video_url">Video URL</Label>
-                            <Input
-                                id="video_url"
-                                value={form.video_url}
-                                onChange={(e) =>
-                                    update('video_url', e.target.value)
-                                }
-                                placeholder="Paste your video URL (R2 presigned URL)"
-                            />
-                            <p className="text-xs text-muted-foreground">
-                                Upload your video and paste the URL here. Direct
-                                upload coming soon.
-                            </p>
-                            {errors.video_url && (
-                                <p className="text-xs text-destructive">
-                                    {errors.video_url}
+                        {campaign.type === 'pitch' && (
+                            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
+                                Your video pitch stays private on the platform. The brand reviews it before deciding to accept your bid. You'll post publicly only after they pay.
+                            </div>
+                        )}
+
+                        {/* Existing video from draft */}
+                        {existingVideoUrl && !videoFile && (
+                            <div className="space-y-2">
+                                <Label>Current video</Label>
+                                <video
+                                    src={existingVideoUrl}
+                                    controls
+                                    className="w-full rounded-lg aspect-video bg-black"
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    This video is saved from your draft. Upload a new one to replace it.
                                 </p>
-                            )}
-                        </div>
+                            </div>
+                        )}
+
+                        {/* New video preview */}
+                        {videoFile && videoPreview && (
+                            <div className="space-y-2">
+                                <Label>Video preview</Label>
+                                <video
+                                    src={videoPreview}
+                                    controls
+                                    className="w-full rounded-lg aspect-video bg-black"
+                                />
+                                <div className="flex items-center justify-between rounded-lg border p-2 text-sm">
+                                    <span className="truncate font-medium">
+                                        {videoFile.name}
+                                    </span>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <span className="text-muted-foreground">
+                                            {formatBytes(videoFile.size)}
+                                        </span>
+                                        <button
+                                            onClick={removeVideo}
+                                            className="text-muted-foreground hover:text-destructive"
+                                        >
+                                            <X className="size-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Upload zone */}
+                        {!videoFile && (
+                            <div>
+                                <input
+                                    ref={videoInputRef}
+                                    type="file"
+                                    accept="video/mp4,video/quicktime,video/avi,video/webm"
+                                    className="sr-only"
+                                    onChange={handleVideoChange}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => videoInputRef.current?.click()}
+                                    className={cn(
+                                        'w-full rounded-lg border-2 border-dashed p-8 text-center transition-colors hover:border-primary/50 hover:bg-muted/30',
+                                        errors.video
+                                            ? 'border-destructive'
+                                            : 'border-border',
+                                    )}
+                                >
+                                    <Upload className="mx-auto mb-3 size-8 text-muted-foreground" />
+                                    <p className="text-sm font-medium">
+                                        {existingVideoUrl
+                                            ? 'Upload a replacement video'
+                                            : 'Click to upload your video'}
+                                    </p>
+                                    <p className="mt-1 text-xs text-muted-foreground">
+                                        MP4, MOV, AVI or WebM · max 200 MB
+                                    </p>
+                                </button>
+                                {errors.video && (
+                                    <p className="mt-1 text-xs text-destructive">
+                                        {errors.video}
+                                    </p>
+                                )}
+                            </div>
+                        )}
 
                         <div className="space-y-2">
                             <Label htmlFor="video_duration_sec">
@@ -577,7 +715,7 @@ export default function SubmitEntry({
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="pitch_text">
-                                        Pitch (optional)
+                                        Pitch message (optional)
                                     </Label>
                                     <Textarea
                                         id="pitch_text"
@@ -585,7 +723,7 @@ export default function SubmitEntry({
                                         onChange={(e) =>
                                             update('pitch_text', e.target.value)
                                         }
-                                        placeholder="Why are you the right creator for this?"
+                                        placeholder="Why are you the right creator for this? (your video pitch says a lot, but feel free to add context)"
                                         rows={3}
                                     />
                                 </div>
@@ -643,7 +781,11 @@ export default function SubmitEntry({
                                         Video
                                     </span>
                                     <span className="max-w-[200px] truncate font-medium">
-                                        {form.video_url || '—'}
+                                        {videoFile
+                                            ? videoFile.name
+                                            : existingVideoUrl
+                                              ? 'Existing video'
+                                              : '—'}
                                     </span>
                                 </div>
                                 {form.caption && (

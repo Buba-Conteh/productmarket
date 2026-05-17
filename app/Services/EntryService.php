@@ -12,6 +12,7 @@ use App\Models\EntryEditRequest;
 use App\Models\EntryRippleEarning;
 use App\Notifications\EntryApproved;
 use App\Notifications\EntryEditRequested;
+use App\Notifications\EntryNotSelected;
 use App\Notifications\EntryRejected;
 use App\Notifications\EntrySubmitted;
 use App\Notifications\EntryWon;
@@ -20,7 +21,10 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class EntryService
 {
-    public function __construct(private readonly PayoutService $payoutService) {}
+    public function __construct(
+        private readonly PayoutService $payoutService,
+        private readonly ReferralService $referralService,
+    ) {}
 
     /**
      * Create or update a draft entry for a creator.
@@ -91,13 +95,13 @@ final readonly class EntryService
             $entry = $entry->fresh();
 
             // Notify the brand
-            $brandUser = $campaign->brandProfile->user ?? null;
+            $brandUser = $campaign->brand->user ?? null;
             if ($brandUser) {
                 $brandUser->notify(new EntrySubmitted($entry));
             }
 
             // Qualify any pending creator referral on first entry submitted
-            app(ReferralService::class)->qualify($entry->creator->user);
+            $this->referralService->qualify($entry->creator->user);
 
             return $entry;
         });
@@ -316,6 +320,16 @@ final readonly class EntryService
             $creatorUser->notify(new EntryWon($fresh));
         }
 
+        // Notify all non-selected creators
+        $campaign->entries()
+            ->where('id', '!=', $entry->id)
+            ->where('status', 'not_selected')
+            ->with('creator.user', 'campaign')
+            ->get()
+            ->each(function ($notSelected): void {
+                $notSelected->creator?->user?->notify(new EntryNotSelected($notSelected));
+            });
+
         return $fresh;
     }
 
@@ -406,6 +420,7 @@ final readonly class EntryService
                 'pitchDetails',
                 'editRequests' => fn ($q) => $q->latest(),
             ])
+            ->where('status', '!=', 'draft')
             ->latest('submitted_at');
 
         if ($status && $status !== 'all') {

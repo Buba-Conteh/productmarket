@@ -24,7 +24,7 @@ final class StoreEntryRequest extends FormRequest
         $rules = [
             'save_draft' => ['nullable', 'boolean'],
             'requirements_acknowledged' => [$isDraft ? 'nullable' : 'required', 'boolean'],
-            'video_url' => [$isDraft ? 'nullable' : 'required', 'string', 'max:2048'],
+            'video' => ['nullable', 'file', 'mimes:mp4,mov,avi,webm', 'max:204800'],
             'video_duration_sec' => ['nullable', 'integer', 'min:1'],
             'caption' => ['nullable', 'string', 'max:5000'],
             'tags' => ['nullable', 'array'],

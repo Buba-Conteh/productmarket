@@ -8,6 +8,8 @@ use App\Models\BrandProfile;
 use App\Models\Campaign;
 use App\Models\EscrowTransaction;
 use App\Models\PlatformSetting;
+use App\Notifications\CampaignCancelled;
+use App\Notifications\CampaignClosed;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -140,7 +142,52 @@ final class CampaignService
 
         $campaign->update(['status' => 'closed']);
 
-        return $campaign->fresh();
+        $fresh = $campaign->fresh();
+
+        // Notify all creators who have non-draft entries
+        $fresh->entries()
+            ->whereNotIn('status', ['draft', 'rejected', 'disqualified'])
+            ->with('creator.user')
+            ->get()
+            ->each(function ($entry) use ($fresh): void {
+                $entry->creator?->user?->notify(new CampaignClosed($fresh));
+            });
+
+        return $fresh;
+    }
+
+    /**
+     * Republish a closed or cancelled campaign — moves it back to active.
+     * For cancelled campaigns a fresh escrow record is created.
+     */
+    public function republish(Campaign $campaign): Campaign
+    {
+        abort_unless(
+            in_array($campaign->status, ['closed', 'cancelled']),
+            403,
+            'Only closed or cancelled campaigns can be republished.'
+        );
+
+        return DB::transaction(function () use ($campaign) {
+            if ($campaign->status === 'cancelled') {
+                $escrowAmount = $this->calculateEscrowAmount($campaign);
+
+                EscrowTransaction::create([
+                    'campaign_id' => $campaign->id,
+                    'brand_profile_id' => $campaign->brand_profile_id,
+                    'total_held' => $escrowAmount,
+                    'total_released' => 0,
+                    'total_refunded' => 0,
+                    'stripe_payment_intent_id' => 'pending_'.$campaign->id.'_'.now()->timestamp,
+                    'status' => 'held',
+                    'held_at' => now(),
+                ]);
+            }
+
+            $campaign->update(['status' => 'active']);
+
+            return $campaign->fresh();
+        });
     }
 
     /**
@@ -154,7 +201,7 @@ final class CampaignService
             'This campaign cannot be cancelled.'
         );
 
-        return DB::transaction(function () use ($campaign) {
+        $cancelled = DB::transaction(function () use ($campaign) {
             $escrow = $campaign->escrowTransaction;
 
             if ($escrow && $escrow->status !== 'refunded') {
@@ -178,6 +225,17 @@ final class CampaignService
 
             return $campaign->fresh();
         });
+
+        // Notify all creators who have non-draft entries
+        $cancelled->entries()
+            ->whereNotIn('status', ['draft', 'rejected', 'disqualified'])
+            ->with('creator.user')
+            ->get()
+            ->each(function ($entry) use ($cancelled): void {
+                $entry->creator?->user?->notify(new CampaignCancelled($cancelled));
+            });
+
+        return $cancelled;
     }
 
     /**

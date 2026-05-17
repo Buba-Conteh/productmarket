@@ -40,8 +40,8 @@ return;
 }
 
         const channel = echo.private(`notifications.${auth.user.id}`);
-        channel.listen('.notification.created', (event: { data: AppNotification }) => {
-            setNotifications((prev) => [event.data, ...prev]);
+        channel.listen('.notification.created', (event: AppNotification) => {
+            setNotifications((prev) => [event, ...prev]);
             setUnreadCount((prev) => prev + 1);
         });
 

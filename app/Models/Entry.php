@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Support\FileUploader;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,6 +33,8 @@ final class Entry extends Model
         'submitted_at',
     ];
 
+    protected $appends = ['video_full_url'];
+
     protected function casts(): array
     {
         return [
@@ -41,6 +44,11 @@ final class Entry extends Model
             'live_at' => 'datetime',
             'submitted_at' => 'datetime',
         ];
+    }
+
+    public function getVideoFullUrlAttribute(): ?string
+    {
+        return FileUploader::url($this->video_url);
     }
 
     public function campaign(): BelongsTo

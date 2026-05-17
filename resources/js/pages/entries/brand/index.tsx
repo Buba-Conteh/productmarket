@@ -3,22 +3,25 @@ import {
     AlertCircle,
     ArrowLeft,
     Calendar,
+    Check,
     CheckCircle2,
     FileVideo,
     User,
+    X,
 } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import type { Campaign, Entry, EntryStatus, PaginatedData } from '@/types';
+import type { Campaign, CampaignApplication, Entry, EntryStatus, PaginatedData } from '@/types';
 
 type Props = {
     campaign: Campaign;
     entries: PaginatedData<Entry>;
     filters: { status: string };
     counts: Record<string, number>;
+    applications: CampaignApplication[];
 };
 
 const STATUS_STYLES: Record<EntryStatus, string> = {
@@ -70,11 +73,18 @@ const TABS = [
     { key: 'rejected', label: 'Rejected' },
 ];
 
+const APPLICATION_STATUS_STYLES: Record<string, string> = {
+    pending: 'bg-yellow-100 text-yellow-700',
+    approved: 'bg-green-100 text-green-700',
+    rejected: 'bg-red-100 text-red-700',
+};
+
 export default function BrandEntryReview({
     campaign,
     entries,
     filters,
     counts,
+    applications,
 }: Props) {
     const { props } = usePage();
     const flash = (props as { flash?: { success?: string; error?: string } })
@@ -85,6 +95,23 @@ export default function BrandEntryReview({
             `/campaigns/${campaign.id}/entries`,
             { status },
             { preserveState: true },
+        );
+    }
+
+    function approveApplication(applicationId: string) {
+        router.post(
+            `/campaigns/${campaign.id}/applications/${applicationId}/approve`,
+            {},
+            { preserveState: false },
+        );
+    }
+
+    function rejectApplication(applicationId: string) {
+        if (!confirm('Reject this application?')) return;
+        router.post(
+            `/campaigns/${campaign.id}/applications/${applicationId}/reject`,
+            {},
+            { preserveState: false },
         );
     }
 
@@ -119,6 +146,87 @@ export default function BrandEntryReview({
                 </Button>
 
                 <Heading title="Review Entries" description={campaign.title} />
+
+                {/* Applications section — Pitch campaigns only */}
+                {campaign.type === 'pitch' && applications.length > 0 && (
+                    <Card className="mb-6">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-base">
+                                Applications
+                                <span className="ml-2 text-sm font-normal text-muted-foreground">
+                                    ({applications.filter((a) => a.status === 'pending').length} pending)
+                                </span>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            {applications.map((app) => (
+                                <div
+                                    key={app.id}
+                                    className="flex items-start justify-between gap-4 rounded-lg border p-3"
+                                >
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted">
+                                            <User className="size-4 text-muted-foreground" />
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm font-medium">
+                                                    {app.creator?.display_name ?? app.creator?.user?.name ?? 'Creator'}
+                                                </span>
+                                                <span
+                                                    className={cn(
+                                                        'rounded-full px-2 py-0.5 text-xs font-medium capitalize',
+                                                        APPLICATION_STATUS_STYLES[app.status] ?? '',
+                                                    )}
+                                                >
+                                                    {app.status}
+                                                </span>
+                                            </div>
+                                            {app.creator?.niches && app.creator.niches.length > 0 && (
+                                                <div className="mt-1 flex flex-wrap gap-1">
+                                                    {app.creator.niches.slice(0, 3).map((n) => (
+                                                        <Badge key={n.id} variant="secondary" className="text-xs">
+                                                            {n.name}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {app.pitch && (
+                                                <p className="mt-1.5 text-xs text-muted-foreground line-clamp-2">
+                                                    {app.pitch}
+                                                </p>
+                                            )}
+                                            <p className="mt-1 text-xs text-muted-foreground">
+                                                Applied {new Date(app.created_at).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {app.status === 'pending' && (
+                                        <div className="flex shrink-0 gap-2">
+                                            <Button
+                                                size="sm"
+                                                onClick={() => approveApplication(app.id)}
+                                                className="gap-1"
+                                            >
+                                                <Check className="size-3.5" />
+                                                Approve
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => rejectApplication(app.id)}
+                                                className="gap-1"
+                                            >
+                                                <X className="size-3.5" />
+                                                Reject
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Status tabs */}
                 <div className="mb-6 flex flex-wrap gap-2">

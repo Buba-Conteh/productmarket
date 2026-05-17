@@ -1,4 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import DOMPurify from 'dompurify';
 import {
     AlertCircle,
     ArrowLeft,
@@ -212,7 +213,7 @@ export default function CreatorCampaignShow({
                                 <div
                                     className="prose prose-sm dark:prose-invert max-w-none"
                                     dangerouslySetInnerHTML={{
-                                        __html: campaign.brief,
+                                        __html: DOMPurify.sanitize(campaign.brief),
                                     }}
                                 />
                             </CardContent>

@@ -34,10 +34,22 @@ final class ViewSyncService
             return 0;
         }
 
+        // Pre-load platforms with pivot data (1 query)
+        $platforms = $entry->platforms()->get();
+
+        // Pre-index social accounts by platform_id (1 query)
+        $userId = $entry->creator?->user_id;
+        $accounts = $userId
+            ? SocialAccount::where('user_id', $userId)
+                ->whereIn('platform_id', $platforms->pluck('id'))
+                ->get()
+                ->keyBy('platform_id')
+            : collect();
+
         $totalDelta = 0;
 
-        foreach ($entry->platforms()->get() as $platform) {
-            $totalDelta += $this->syncEntryPlatform($entry, $platform);
+        foreach ($platforms as $platform) {
+            $totalDelta += $this->syncEntryPlatform($entry, $platform, $accounts->get($platform->id));
         }
 
         return $totalDelta;
@@ -47,9 +59,9 @@ final class ViewSyncService
      * Sync a single (entry, platform) pair. Writes view_sync_logs row + updates pivot view count.
      * If the entry is a Ripple entry, detects milestone crossings and queues payouts.
      */
-    public function syncEntryPlatform(Entry $entry, Platform $platform): int
+    public function syncEntryPlatform(Entry $entry, Platform $platform, ?SocialAccount $account = null): int
     {
-        $pivot = $entry->platforms()
+        $pivot = $platform->pivot ?? $entry->platforms()
             ->where('platforms.id', $platform->id)
             ->first()?->pivot;
 
@@ -57,12 +69,14 @@ final class ViewSyncService
             return 0;
         }
 
-        $userId = $entry->creator?->user_id;
-        $account = $userId
-            ? SocialAccount::where('user_id', $userId)
-                ->where('platform_id', $platform->id)
-                ->first()
-            : null;
+        if ($account === null) {
+            $userId = $entry->creator?->user_id;
+            $account = $userId
+                ? SocialAccount::where('user_id', $userId)
+                    ->where('platform_id', $platform->id)
+                    ->first()
+                : null;
+        }
 
         if (! $account) {
             $this->logSync($entry->id, $platform->id, 0, false, 'No connected social account for this platform.');
@@ -92,15 +106,11 @@ final class ViewSyncService
 
         $payoutIds = [];
 
-        DB::transaction(function () use ($entry, $platform, $newCount, $previousCount, &$payoutIds): void {
+        DB::transaction(function () use ($entry, $platform, $newCount, $previousCount, $account, &$payoutIds): void {
             $entry->platforms()->updateExistingPivot($platform->id, [
                 'verified_view_count' => $newCount,
                 'last_synced_at' => now(),
             ]);
-
-            $account = SocialAccount::where('user_id', $entry->creator?->user_id)
-                ->where('platform_id', $platform->id)
-                ->first();
 
             $account?->update(['last_synced_at' => now()]);
 

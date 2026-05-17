@@ -1,4 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import DOMPurify from 'dompurify';
 import {
     AlertCircle,
     ArrowLeft,
@@ -144,6 +145,18 @@ export default function BrandCampaignShow({ campaign }: Props) {
         router.post(`/campaigns/${campaign.id}/cancel`);
     }
 
+    function republish() {
+        if (
+            !confirm(
+                'Republish this campaign? It will go live again and accept new entries.',
+            )
+        ) {
+            return;
+        }
+
+        router.post(`/campaigns/${campaign.id}/republish`);
+    }
+
     return (
         <>
             <Head title={campaign.title} />
@@ -234,6 +247,12 @@ export default function BrandCampaignShow({ campaign }: Props) {
                                     </Button>
                                 </>
                             )}
+                            {(campaign.status === 'closed' ||
+                                campaign.status === 'cancelled') && (
+                                <Button size="sm" onClick={republish}>
+                                    Republish
+                                </Button>
+                            )}
                             {campaign.status !== 'draft' && (
                                 <Button variant="outline" size="sm" asChild>
                                     <Link
@@ -243,16 +262,6 @@ export default function BrandCampaignShow({ campaign }: Props) {
                                     </Link>
                                 </Button>
                             )}
-                            {campaign.type === 'pitch' &&
-                                campaign.status === 'active' && (
-                                    <Button variant="outline" size="sm" asChild>
-                                        <Link
-                                            href={`/campaigns/${campaign.id}/applications`}
-                                        >
-                                            View applications
-                                        </Link>
-                                    </Button>
-                                )}
                         </div>
                     </div>
                 </div>
@@ -282,7 +291,7 @@ export default function BrandCampaignShow({ campaign }: Props) {
                                 <div
                                     className="prose prose-sm dark:prose-invert max-w-none"
                                     dangerouslySetInnerHTML={{
-                                        __html: campaign.brief,
+                                        __html: DOMPurify.sanitize(campaign.brief),
                                     }}
                                 />
                             </CardContent>

@@ -1,8 +1,8 @@
-# Campaign Media Enhancements
+# Campaign UX Improvements
 
 **Status:** In Progress
-**Branch:** feature/campaign-media
-**Started:** 2026-04-21
+**Branch:** feature/campaign-ux-improvements
+**Started:** 2026-05-03
 
 ---
 
@@ -10,45 +10,107 @@
 
 | # | Feature | Status |
 |---|---|---|
-| CM-1 | Campaign thumbnail image upload | 🟢 Complete |
-| CM-2 | Campaign resources upload (files for creators) | 🟢 Complete |
-| CM-3 | Inspiration links — video thumbnail previews | 🟢 Complete |
+| CUX-1 | Real video file upload for all entry types | 🟢 Complete |
+| CUX-2 | Inline video playback on platform (creator + brand views) | 🟢 Complete |
+| CUX-3 | Campaign card thumbnails (creator discover + brand list) | 🟢 Complete |
+| CUX-4 | "Already applied" indicator on discovery cards | 🟢 Complete |
 
 ---
 
 ## Overview
 
-Three enhancements to the campaign creation/edit flow:
+Four UX improvements to make the platform production-ready:
 
-1. **Thumbnail** — Brands upload a cover image for the campaign. Displayed on campaign cards and the detail page.
-2. **Resources** — Brands upload supporting files (brand guidelines, logos, product shots, scripts) that creators can download when making their content.
-3. **Inspiration link thumbnails** — When a YouTube/Vimeo/TikTok URL is added as an inspiration link, a video thumbnail preview is shown inline.
+1. **Video upload** — Replace the URL-paste placeholder in the entry wizard with a real file-upload drop zone. Videos are stored on the local disk (same pattern as campaign thumbnails). The backend stores the path in `video_url` and exposes a full `video_full_url` accessor.
+
+2. **On-platform video playback** — Wherever an entry is shown (creator entry detail, brand entry review), render an inline `<video controls>` player using `video_full_url`. Critically for Pitch entries, the brand watches the video pitch before deciding to accept or reject the bid.
+
+3. **Campaign card thumbnails** — Every campaign already stores a `thumbnail_url` but it was never shown on cards. Add a 160px image area at the top of every campaign card on the creator Discover page and the brand Campaigns list. Use a gradient placeholder when no thumbnail exists.
+
+4. **Applied indicator on discover cards** — The "you already submitted" notice only appeared on the campaign detail page. Now the discovery grid shows a green "Applied ✓" badge (or "Pending" for unapproved Pitch applications) overlaid on the card thumbnail so creators can see their status at a glance.
 
 ---
 
-## Implementation Plan
+## Implementation
 
-### CM-1 — Campaign Thumbnail
-- Spatie Media Library `thumbnail` single-file collection on Campaign model
-- File input in campaign creation wizard (Step 2 — Brief)
-- Controller handles `addMediaFromRequest('thumbnail')->toMediaCollection('thumbnail')`
-- TypeScript: `thumbnail_url: string | null` added to Campaign type
-- Shown on campaign cards and detail page header
+### Backend
 
-### CM-2 — Campaign Resources
-- Spatie Media Library `resources` multi-file collection on Campaign model
-- File input (multi-select) in campaign creation wizard (Step 2 — Brief)
-- Campaign show page (creator view) renders a download list
-- TypeScript: `resources: { id, file_name, size, mime_type, url }[]` on Campaign type
+- `StoreEntryRequest` — Changed `video_url` (string) to `video` (file, mimes:mp4,mov,avi,webm, max 200 MB). `video_url` stays in DB but is set by the controller, not sent from the form.
+- `Entry` model — Added `video_full_url` appended attribute via `FileUploader::url($this->video_url)`.
+- `EntryService::saveDraft()` — Only updates `video_url` when a new path is explicitly provided (prevents overwrite on resubmit without a new video).
+- `CreatorEntryController::store()` / `resubmit()` — Handles file upload before delegating to service.
+- `CreatorCampaignController::index()` — Passes `entered_campaign_ids` and `application_statuses` for the authenticated creator.
 
-### CM-3 — Inspiration Link Thumbnails
-- Pure client-side extraction — no backend required
-- YouTube: extract video ID from URL, render `https://img.youtube.com/vi/{id}/hqdefault.jpg`
-- Other URLs: show generic link icon with domain name
-- Displayed in the inspiration links list inside the creation/edit wizard
+### Frontend
+
+- `submit.tsx` — File drop zone replaces URL input. Uses `FormData` + `router.post` with `forceFormData`. Shows `<video>` preview on selection. Step validation checks `videoFile !== null || !!entry?.video_full_url`.
+- `entries/creator/show.tsx` — Inline `<video controls>` player.
+- `entries/brand/show.tsx` — Inline `<video controls>` player above the text content.
+- `campaigns/creator/index.tsx` — Thumbnail image area on cards + applied/pending badge.
+- `campaigns/brand/index.tsx` — Thumbnail image area on cards.
+- `types/entry.ts` — Added `video_full_url: string | null` to `Entry`; removed `video_url` from `EntryFormData`.
 
 ---
 
 ## History
 
-- 2026-04-21: Feature documented and fully implemented. Build passing.
+- 2026-05-03: Feature documented and fully implemented. TypeScript types pass, build passes, PHP Pint passes.
+
+---
+
+# Performance Quick Wins
+
+**Status:** Not Started
+**Branch:** fix/performance-quick-wins
+
+---
+
+## Features
+
+| # | Feature | Status |
+|---|---|---|
+| PQW-1 | Replace 5-6 COUNT queries per dashboard tab with single GROUP BY aggregate | 🔴 Not started |
+| PQW-2 | Fix N+1 in `ViewSyncService::syncEntry` — platform + social account pre-fetch | 🔴 Not started |
+| PQW-3 | Cache `unreadNotifications()->count()` per-user (60s TTL) in `HandleInertiaRequests` | 🔴 Not started |
+| PQW-4 | Cache subscription status per-request in `HandleInertiaRequests` | 🔴 Not started |
+
+---
+
+## Overview
+
+Low-risk performance fixes identified by codebase audit. No functional changes — same data, fewer queries.
+
+### PQW-1 — Dashboard tab COUNT queries
+
+`BrandCampaignController::index`, `BrandEntryController::index`, and `CreatorEntryController::index` each fire 5–6 separate `COUNT(*)` queries to build status tab counts. Replace with a single `GROUP BY status` aggregate.
+
+**Files:** [app/Http/Controllers/Campaign/BrandCampaignController.php](app/Http/Controllers/Campaign/BrandCampaignController.php), [app/Http/Controllers/Entry/BrandEntryController.php](app/Http/Controllers/Entry/BrandEntryController.php), [app/Http/Controllers/Entry/CreatorEntryController.php](app/Http/Controllers/Entry/CreatorEntryController.php)
+
+```php
+$counts = $brand->campaigns()
+    ->selectRaw('status, count(*) as count')
+    ->groupBy('status')
+    ->pluck('count', 'status')
+    ->toArray();
+$counts['all'] = array_sum($counts);
+```
+
+### PQW-2 — N+1 in ViewSyncService
+
+`syncEntry()` fetches `$entry->platforms()->get()` then inside the loop calls `$entry->platforms()->where(...)->first()` again for each platform (1+N queries), and `SocialAccount::where(...)->first()` per platform (another N queries).
+
+**File:** [app/Services/Social/ViewSyncService.php](app/Services/Social/ViewSyncService.php)
+
+Fix: load platforms with pivot once before the loop; index social accounts by platform_id before the loop.
+
+### PQW-3 — unreadNotifications count on every request
+
+`HandleInertiaRequests` calls `unreadNotifications()->count()` on every authenticated page load. Cache per-user with a 60-second TTL.
+
+**File:** [app/Http/Middleware/HandleInertiaRequests.php](app/Http/Middleware/HandleInertiaRequests.php)
+
+### PQW-4 — Subscription status re-queried every request
+
+`subscriptionStatuses()` queries `subscription_statuses` on every page load. Cache per-user per-request using `cache()->remember()` with a short TTL.
+
+**File:** [app/Http/Middleware/HandleInertiaRequests.php](app/Http/Middleware/HandleInertiaRequests.php)
