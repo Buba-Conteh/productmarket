@@ -87,8 +87,8 @@ final class DashboardController
             ])
             ->values();
 
-        $subscription = $user->subscriptions()->where('name', 'brand')->first();
-        $subscriptionActive = $subscription && in_array($subscription->stripe_status, ['active', 'trialing']);
+        $subscription = $user->subscription('brand');
+        $subscriptionActive = $subscription && $subscription->active();
 
         return Inertia::render('dashboard', [
             'stats' => [
