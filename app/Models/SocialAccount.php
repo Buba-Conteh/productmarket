@@ -24,6 +24,7 @@ final class SocialAccount extends Model
         'avg_views',
         'engagement_rate',
         'verified',
+        'scopes',
         'last_synced_at',
     ];
 
@@ -40,6 +41,7 @@ final class SocialAccount extends Model
             'token_expires_at' => 'datetime',
             'last_synced_at' => 'datetime',
             'verified' => 'boolean',
+            'scopes' => 'array',
             'engagement_rate' => 'decimal:2',
         ];
     }

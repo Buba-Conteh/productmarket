@@ -112,6 +112,34 @@ When a creator marks an entry as live (posts on social media), the platform shou
 
 ---
 
+# TikTok Direct Posting
+
+**Status:** In Progress
+**Branch:** feature/tiktok-direct-posting
+**Started:** 2026-05-20
+
+---
+
+## Features
+
+| # | Feature | Status |
+|---|---|---|
+| TDP-1 | DB migration: publish_status + tiktok_publish_id on entry_platforms; scopes on social_accounts | 🔴 Not started |
+| TDP-2 | Add video.publish scope to TikTok OAuth + save scopes on connect | 🔴 Not started |
+| TDP-3 | TikTokPostingService (init, chunked upload, status fetch) | 🔴 Not started |
+| TDP-4 | PublishToTikTokJob (async upload + auto markLive) | 🔴 Not started |
+| TDP-5 | TikTokPublishController + routes | 🔴 Not started |
+| TDP-6 | CreatorEntryController::show() — add socialAccounts prop | 🔴 Not started |
+| TDP-7 | Frontend TikTok posting card on entries/creator/show.tsx | 🔴 Not started |
+
+---
+
+## Overview
+
+Allow creators to post entry videos directly to TikTok from the platform after a brand approves their entry. Uses TikTok Content Posting API (Direct Post, FILE_UPLOAD). Video is chunked-uploaded from local storage to TikTok. On success, entry is auto-marked live with the TikTok video URL.
+
+---
+
 # Performance Quick Wins
 
 **Status:** Not Started

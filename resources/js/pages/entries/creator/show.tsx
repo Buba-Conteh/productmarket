@@ -1,4 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import axios from 'axios';
 import {
     AlertCircle,
     ArrowLeft,
@@ -9,10 +10,12 @@ import {
     Eye,
     FileVideo,
     Globe,
+    Loader2,
+    RefreshCw,
     Trophy,
     XCircle,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,10 +25,19 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import type { Entry, EntryStatus } from '@/types';
+import type { Entry, EntryStatus, TikTokPublishStatus } from '@/types';
 
 type Props = {
     entry: Entry;
@@ -62,6 +74,323 @@ function formatCurrency(value: string | number | null | undefined): string {
     return `$${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
 }
 
+// ---------------------------------------------------------------------------
+// TikTok posting card component
+// ---------------------------------------------------------------------------
+
+type TikTokCardProps = {
+    entry: Entry;
+    hasPostingScope: boolean;
+    initialStatus: TikTokPublishStatus;
+    initialPostedUrl: string | null;
+};
+
+function TikTokPostingCard({
+    entry,
+    hasPostingScope,
+    initialStatus,
+    initialPostedUrl,
+}: TikTokCardProps) {
+    const [status, setStatus] = useState<TikTokPublishStatus>(initialStatus);
+    const [postedUrl, setPostedUrl] = useState<string | null>(initialPostedUrl);
+    const [caption, setCaption] = useState(entry.caption ?? '');
+    const [privacyLevel, setPrivacyLevel] = useState('PUBLIC_TO_EVERYONE');
+    const [disableComment, setDisableComment] = useState(false);
+    const [posting, setPosting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    const stopPolling = useCallback(() => {
+        if (pollRef.current) {
+            clearInterval(pollRef.current);
+            pollRef.current = null;
+        }
+    }, []);
+
+    const startPolling = useCallback(() => {
+        stopPolling();
+        pollRef.current = setInterval(async () => {
+            try {
+                const res = await axios.get(
+                    `/entries/${entry.id}/publish/tiktok/status`,
+                );
+                const data = res.data as {
+                    publish_status: TikTokPublishStatus;
+                    posted_url: string | null;
+                };
+                setStatus(data.publish_status);
+
+                if (data.posted_url) {
+                    setPostedUrl(data.posted_url);
+                }
+
+                if (
+                    data.publish_status === 'published' ||
+                    data.publish_status === 'failed'
+                ) {
+                    stopPolling();
+                }
+            } catch {
+                stopPolling();
+            }
+        }, 5000);
+    }, [entry.id, stopPolling]);
+
+    useEffect(() => {
+        if (status === 'pending' || status === 'processing') {
+            startPolling();
+        }
+
+        return stopPolling;
+    }, [status, startPolling, stopPolling]);
+
+    async function postToTikTok() {
+        setPosting(true);
+        setError(null);
+
+        try {
+            const res = await axios.post(
+                `/entries/${entry.id}/publish/tiktok`,
+                {
+                    caption,
+                    privacy_level: privacyLevel,
+                    disable_comment: disableComment,
+                },
+            );
+            const data = res.data as {
+                publish_status: TikTokPublishStatus;
+                posted_url: string | null;
+            };
+            setStatus(data.publish_status);
+
+            if (data.posted_url) {
+                setPostedUrl(data.posted_url);
+            }
+
+            if (
+                data.publish_status === 'pending' ||
+                data.publish_status === 'processing'
+            ) {
+                startPolling();
+            }
+        } catch (err: unknown) {
+            const msg =
+                axios.isAxiosError(err) && err.response?.data?.message
+                    ? String(err.response.data.message)
+                    : 'Something went wrong. Please try again.';
+            setError(msg);
+        } finally {
+            setPosting(false);
+        }
+    }
+
+    // No scope — prompt re-connect
+    if (!hasPostingScope) {
+        return (
+            <Card className="border-blue-200 bg-blue-50/50">
+                <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                        <svg viewBox="0 0 24 24" className="size-4 fill-current">
+                            <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.89a8.16 8.16 0 0 0 4.77 1.52V7a4.85 4.85 0 0 1-1-.31z" />
+                        </svg>
+                        Post to TikTok
+                    </CardTitle>
+                    <CardDescription>
+                        Re-connect your TikTok account to enable direct posting
+                        from the platform.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Button size="sm" variant="outline" asChild>
+                        <a href="/creator/social/tiktok/connect">
+                            Re-connect TikTok
+                        </a>
+                    </Button>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    // Published
+    if (status === 'published') {
+        return (
+            <Card className="border-green-200 bg-green-50/50">
+                <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-base text-green-700">
+                        <CheckCircle2 className="size-4" />
+                        Posted to TikTok
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {postedUrl ? (
+                        <a
+                            href={postedUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center gap-1 text-sm text-primary hover:underline"
+                        >
+                            <ExternalLink className="size-3" />
+                            View on TikTok
+                        </a>
+                    ) : (
+                        <p className="text-sm text-green-700">
+                            Your video is live on TikTok.
+                        </p>
+                    )}
+                </CardContent>
+            </Card>
+        );
+    }
+
+    // Pending or processing
+    if (status === 'pending' || status === 'processing') {
+        return (
+            <Card className="border-blue-200 bg-blue-50/50">
+                <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-base text-blue-700">
+                        <Loader2 className="size-4 animate-spin" />
+                        {status === 'pending'
+                            ? 'Uploading to TikTok…'
+                            : 'TikTok is processing your video…'}
+                    </CardTitle>
+                    <CardDescription>
+                        This usually takes under a minute. The page will update
+                        automatically.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
+        );
+    }
+
+    // Failed — show retry
+    if (status === 'failed') {
+        return (
+            <Card className="border-red-200 bg-red-50/50">
+                <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-base text-red-700">
+                        <XCircle className="size-4" />
+                        TikTok posting failed
+                    </CardTitle>
+                    <CardDescription className="text-red-600">
+                        The upload did not complete. Check your internet
+                        connection and try again.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setStatus(null)}
+                        className="gap-1"
+                    >
+                        <RefreshCw className="size-3" />
+                        Try again
+                    </Button>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    // Default — posting form
+    return (
+        <Card className="border-pink-200 bg-pink-50/30">
+            <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                    <svg viewBox="0 0 24 24" className="size-4 fill-current">
+                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.89a8.16 8.16 0 0 0 4.77 1.52V7a4.85 4.85 0 0 1-1-.31z" />
+                    </svg>
+                    Post to TikTok
+                </CardTitle>
+                <CardDescription>
+                    Post your video directly to TikTok. Your entry will be
+                    marked as live automatically.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {error && (
+                    <div className="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                        <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                        {error}
+                    </div>
+                )}
+
+                <div className="space-y-1.5">
+                    <Label htmlFor="tiktok-caption">Caption</Label>
+                    <Textarea
+                        id="tiktok-caption"
+                        value={caption}
+                        onChange={(e) => setCaption(e.target.value)}
+                        maxLength={2200}
+                        rows={3}
+                        placeholder="Write your TikTok caption…"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                        {caption.length} / 2200
+                    </p>
+                </div>
+
+                <div className="space-y-1.5">
+                    <Label htmlFor="tiktok-privacy">Privacy</Label>
+                    <Select
+                        value={privacyLevel}
+                        onValueChange={setPrivacyLevel}
+                    >
+                        <SelectTrigger id="tiktok-privacy">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="PUBLIC_TO_EVERYONE">
+                                Public
+                            </SelectItem>
+                            <SelectItem value="MUTUAL_FOLLOW_FRIENDS">
+                                Friends
+                            </SelectItem>
+                            <SelectItem value="FOLLOWER_OF_CREATOR">
+                                Followers only
+                            </SelectItem>
+                            <SelectItem value="SELF_ONLY">
+                                Only me (draft)
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <Checkbox
+                        id="tiktok-disable-comment"
+                        checked={disableComment}
+                        onCheckedChange={(v) =>
+                            setDisableComment(v === true)
+                        }
+                    />
+                    <Label htmlFor="tiktok-disable-comment">
+                        Disable comments
+                    </Label>
+                </div>
+
+                <Button
+                    onClick={postToTikTok}
+                    disabled={posting}
+                    className="w-full gap-2"
+                >
+                    {posting ? (
+                        <>
+                            <Loader2 className="size-4 animate-spin" />
+                            Starting upload…
+                        </>
+                    ) : (
+                        'Post to TikTok'
+                    )}
+                </Button>
+            </CardContent>
+        </Card>
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Main page component
+// ---------------------------------------------------------------------------
+
 export default function CreatorEntryShow({ entry }: Props) {
     const { props } = usePage();
     const flash = (props as { flash?: { success?: string; error?: string } })
@@ -73,6 +402,19 @@ export default function CreatorEntryShow({ entry }: Props) {
     const [marking, setMarking] = useState(false);
 
     const canMarkLive = entry.status === 'approved' || entry.status === 'won';
+
+    // TikTok posting helpers
+    const tiktokPlatform = entry.platforms?.find((p) => p.slug === 'tiktok');
+    const tiktokAccount = entry.creator?.user?.social_accounts?.find(
+        (sa) => sa.platform.slug === 'tiktok',
+    );
+    const hasTikTokPostingScope =
+        tiktokAccount?.scopes?.includes('video.publish') ?? false;
+    const showTikTokCard =
+        canMarkLive && tiktokPlatform !== undefined;
+    const nonTiktokPlatforms = entry.platforms?.filter(
+        (p) => p.slug !== 'tiktok',
+    );
 
     function markLive() {
         setMarking(true);
@@ -356,79 +698,95 @@ export default function CreatorEntryShow({ entry }: Props) {
                                 </Card>
                             )}
 
-                        {/* Mark as live form */}
-                        {canMarkLive && (
-                            <Card className="border-green-200 bg-green-50/50">
-                                <CardHeader>
-                                    <CardTitle className="text-base">
-                                        Post your content
-                                    </CardTitle>
-                                    <CardDescription>
-                                        Post the video on the required
-                                        platform(s), then paste the video
-                                        URL(s) below. Your payment will be
-                                        released as soon as you submit.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    {entry.type === 'pitch' &&
-                                        entry.pitch_details?.accepted_bid && (
-                                            <div className="flex items-center gap-2 rounded-lg border border-green-300 bg-green-100 px-3 py-2 text-sm text-green-800">
-                                                <DollarSign className="size-4 shrink-0" />
-                                                <span>
-                                                    Your payout of{' '}
-                                                    <strong>
-                                                        {formatCurrency(
-                                                            entry.pitch_details
-                                                                .accepted_bid,
-                                                        )}
-                                                    </strong>{' '}
-                                                    will be released
-                                                    automatically when you mark
-                                                    as live.
-                                                </span>
-                                            </div>
-                                        )}
-                                    {entry.platforms?.map((p) => (
-                                        <div key={p.id} className="space-y-1">
-                                            <Label>
-                                                {p.name} video URL
-                                                {p.slug === 'tiktok' && (
-                                                    <span className="ml-1 text-xs font-normal text-muted-foreground">
-                                                        (e.g.
-                                                        tiktok.com/@handle/video/123…)
-                                                    </span>
-                                                )}
-                                            </Label>
-                                            <Input
-                                                value={platformUrls[p.id] ?? ''}
-                                                onChange={(e) =>
-                                                    setPlatformUrls((prev) => ({
-                                                        ...prev,
-                                                        [p.id]: e.target.value,
-                                                    }))
-                                                }
-                                                placeholder={
-                                                    p.slug === 'tiktok'
-                                                        ? 'https://www.tiktok.com/@yourhandle/video/1234567890'
-                                                        : `https://${p.slug}.com/...`
-                                                }
-                                            />
-                                        </div>
-                                    ))}
-                                    <Button
-                                        onClick={markLive}
-                                        disabled={marking}
-                                        className="gap-2"
-                                    >
-                                        <Globe className="size-4" />
-                                        {marking
-                                            ? 'Submitting...'
-                                            : 'Mark as live & release payment'}
-                                    </Button>
-                                </CardContent>
-                            </Card>
+                        {/* TikTok direct posting card */}
+                        {showTikTokCard && (
+                            <TikTokPostingCard
+                                entry={entry}
+                                hasPostingScope={hasTikTokPostingScope}
+                                initialStatus={
+                                    tiktokPlatform!.pivot?.publish_status ??
+                                    null
+                                }
+                                initialPostedUrl={
+                                    tiktokPlatform!.pivot?.posted_url ?? null
+                                }
+                            />
                         )}
+
+                        {/* Mark as live — non-TikTok platforms */}
+                        {canMarkLive &&
+                            (nonTiktokPlatforms?.length ?? 0) > 0 && (
+                                <Card className="border-green-200 bg-green-50/50">
+                                    <CardHeader>
+                                        <CardTitle className="text-base">
+                                            Post your content
+                                        </CardTitle>
+                                        <CardDescription>
+                                            Post the video on the required
+                                            platform(s), then paste the video
+                                            URL(s) below. Your payment will be
+                                            released as soon as you submit.
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {entry.type === 'pitch' &&
+                                            entry.pitch_details
+                                                ?.accepted_bid && (
+                                                <div className="flex items-center gap-2 rounded-lg border border-green-300 bg-green-100 px-3 py-2 text-sm text-green-800">
+                                                    <DollarSign className="size-4 shrink-0" />
+                                                    <span>
+                                                        Your payout of{' '}
+                                                        <strong>
+                                                            {formatCurrency(
+                                                                entry
+                                                                    .pitch_details
+                                                                    .accepted_bid,
+                                                            )}
+                                                        </strong>{' '}
+                                                        will be released
+                                                        automatically when you
+                                                        mark as live.
+                                                    </span>
+                                                </div>
+                                            )}
+                                        {nonTiktokPlatforms?.map((p) => (
+                                            <div
+                                                key={p.id}
+                                                className="space-y-1"
+                                            >
+                                                <Label>
+                                                    {p.name} video URL
+                                                </Label>
+                                                <Input
+                                                    value={
+                                                        platformUrls[p.id] ?? ''
+                                                    }
+                                                    onChange={(e) =>
+                                                        setPlatformUrls(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                [p.id]: e.target
+                                                                    .value,
+                                                            }),
+                                                        )
+                                                    }
+                                                    placeholder={`https://${p.slug}.com/...`}
+                                                />
+                                            </div>
+                                        ))}
+                                        <Button
+                                            onClick={markLive}
+                                            disabled={marking}
+                                            className="gap-2"
+                                        >
+                                            <Globe className="size-4" />
+                                            {marking
+                                                ? 'Submitting...'
+                                                : 'Mark as live & release payment'}
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            )}
                     </div>
 
                     {/* Sidebar */}

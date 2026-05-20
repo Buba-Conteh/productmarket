@@ -69,7 +69,7 @@ final class Entry extends Model
     public function platforms(): BelongsToMany
     {
         return $this->belongsToMany(Platform::class, 'entry_platforms')
-            ->withPivot(['posted_url', 'verified_view_count', 'comment_count', 'last_synced_at']);
+            ->withPivot(['posted_url', 'verified_view_count', 'comment_count', 'last_synced_at', 'tiktok_publish_id', 'publish_status']);
     }
 
     public function pitchDetails(): HasOne

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Entry\BrandEntryController;
 use App\Http\Controllers\Entry\CreatorEntryController;
+use App\Http\Controllers\Entry\TikTokPublishController;
 use App\Http\Middleware\EnsureCreatorEntryLimit;
 use App\Http\Middleware\EnsureOnboardingComplete;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +32,13 @@ Route::middleware(['auth', 'verified', EnsureOnboardingComplete::class, 'role:cr
         // Mark entry as live
         Route::post('/{entry}/live', [CreatorEntryController::class, 'markLive'])
             ->name('entries.creator.live');
+
+        // TikTok direct post
+        Route::post('/{entry}/publish/tiktok', [TikTokPublishController::class, 'store'])
+            ->name('entries.creator.tiktok-publish');
+
+        Route::get('/{entry}/publish/tiktok/status', [TikTokPublishController::class, 'status'])
+            ->name('entries.creator.tiktok-publish-status');
     });
 
 // Creator submission routes (nested under campaign)

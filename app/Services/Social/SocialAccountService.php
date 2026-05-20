@@ -31,7 +31,9 @@ final class SocialAccountService
         $tokens = $provider->exchangeCodeForToken($code);
         $profile = $provider->fetchAccountProfile($tokens);
 
-        return DB::transaction(function () use ($user, $platform, $tokens, $profile) {
+        $grantedScopes = (array) config("social_oauth.{$platformSlug}.scopes", []);
+
+        return DB::transaction(function () use ($user, $platform, $tokens, $profile, $grantedScopes) {
             return SocialAccount::updateOrCreate(
                 ['user_id' => $user->id, 'platform_id' => $platform->id],
                 [
@@ -44,6 +46,7 @@ final class SocialAccountService
                     'avg_views' => $profile->avgViews,
                     'engagement_rate' => $profile->engagementRate,
                     'verified' => $profile->verified,
+                    'scopes' => $grantedScopes,
                     'last_synced_at' => now(),
                 ],
             );

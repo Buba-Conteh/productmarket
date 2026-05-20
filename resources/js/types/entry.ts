@@ -12,12 +12,21 @@ export type EntryStatus =
 
 export type EntryType = 'contest' | 'ripple' | 'pitch';
 
+export type TikTokPublishStatus =
+    | 'pending'
+    | 'processing'
+    | 'published'
+    | 'failed'
+    | null;
+
 export type EntryPlatform = Platform & {
     pivot?: {
         posted_url: string | null;
         verified_view_count: number;
         comment_count: number;
         last_synced_at: string | null;
+        tiktok_publish_id: string | null;
+        publish_status: TikTokPublishStatus;
     };
 };
 
@@ -78,9 +87,11 @@ export type CreatorProfile = {
         name: string;
         avatar: string | null;
         social_accounts?: {
+            id: string;
             handle: string;
             follower_count: number;
             avg_views: number | null;
+            scopes: string[] | null;
             platform: { name: string; slug: string };
         }[];
     };
