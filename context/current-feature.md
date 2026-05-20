@@ -58,6 +58,60 @@ Four UX improvements to make the platform production-ready:
 
 ---
 
+# Video Posting, Metrics & Content Rights
+
+**Status:** In Progress
+**Branch:** feature/video-posting-metrics
+**Started:** 2026-05-20
+
+---
+
+## Features
+
+| # | Feature | Status |
+|---|---|---|
+| VPM-1 | Auto-release payout when creator marks entry live (Pitch) | 🟢 Complete |
+| VPM-2 | Creator provides TikTok video URL when posting | 🟢 Complete |
+| VPM-3 | Brand sees video metrics (views + comments) on entry detail | 🟢 Complete |
+| VPM-4 | Content rights section on brand entry detail for live entries | 🟢 Complete |
+| VPM-5 | Creator social metrics (handle + followers) on brand entry sidebar | 🟢 Complete |
+
+---
+
+## Overview
+
+When a creator marks an entry as live (posts on social media), the platform should:
+1. **Auto-release funds** — For Pitch entries, payout fires automatically when creator submits the posted URL (removing the manual brand "confirm post" step).
+2. **Track comments** — Add `comment_count` to `entry_platforms`, sync from TikTok API alongside views.
+3. **Brand video metrics** — Show verified views and comments prominently on the brand entry detail page.
+4. **Content rights** — Show a "Brand owns this content" rights acknowledgement card on live entries.
+5. **Creator social metrics** — Under the Creator sidebar on brand entry view, show each platform handle and follower count.
+
+---
+
+## Implementation
+
+### Backend
+- New migration: `add_comment_count_to_entry_platforms_table`
+- `Entry` model: add `comment_count` to `withPivot()`
+- `TikTokProvider`: fetch `comment_count` in same API call as `view_count`; expose via `getLastCommentCount()`
+- `ViewSyncService`: store `comment_count` after view sync for TikTok entries
+- `EntryService::markLive()`: for `pitch` entries, auto-trigger payout (replaces brand's `confirmPitchLive()`)
+- `EntryService::loadFullEntry()`: load `creator.socialAccounts.platform`
+
+### Frontend
+- `types/entry.ts`: add `comment_count` to `EntryPlatform.pivot`; add `social_accounts` to `CreatorProfile`
+- `entries/creator/show.tsx`: clearer TikTok URL input label/placeholder
+- `entries/brand/show.tsx`: comment_count display + content rights card + creator social metrics sidebar
+
+---
+
+## History
+
+- 2026-05-20: Feature fully implemented. TypeScript clean, build passes, PHP lint passes.
+
+---
+
 # Performance Quick Wins
 
 **Status:** Not Started

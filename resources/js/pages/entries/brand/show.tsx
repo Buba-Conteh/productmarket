@@ -10,8 +10,11 @@ import {
     FileEdit,
     FileVideo,
     Globe,
+    MessageCircle,
+    ShieldCheck,
     Trophy,
     User,
+    Users,
     XCircle,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -615,7 +618,7 @@ export default function BrandEntryShow({ campaign, entry }: Props) {
                                     Creator
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-2">
+                            <CardContent className="space-y-3">
                                 <div className="text-sm font-medium">
                                     {entry.creator?.user?.name ??
                                         entry.creator?.display_name}
@@ -637,6 +640,38 @@ export default function BrandEntryShow({ campaign, entry }: Props) {
                                                     {n.name}
                                                 </Badge>
                                             ))}
+                                        </div>
+                                    )}
+                                {entry.creator?.user?.social_accounts &&
+                                    entry.creator.user.social_accounts.length >
+                                        0 && (
+                                        <div className="space-y-2 border-t pt-2">
+                                            {entry.creator.user.social_accounts.map(
+                                                (acc, i) => (
+                                                    <div
+                                                        key={i}
+                                                        className="flex items-center justify-between text-xs"
+                                                    >
+                                                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                                                            <span className="capitalize">
+                                                                {
+                                                                    acc.platform
+                                                                        .name
+                                                                }
+                                                            </span>
+                                                            <span className="font-medium text-foreground">
+                                                                @{acc.handle}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 text-muted-foreground">
+                                                            <Users className="size-3" />
+                                                            <span>
+                                                                {acc.follower_count.toLocaleString()}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ),
+                                            )}
                                         </div>
                                     )}
                             </CardContent>
@@ -692,46 +727,78 @@ export default function BrandEntryShow({ campaign, entry }: Props) {
                             </CardContent>
                         </Card>
 
-                        {/* Platforms & views */}
+                        {/* Platforms & video metrics */}
                         {entry.platforms && entry.platforms.length > 0 && (
                             <Card>
                                 <CardHeader className="pb-3">
                                     <CardTitle className="text-base">
-                                        Platforms
+                                        Video metrics
                                     </CardTitle>
                                 </CardHeader>
-                                <CardContent className="space-y-2">
+                                <CardContent className="space-y-3">
                                     {entry.platforms.map((p) => (
-                                        <div
-                                            key={p.id}
-                                            className="flex items-center justify-between text-sm"
-                                        >
-                                            <span>{p.name}</span>
-                                            <div className="flex items-center gap-2">
-                                                {p.pivot
-                                                    ?.verified_view_count ? (
-                                                    <span className="flex items-center gap-1 font-medium">
-                                                        <Eye className="size-3" />
-                                                        {Number(
-                                                            p.pivot
-                                                                .verified_view_count,
-                                                        ).toLocaleString()}
-                                                    </span>
-                                                ) : null}
+                                        <div key={p.id} className="space-y-1.5">
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="font-medium">
+                                                    {p.name}
+                                                </span>
                                                 {p.pivot?.posted_url && (
                                                     <a
-                                                        href={
-                                                            p.pivot.posted_url
-                                                        }
+                                                        href={p.pivot.posted_url}
                                                         target="_blank"
                                                         rel="noreferrer"
+                                                        className="flex items-center gap-1 text-xs text-primary hover:underline"
                                                     >
-                                                        <ExternalLink className="size-3 text-primary" />
+                                                        View post
+                                                        <ExternalLink className="size-3" />
                                                     </a>
                                                 )}
                                             </div>
+                                            <div className="flex gap-4 text-sm">
+                                                <span className="flex items-center gap-1 text-muted-foreground">
+                                                    <Eye className="size-3.5" />
+                                                    {p.pivot?.verified_view_count
+                                                        ? Number(
+                                                              p.pivot
+                                                                  .verified_view_count,
+                                                          ).toLocaleString()
+                                                        : '—'}{' '}
+                                                    views
+                                                </span>
+                                                <span className="flex items-center gap-1 text-muted-foreground">
+                                                    <MessageCircle className="size-3.5" />
+                                                    {p.pivot?.comment_count
+                                                        ? Number(
+                                                              p.pivot
+                                                                  .comment_count,
+                                                          ).toLocaleString()
+                                                        : '—'}{' '}
+                                                    comments
+                                                </span>
+                                            </div>
                                         </div>
                                     ))}
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Content rights */}
+                        {entry.status === 'live' && (
+                            <Card className="border-blue-200 bg-blue-50/40 dark:border-blue-900/50 dark:bg-blue-950/20">
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="flex items-center gap-2 text-sm text-blue-800 dark:text-blue-300">
+                                        <ShieldCheck className="size-4" />
+                                        Content rights
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-xs text-blue-700 dark:text-blue-400">
+                                        By accepting this campaign, the creator
+                                        grants your brand a perpetual,
+                                        royalty-free licence to use, repurpose,
+                                        and distribute this content across all
+                                        marketing channels.
+                                    </p>
                                 </CardContent>
                             </Card>
                         )}
