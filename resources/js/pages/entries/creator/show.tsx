@@ -364,14 +364,42 @@ export default function CreatorEntryShow({ entry }: Props) {
                                         Post your content
                                     </CardTitle>
                                     <CardDescription>
-                                        Once you've posted on the platform(s),
-                                        paste the URL(s) below and mark as live
+                                        Post the video on the required
+                                        platform(s), then paste the video
+                                        URL(s) below. Your payment will be
+                                        released as soon as you submit.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
+                                    {entry.type === 'pitch' &&
+                                        entry.pitch_details?.accepted_bid && (
+                                            <div className="flex items-center gap-2 rounded-lg border border-green-300 bg-green-100 px-3 py-2 text-sm text-green-800">
+                                                <DollarSign className="size-4 shrink-0" />
+                                                <span>
+                                                    Your payout of{' '}
+                                                    <strong>
+                                                        {formatCurrency(
+                                                            entry.pitch_details
+                                                                .accepted_bid,
+                                                        )}
+                                                    </strong>{' '}
+                                                    will be released
+                                                    automatically when you mark
+                                                    as live.
+                                                </span>
+                                            </div>
+                                        )}
                                     {entry.platforms?.map((p) => (
                                         <div key={p.id} className="space-y-1">
-                                            <Label>{p.name} post URL</Label>
+                                            <Label>
+                                                {p.name} video URL
+                                                {p.slug === 'tiktok' && (
+                                                    <span className="ml-1 text-xs font-normal text-muted-foreground">
+                                                        (e.g.
+                                                        tiktok.com/@handle/video/123…)
+                                                    </span>
+                                                )}
+                                            </Label>
                                             <Input
                                                 value={platformUrls[p.id] ?? ''}
                                                 onChange={(e) =>
@@ -380,7 +408,11 @@ export default function CreatorEntryShow({ entry }: Props) {
                                                         [p.id]: e.target.value,
                                                     }))
                                                 }
-                                                placeholder={`https://${p.slug}.com/...`}
+                                                placeholder={
+                                                    p.slug === 'tiktok'
+                                                        ? 'https://www.tiktok.com/@yourhandle/video/1234567890'
+                                                        : `https://${p.slug}.com/...`
+                                                }
                                             />
                                         </div>
                                     ))}
@@ -391,8 +423,8 @@ export default function CreatorEntryShow({ entry }: Props) {
                                     >
                                         <Globe className="size-4" />
                                         {marking
-                                            ? 'Marking...'
-                                            : 'Mark as live'}
+                                            ? 'Submitting...'
+                                            : 'Mark as live & release payment'}
                                     </Button>
                                 </CardContent>
                             </Card>

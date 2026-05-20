@@ -225,6 +225,7 @@ final readonly class EntryService
 
     /**
      * Mark an entry as live (creator has posted publicly).
+     * For Pitch entries, automatically releases the payout on posting.
      */
     public function markLive(Entry $entry, array $platformUrls = []): Entry
     {
@@ -234,7 +235,9 @@ final readonly class EntryService
             'Only approved or winning entries can go live.'
         );
 
-        return DB::transaction(function () use ($entry, $platformUrls) {
+        $payout = null;
+
+        $entry = DB::transaction(function () use ($entry, $platformUrls, &$payout) {
             $entry->update([
                 'status' => 'live',
                 'live_at' => now(),
@@ -246,8 +249,24 @@ final readonly class EntryService
                 ]);
             }
 
+            // Auto-release payout for Pitch entries on posting
+            if ($entry->type === 'pitch') {
+                $pitchDetails = $entry->pitchDetails ?? $entry->load('pitchDetails')->pitchDetails;
+                $gross = number_format((float) ($pitchDetails?->accepted_bid ?? 0), 2, '.', '');
+
+                if ((float) $gross > 0) {
+                    $payout = $this->payoutService->createPayout($entry, 'pitch_payment', $gross);
+                }
+            }
+
             return $entry->fresh();
         });
+
+        if ($payout) {
+            ProcessPayoutJob::dispatch($payout->id);
+        }
+
+        return $entry;
     }
 
     /**
@@ -458,7 +477,7 @@ final readonly class EntryService
             'campaign.contestDetails',
             'campaign.rippleDetails',
             'campaign.pitchDetails',
-            'creator.user',
+            'creator.user.socialAccounts.platform',
             'creator.niches',
             'contentType',
             'platforms',

@@ -13,6 +13,7 @@ use App\Models\SocialAccount;
 use App\Models\ViewSyncLog;
 use App\Services\PayoutService;
 use App\Services\Social\Exceptions\PlatformConnectionException;
+use App\Services\Social\Providers\TikTokProvider;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -104,13 +105,21 @@ final class ViewSyncService
         $previousCount = (int) ($pivot->verified_view_count ?? 0);
         $delta = max(0, $newCount - $previousCount);
 
+        $commentCount = $provider instanceof TikTokProvider ? $provider->getLastCommentCount() : null;
+
         $payoutIds = [];
 
-        DB::transaction(function () use ($entry, $platform, $newCount, $previousCount, $account, &$payoutIds): void {
-            $entry->platforms()->updateExistingPivot($platform->id, [
+        DB::transaction(function () use ($entry, $platform, $newCount, $previousCount, $account, $commentCount, &$payoutIds): void {
+            $pivotData = [
                 'verified_view_count' => $newCount,
                 'last_synced_at' => now(),
-            ]);
+            ];
+
+            if ($commentCount !== null) {
+                $pivotData['comment_count'] = $commentCount;
+            }
+
+            $entry->platforms()->updateExistingPivot($platform->id, $pivotData);
 
             $account?->update(['last_synced_at' => now()]);
 

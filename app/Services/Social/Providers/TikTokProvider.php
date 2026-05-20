@@ -16,6 +16,8 @@ final class TikTokProvider extends AbstractOAuthProvider
 
     private const VIDEO_LIST_URL = 'https://open.tiktokapis.com/v2/video/list/';
 
+    private int $lastCommentCount = 0;
+
     public function platformSlug(): string
     {
         return 'tiktok';
@@ -78,6 +80,8 @@ final class TikTokProvider extends AbstractOAuthProvider
     public function fetchViewCount(SocialAccount $account, string $postedUrl): int
     {
         if ($this->stubMode()) {
+            $this->lastCommentCount = random_int(10, 5000);
+
             return random_int(1000, 250000);
         }
 
@@ -88,7 +92,7 @@ final class TikTokProvider extends AbstractOAuthProvider
         }
 
         $response = Http::withToken($account->oauth_token)
-            ->post(self::VIDEO_LIST_URL.'?fields=id,view_count', [
+            ->post(self::VIDEO_LIST_URL.'?fields=id,view_count,comment_count', [
                 'filters' => ['video_ids' => [$videoId]],
                 'max_count' => 1,
             ]);
@@ -98,8 +102,16 @@ final class TikTokProvider extends AbstractOAuthProvider
         }
 
         $videos = $response->json('data.videos', []);
+        $video = $videos[0] ?? [];
 
-        return (int) ($videos[0]['view_count'] ?? 0);
+        $this->lastCommentCount = (int) ($video['comment_count'] ?? 0);
+
+        return (int) ($video['view_count'] ?? 0);
+    }
+
+    public function getLastCommentCount(): int
+    {
+        return $this->lastCommentCount;
     }
 
     public function fetchFollowerCount(SocialAccount $account): int

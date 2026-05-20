@@ -16,6 +16,7 @@ export type EntryPlatform = Platform & {
     pivot?: {
         posted_url: string | null;
         verified_view_count: number;
+        comment_count: number;
         last_synced_at: string | null;
     };
 };
@@ -76,6 +77,12 @@ export type CreatorProfile = {
         id: string;
         name: string;
         avatar: string | null;
+        social_accounts?: {
+            handle: string;
+            follower_count: number;
+            avg_views: number | null;
+            platform: { name: string; slug: string };
+        }[];
     };
     niches?: { id: string; name: string }[];
 };
