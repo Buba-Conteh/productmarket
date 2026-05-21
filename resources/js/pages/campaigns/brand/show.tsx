@@ -231,6 +231,13 @@ export default function BrandCampaignShow({ campaign }: Props) {
                             )}
                             {campaign.status === 'active' && (
                                 <>
+                                    <Button variant="outline" size="sm" asChild>
+                                        <Link
+                                            href={`/campaigns/${campaign.id}/edit`}
+                                        >
+                                            Edit campaign
+                                        </Link>
+                                    </Button>
                                     <Button
                                         variant="outline"
                                         size="sm"
@@ -249,9 +256,24 @@ export default function BrandCampaignShow({ campaign }: Props) {
                             )}
                             {(campaign.status === 'closed' ||
                                 campaign.status === 'cancelled') && (
-                                <Button size="sm" onClick={republish}>
-                                    Republish
-                                </Button>
+                                <>
+                                    {campaign.status === 'closed' && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            asChild
+                                        >
+                                            <Link
+                                                href={`/campaigns/${campaign.id}/edit`}
+                                            >
+                                                Edit campaign
+                                            </Link>
+                                        </Button>
+                                    )}
+                                    <Button size="sm" onClick={republish}>
+                                        Republish
+                                    </Button>
+                                </>
                             )}
                             {campaign.status !== 'draft' && (
                                 <Button variant="outline" size="sm" asChild>

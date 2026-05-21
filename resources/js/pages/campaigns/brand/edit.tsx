@@ -37,6 +37,7 @@ type Props = {
     campaign: Campaign;
     platforms: Platform[];
     contentTypes: ContentType[];
+    isDraft: boolean;
 };
 
 function getYoutubeThumbnail(url: string): string | null {
@@ -85,6 +86,7 @@ export default function EditCampaign({
     campaign,
     platforms,
     contentTypes,
+    isDraft,
 }: Props) {
     const { props } = usePage();
     const flash = (props as { flash?: { success?: string; error?: string } })
@@ -252,19 +254,23 @@ resourceInputRef.current.value = '';
             'deadline',
             'max_creators',
             'ai_brief_used',
-            'prize_amount',
-            'runner_up_prize',
-            'initial_fee',
-            'rpm_rate',
-            'milestone_interval',
-            'max_payout_per_creator',
-            'total_budget',
-            'product_name',
-            'product_description',
-            'product_url',
-            'budget_cap',
-            'min_bid',
-            'max_bid',
+            ...(isDraft
+                ? ([
+                      'prize_amount',
+                      'runner_up_prize',
+                      'initial_fee',
+                      'rpm_rate',
+                      'milestone_interval',
+                      'max_payout_per_creator',
+                      'total_budget',
+                      'product_name',
+                      'product_description',
+                      'product_url',
+                      'budget_cap',
+                      'min_bid',
+                      'max_bid',
+                  ] as (keyof CampaignFormData)[])
+                : []),
         ];
 
         for (const field of scalarFields) {
@@ -342,7 +348,11 @@ return;
                 <div className="mb-6 flex items-center justify-between">
                     <Heading
                         title="Edit Campaign"
-                        description={`Editing draft: ${campaign.title}`}
+                        description={
+                            isDraft
+                                ? `Editing draft: ${campaign.title}`
+                                : `Editing ${campaign.status} campaign: ${campaign.title}`
+                        }
                     />
                     <div className="flex gap-2">
                         <Button
@@ -355,12 +365,26 @@ return;
                             <Save className="size-4" />
                             {saving ? 'Saving...' : 'Save'}
                         </Button>
-                        <Button size="sm" onClick={publish} className="gap-2">
-                            <Send className="size-4" />
-                            Publish
-                        </Button>
+                        {isDraft && (
+                            <Button
+                                size="sm"
+                                onClick={publish}
+                                className="gap-2"
+                            >
+                                <Send className="size-4" />
+                                Publish
+                            </Button>
+                        )}
                     </div>
                 </div>
+
+                {!isDraft && (
+                    <div className="mb-4 flex items-center gap-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-700">
+                        <AlertCircle className="size-4 shrink-0" />
+                        Financial terms (prize amounts, rates, budgets) are
+                        locked once a campaign is live and cannot be changed.
+                    </div>
+                )}
 
                 <div className="space-y-6">
                     {/* Basic details */}
@@ -499,6 +523,7 @@ return;
                                     <Input
                                         type="number"
                                         value={form.prize_amount}
+                                        disabled={!isDraft}
                                         onChange={(e) =>
                                             update(
                                                 'prize_amount',
@@ -512,6 +537,7 @@ return;
                                     <Input
                                         type="number"
                                         value={form.runner_up_prize}
+                                        disabled={!isDraft}
                                         onChange={(e) =>
                                             update(
                                                 'runner_up_prize',
@@ -538,6 +564,7 @@ return;
                                     <Input
                                         type="number"
                                         value={form.initial_fee}
+                                        disabled={!isDraft}
                                         onChange={(e) =>
                                             update(
                                                 'initial_fee',
@@ -552,6 +579,7 @@ return;
                                         type="number"
                                         step="0.01"
                                         value={form.rpm_rate}
+                                        disabled={!isDraft}
                                         onChange={(e) =>
                                             update('rpm_rate', e.target.value)
                                         }
@@ -562,6 +590,7 @@ return;
                                     <Input
                                         type="number"
                                         value={form.milestone_interval}
+                                        disabled={!isDraft}
                                         onChange={(e) =>
                                             update(
                                                 'milestone_interval',
@@ -575,6 +604,7 @@ return;
                                     <Input
                                         type="number"
                                         value={form.total_budget}
+                                        disabled={!isDraft}
                                         onChange={(e) =>
                                             update(
                                                 'total_budget',
@@ -588,6 +618,7 @@ return;
                                     <Input
                                         type="number"
                                         value={form.max_payout_per_creator}
+                                        disabled={!isDraft}
                                         onChange={(e) =>
                                             update(
                                                 'max_payout_per_creator',
@@ -653,6 +684,7 @@ return;
                                         <Input
                                             type="number"
                                             value={form.budget_cap}
+                                            disabled={!isDraft}
                                             onChange={(e) =>
                                                 update(
                                                     'budget_cap',
@@ -666,6 +698,7 @@ return;
                                         <Input
                                             type="number"
                                             value={form.min_bid}
+                                            disabled={!isDraft}
                                             onChange={(e) =>
                                                 update(
                                                     'min_bid',
@@ -679,6 +712,7 @@ return;
                                         <Input
                                             type="number"
                                             value={form.max_bid}
+                                            disabled={!isDraft}
                                             onChange={(e) =>
                                                 update(
                                                     'max_bid',

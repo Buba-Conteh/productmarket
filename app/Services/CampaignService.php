@@ -58,13 +58,15 @@ final class CampaignService
     }
 
     /**
-     * Update a draft campaign.
+     * Update a campaign. Draft campaigns allow all fields; active/closed campaigns
+     * restrict changes to content fields only (financial terms are locked).
      *
      * @param  array<string, mixed>  $data
      */
-    public function updateDraft(Campaign $campaign, array $data): Campaign
+    public function updateCampaign(Campaign $campaign, array $data): Campaign
     {
-        abort_unless($campaign->status === 'draft', 403, 'Only draft campaigns can be edited.');
+        $editableStatuses = ['draft', 'active', 'closed'];
+        abort_unless(in_array($campaign->status, $editableStatuses, true), 403, 'This campaign cannot be edited.');
 
         return DB::transaction(function () use ($campaign, $data) {
             $campaign->update([
@@ -87,10 +89,23 @@ final class CampaignService
                 $campaign->contentTypes()->sync($data['content_type_ids']);
             }
 
-            $this->syncTypeDetails($campaign, $data);
+            // Financial terms are only editable on draft campaigns
+            if ($campaign->status === 'draft') {
+                $this->syncTypeDetails($campaign, $data);
+            }
 
             return $campaign->fresh();
         });
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     *
+     * @deprecated Use updateCampaign() instead
+     */
+    public function updateDraft(Campaign $campaign, array $data): Campaign
+    {
+        return $this->updateCampaign($campaign, $data);
     }
 
     /**

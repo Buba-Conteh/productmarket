@@ -16,7 +16,7 @@ final class UpdateCampaignRequest extends FormRequest
         return $user?->hasRole('brand')
             && $campaign
             && $user->brandProfile?->id === $campaign->brand_profile_id
-            && $campaign->status === 'draft';
+            && in_array($campaign->status, ['draft', 'active', 'closed'], true);
     }
 
     /**

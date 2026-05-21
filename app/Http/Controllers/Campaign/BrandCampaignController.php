@@ -101,12 +101,12 @@ final class BrandCampaignController extends Controller
     }
 
     /**
-     * Edit a draft campaign.
+     * Edit a campaign (draft, active, or closed).
      */
     public function edit(Request $request, Campaign $campaign): Response
     {
         $this->authorizeBrand($request, $campaign);
-        abort_unless($campaign->status === 'draft', 403, 'Only draft campaigns can be edited.');
+        abort_unless(in_array($campaign->status, ['draft', 'active', 'closed'], true), 403, 'This campaign cannot be edited.');
 
         $campaign = $this->campaignService->loadFullCampaign($campaign);
 
@@ -114,15 +114,16 @@ final class BrandCampaignController extends Controller
             'campaign' => $campaign,
             'platforms' => Platform::where('is_active', true)->orderBy('sort_order')->get(),
             'contentTypes' => ContentType::where('is_active', true)->orderBy('sort_order')->get(),
+            'isDraft' => $campaign->status === 'draft',
         ]);
     }
 
     /**
-     * Update a draft campaign.
+     * Update a campaign.
      */
     public function update(UpdateCampaignRequest $request, Campaign $campaign): RedirectResponse
     {
-        $this->campaignService->updateDraft($campaign, $request->validated());
+        $this->campaignService->updateCampaign($campaign, $request->validated());
 
         if ($request->boolean('remove_thumbnail')) {
             FileUploader::delete($campaign->thumbnail);
