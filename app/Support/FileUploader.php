@@ -9,8 +9,10 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
- * Centralised helper for storing, replacing, and deleting uploaded files
- * on the public disk (storage/app/public → symlinked at public/storage).
+ * Centralised helper for storing, replacing, and deleting uploaded files.
+ *
+ * Uses the S3 disk when FILESYSTEM_DISK=s3 (production/Laravel Cloud),
+ * and falls back to the public disk for local development.
  *
  * Usage:
  *   $path = FileUploader::store($file, 'campaigns/thumbnails');
@@ -21,13 +23,13 @@ use Illuminate\Support\Str;
 final class FileUploader
 {
     /**
-     * Store a file and return its path relative to the public disk root.
+     * Store a file and return its path relative to the disk root.
      */
     public static function store(UploadedFile $file, string $directory): string
     {
         $name = Str::ulid().'.'.$file->getClientOriginalExtension();
 
-        return $file->storeAs($directory, $name, 'public');
+        return $file->storeAs($directory, $name, self::diskName());
     }
 
     /**
@@ -41,12 +43,12 @@ final class FileUploader
     }
 
     /**
-     * Delete a file from the public disk. Silently skips null/missing paths.
+     * Delete a file from the disk. Silently skips null/missing paths.
      */
     public static function delete(?string $path): void
     {
-        if ($path && Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->delete($path);
+        if ($path && Storage::disk(self::diskName())->exists($path)) {
+            Storage::disk(self::diskName())->delete($path);
         }
     }
 
@@ -59,6 +61,14 @@ final class FileUploader
             return null;
         }
 
-        return Storage::disk('public')->url($path);
+        return Storage::disk(self::diskName())->url($path);
+    }
+
+    /**
+     * Returns 's3' when running on Laravel Cloud / production, 'public' locally.
+     */
+    private static function diskName(): string
+    {
+        return config('filesystems.default') === 's3' ? 's3' : 'public';
     }
 }
