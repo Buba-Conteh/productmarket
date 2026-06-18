@@ -1,12 +1,11 @@
 import { Head, Link } from '@inertiajs/react';
-import { Sparkles } from 'lucide-react';
 
 const LAST_UPDATED = 'April 29, 2026';
 
 const sections = [
     {
         title: '1. Who We Are',
-        body: `ProductMarket ("we", "our", "us") operates the ProductMarket platform, a viral content marketing service connecting brands and creators. This Privacy Policy explains how we collect, use, and protect personal data when you use our website and services. If you have questions, contact us at privacy@productmarket.com.`,
+        body: `Vyreo ("we", "our", "us") operates the Vyreo platform, a viral content marketing service connecting brands and creators. This Privacy Policy explains how we collect, use, and protect personal data when you use our website and services. If you have questions, contact us at privacy@vyreo.com.`,
     },
     {
         title: '2. Information We Collect',
@@ -42,11 +41,11 @@ const sections = [
     },
     {
         title: '10. Security',
-        body: `We implement industry-standard safeguards including TLS encryption in transit, AES-256 encryption at rest for sensitive fields (OAuth tokens), bcrypt password hashing, and regular security reviews. No system is 100% secure. If you discover a security vulnerability, please disclose it responsibly to security@productmarket.com.`,
+        body: `We implement industry-standard safeguards including TLS encryption in transit, AES-256 encryption at rest for sensitive fields (OAuth tokens), bcrypt password hashing, and regular security reviews. No system is 100% secure. If you discover a security vulnerability, please disclose it responsibly to security@vyreo.com.`,
     },
     {
         title: '11. Your Rights',
-        body: `Depending on your jurisdiction, you may have rights to: access the personal data we hold about you; correct inaccurate data; request deletion of your data ("right to be forgotten"); object to or restrict certain processing; data portability (receive your data in a machine-readable format); and withdraw consent at any time where processing is based on consent. To exercise any of these rights, email privacy@productmarket.com. We will respond within 30 days.`,
+        body: `Depending on your jurisdiction, you may have rights to: access the personal data we hold about you; correct inaccurate data; request deletion of your data ("right to be forgotten"); object to or restrict certain processing; data portability (receive your data in a machine-readable format); and withdraw consent at any time where processing is based on consent. To exercise any of these rights, email privacy@vyreo.com. We will respond within 30 days.`,
     },
     {
         title: '12. International Transfers',
@@ -54,7 +53,7 @@ const sections = [
     },
     {
         title: '13. Children',
-        body: `The Platform is not directed at children under 18. We do not knowingly collect personal data from anyone under 18. If you believe a minor has created an account, contact us at privacy@productmarket.com and we will delete the data promptly.`,
+        body: `The Platform is not directed at children under 18. We do not knowingly collect personal data from anyone under 18. If you believe a minor has created an account, contact us at privacy@vyreo.com and we will delete the data promptly.`,
     },
     {
         title: '14. Changes to This Policy',
@@ -62,26 +61,30 @@ const sections = [
     },
     {
         title: '15. Contact Us',
-        body: `For any privacy-related questions or to exercise your rights, contact our Data Protection team at privacy@productmarket.com or write to: ProductMarket Privacy, [Company Address]. If you are in the EEA and are not satisfied with our response, you have the right to lodge a complaint with your local data protection authority.`,
+        body: `For any privacy-related questions or to exercise your rights, contact our Data Protection team at privacy@vyreo.com or write to: Vyreo Privacy, [Company Address]. If you are in the EEA and are not satisfied with our response, you have the right to lodge a complaint with your local data protection authority.`,
     },
 ];
 
 export default function Privacy() {
     return (
         <>
-            <Head title="Privacy Policy — ProductMarket" />
+            <Head title="Privacy Policy — Vyreo" />
 
             <div className="min-h-screen bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-50">
                 {/* Navbar */}
                 <header className="sticky inset-x-0 top-0 z-50 border-b border-gray-200/60 bg-white/80 backdrop-blur-md dark:border-gray-800/60 dark:bg-gray-950/80">
                     <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4 sm:px-6">
                         <Link href="/" className="flex items-center gap-2">
-                            <div className="flex size-8 items-center justify-center rounded-lg bg-orange-500">
-                                <Sparkles className="size-4 text-white" />
-                            </div>
-                            <span className="text-lg font-semibold tracking-tight">
-                                ProductMarket
-                            </span>
+                            <img
+                                src="/logo/vyreio_logo_light.svg"
+                                alt="Vyreo"
+                                className="h-8 w-auto dark:hidden"
+                            />
+                            <img
+                                src="/logo/vyreio_logo_dark.svg"
+                                alt="Vyreo"
+                                className="hidden h-8 w-auto dark:block"
+                            />
                         </Link>
                         <Link
                             href="/terms"
@@ -103,7 +106,7 @@ export default function Privacy() {
                         </p>
                         <p className="mt-4 leading-relaxed text-gray-600 dark:text-gray-300">
                             Your privacy matters to us. This policy explains
-                            exactly what data ProductMarket collects, why we
+                            exactly what data Vyreo collects, why we
                             collect it, and how you can control it.
                         </p>
                     </div>
@@ -126,7 +129,7 @@ export default function Privacy() {
                 <footer className="mt-16 border-t border-gray-200 py-10 dark:border-gray-800">
                     <div className="mx-auto flex max-w-4xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6">
                         <p className="text-xs text-gray-500">
-                            © {new Date().getFullYear()} ProductMarket. All
+                            © {new Date().getFullYear()} Vyreo. All
                             rights reserved.
                         </p>
                         <div className="flex gap-6 text-xs text-gray-500">

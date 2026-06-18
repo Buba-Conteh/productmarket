@@ -30,8 +30,7 @@ export default function OnboardingWizardLayout({
                     href={home()}
                     className="flex items-center gap-2 font-medium"
                 >
-                    <AppLogoIcon className="size-7 fill-current text-foreground" />
-                    <span className="text-lg font-semibold">ProductMarket</span>
+                    <AppLogoIcon className="h-8 w-auto" />
                 </Link>
             </header>
 

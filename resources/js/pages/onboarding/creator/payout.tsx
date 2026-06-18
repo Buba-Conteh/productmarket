@@ -165,7 +165,7 @@ export default function CreatorPayout({ profile, plans }: Props) {
 
     return (
         <>
-            <Head title="Welcome to ProductMarket" />
+            <Head title="Welcome to Vyreo" />
 
             <div className="space-y-6">
                 {/* Platform overview */}
@@ -313,7 +313,7 @@ export default function CreatorPayout({ profile, plans }: Props) {
 
 CreatorPayout.layout = {
     title: "You're all set!",
-    description: 'Start earning on ProductMarket.',
+    description: 'Start earning on Vyreo.',
     steps: CREATOR_STEPS,
     currentStep: 3,
 };

@@ -26,7 +26,7 @@ export default function Welcome({
 
     return (
         <>
-            <Head title="ProductMarket — Viral Content Marketing">
+            <Head title="Vyreo — Viral Content Marketing">
                 <link rel="preconnect" href="https://fonts.bunny.net" />
                 <link
                     href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700"
@@ -43,12 +43,16 @@ export default function Welcome({
                     <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
                         {/* Logo */}
                         <div className="flex items-center gap-2">
-                            <div className="flex size-8 items-center justify-center rounded-lg bg-orange-500">
-                                <Sparkles className="size-4 text-white" />
-                            </div>
-                            <span className="text-lg font-semibold tracking-tight">
-                                ProductMarket
-                            </span>
+                            <img
+                                src="/logo/vyreio_logo_light.svg"
+                                alt="Vyreo"
+                                className="h-8 w-auto dark:hidden"
+                            />
+                            <img
+                                src="/logo/vyreio_logo_dark.svg"
+                                alt="Vyreo"
+                                className="hidden h-8 w-auto dark:block"
+                            />
                         </div>
 
                         {/* Desktop nav */}
@@ -817,7 +821,7 @@ export default function Welcome({
                         </h2>
                         <p className="mb-10 text-gray-400">
                             Join thousands of brands and creators already on
-                            ProductMarket. Free to start — no credit card
+                            Vyreo. Free to start — no credit card
                             required.
                         </p>
                         {canRegister && (
@@ -846,12 +850,11 @@ export default function Welcome({
                     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                         <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
                             <div className="flex items-center gap-2">
-                                <div className="flex size-7 items-center justify-center rounded-lg bg-orange-500">
-                                    <Sparkles className="size-3.5 text-white" />
-                                </div>
-                                <span className="text-sm font-semibold text-white">
-                                    ProductMarket
-                                </span>
+                                <img
+                                    src="/logo/vyreio_logo_dark.svg"
+                                    alt="Vyreo"
+                                    className="h-7 w-auto"
+                                />
                             </div>
                             <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-500">
                                 <a
@@ -897,7 +900,7 @@ export default function Welcome({
                                     Privacy
                                 </Link>
                                 <span>
-                                    © {new Date().getFullYear()} ProductMarket
+                                    © {new Date().getFullYear()} Vyreo
                                 </span>
                             </div>
                         </div>
