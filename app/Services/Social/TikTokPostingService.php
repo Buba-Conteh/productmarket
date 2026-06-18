@@ -6,6 +6,7 @@ namespace App\Services\Social;
 
 use App\Models\Entry;
 use App\Models\SocialAccount;
+use App\Support\FileUploader;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -41,11 +42,16 @@ final readonly class TikTokPostingService
 
         $this->socialAccountService->refreshIfNeeded($account);
 
-        $videoPath = Storage::disk('public')->path($entry->video_url);
-        $videoSize = filesize($videoPath);
+        $disk = Storage::disk(FileUploader::disk());
 
-        if ($videoSize === false || $videoSize === 0) {
-            throw new RuntimeException('Video file not found or empty: '.$entry->video_url);
+        if (! $disk->exists($entry->video_url)) {
+            throw new RuntimeException('Video file not found: '.$entry->video_url);
+        }
+
+        $videoSize = $disk->size($entry->video_url);
+
+        if ($videoSize === 0) {
+            throw new RuntimeException('Video file is empty: '.$entry->video_url);
         }
 
         $chunkCount = (int) ceil($videoSize / self::CHUNK_SIZE);
@@ -88,16 +94,24 @@ final readonly class TikTokPostingService
             return;
         }
 
-        $fullPath = Storage::disk('public')->path($videoStoragePath);
+        [$fullPath, $isTemp] = $this->localCopy($videoStoragePath);
         $totalSize = filesize($fullPath);
 
         if ($totalSize === false || $totalSize === 0) {
+            if ($isTemp) {
+                @unlink($fullPath);
+            }
+
             throw new RuntimeException('Video file not found: '.$videoStoragePath);
         }
 
         $handle = fopen($fullPath, 'rb');
 
         if ($handle === false) {
+            if ($isTemp) {
+                @unlink($fullPath);
+            }
+
             throw new RuntimeException('Cannot open video file: '.$videoStoragePath);
         }
 
@@ -133,7 +147,63 @@ final readonly class TikTokPostingService
             }
         } finally {
             fclose($handle);
+
+            if ($isTemp) {
+                @unlink($fullPath);
+            }
         }
+    }
+
+    /**
+     * Resolve a storage path to a readable local file path.
+     *
+     * Local disks expose a real filesystem path directly. Remote disks
+     * (the attached bucket in production) are streamed to a temporary file
+     * so the chunked upload can read raw bytes.
+     *
+     * @return array{0: string, 1: bool} the local path and whether it is temporary
+     */
+    private function localCopy(string $storagePath): array
+    {
+        $disk = Storage::disk(FileUploader::disk());
+
+        try {
+            $path = $disk->path($storagePath);
+
+            if (is_file($path)) {
+                return [$path, false];
+            }
+        } catch (\Throwable) {
+            // Remote disk — fall through and download to a temp file.
+        }
+
+        if (! $disk->exists($storagePath)) {
+            throw new RuntimeException('Video file not found: '.$storagePath);
+        }
+
+        $tmp = tempnam(sys_get_temp_dir(), 'tiktok_video_');
+
+        if ($tmp === false) {
+            throw new RuntimeException('Unable to allocate a temporary file for video upload.');
+        }
+
+        $source = $disk->readStream($storagePath);
+        $destination = fopen($tmp, 'wb');
+
+        if ($source === null || $destination === false) {
+            @unlink($tmp);
+
+            throw new RuntimeException('Unable to stream video file: '.$storagePath);
+        }
+
+        try {
+            stream_copy_to_stream($source, $destination);
+        } finally {
+            fclose($source);
+            fclose($destination);
+        }
+
+        return [$tmp, true];
     }
 
     /**

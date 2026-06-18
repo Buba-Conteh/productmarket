@@ -11,8 +11,12 @@ use Illuminate\Support\Str;
 /**
  * Centralised helper for storing, replacing, and deleting uploaded files.
  *
- * Uses the S3 disk when FILESYSTEM_DISK=s3 (production/Laravel Cloud),
- * and falls back to the public disk for local development.
+ * Picks the disk automatically:
+ *  - Production (Laravel Cloud) attaches a bucket-backed disk and sets it as
+ *    the default (e.g. "private", an S3/R2 driver). We write there so files
+ *    persist across deploys instead of landing on the ephemeral local disk.
+ *  - Locally the default disk is "local"; we map that to the symlinked
+ *    "public" disk so uploads remain browser-accessible during development.
  *
  * Usage:
  *   $path = FileUploader::store($file, 'campaigns/thumbnails');
@@ -29,7 +33,7 @@ final class FileUploader
     {
         $name = Str::ulid().'.'.$file->getClientOriginalExtension();
 
-        return $file->storeAs($directory, $name, self::diskName());
+        return $file->storeAs($directory, $name, self::disk());
     }
 
     /**
@@ -47,8 +51,8 @@ final class FileUploader
      */
     public static function delete(?string $path): void
     {
-        if ($path && Storage::disk(self::diskName())->exists($path)) {
-            Storage::disk(self::diskName())->delete($path);
+        if ($path && Storage::disk(self::disk())->exists($path)) {
+            Storage::disk(self::disk())->delete($path);
         }
     }
 
@@ -61,14 +65,19 @@ final class FileUploader
             return null;
         }
 
-        return Storage::disk(self::diskName())->url($path);
+        return Storage::disk(self::disk())->url($path);
     }
 
     /**
-     * Returns 's3' when running on Laravel Cloud / production, 'public' locally.
+     * The disk all uploads are read from and written to.
+     *
+     * Returns the application's default disk in production (the attached
+     * bucket) and the symlinked "public" disk for local development.
      */
-    private static function diskName(): string
+    public static function disk(): string
     {
-        return config('filesystems.default') === 's3' ? 's3' : 'public';
+        $default = (string) config('filesystems.default');
+
+        return in_array($default, ['local', 'public'], true) ? 'public' : $default;
     }
 }
