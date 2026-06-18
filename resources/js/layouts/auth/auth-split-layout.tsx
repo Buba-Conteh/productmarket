@@ -18,7 +18,7 @@ export default function AuthSplitLayout({
                     <img
                         src="/logo/vyreio_logo_dark.svg"
                         alt="Vyreo"
-                        className="h-8 w-auto"
+                        className="h-12 w-auto"
                     />
                 </Link>
             </div>
@@ -31,12 +31,12 @@ export default function AuthSplitLayout({
                         <img
                             src="/logo/vyreio_logo_light.svg"
                             alt="Vyreo"
-                            className="h-10 w-auto dark:hidden sm:h-12"
+                            className="h-12 w-auto dark:hidden sm:h-14"
                         />
                         <img
                             src="/logo/vyreio_logo_dark.svg"
                             alt="Vyreo"
-                            className="hidden h-10 w-auto dark:block sm:h-12"
+                            className="hidden h-12 w-auto dark:block sm:h-14"
                         />
                     </Link>
                     <div className="flex flex-col items-start gap-2 text-left sm:items-center sm:text-center">

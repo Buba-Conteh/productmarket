@@ -4,7 +4,7 @@ export default function AppLogoIcon({ className }: { className?: string }) {
             <img
                 src="/logo/vyreio_logo_light.svg"
                 alt="Vyreo"
-                className={`dark:hidden ${className ?? ''}`}
+                className={`block dark:hidden ${className ?? ''}`}
             />
             <img
                 src="/logo/vyreio_logo_dark.svg"

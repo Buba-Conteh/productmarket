@@ -78,12 +78,12 @@ export default function Terms() {
                             <img
                                 src="/logo/vyreio_logo_light.svg"
                                 alt="Vyreo"
-                                className="h-8 w-auto dark:hidden"
+                                className="h-10 w-auto dark:hidden"
                             />
                             <img
                                 src="/logo/vyreio_logo_dark.svg"
                                 alt="Vyreo"
-                                className="hidden h-8 w-auto dark:block"
+                                className="hidden h-10 w-auto dark:block"
                             />
                         </Link>
                         <Link

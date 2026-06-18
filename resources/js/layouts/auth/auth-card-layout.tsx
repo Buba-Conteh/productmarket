@@ -26,7 +26,7 @@ export default function AuthCardLayout({
                     href={home()}
                     className="flex items-center gap-2 self-center font-medium"
                 >
-                    <AppLogoIcon className="h-9 w-auto" />
+                    <AppLogoIcon className="h-14 w-auto" />
                 </Link>
 
                 <div className="flex flex-col gap-6">
