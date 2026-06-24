@@ -13,6 +13,7 @@ use App\Notifications\CampaignClosed;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Laravel\Cashier\Exceptions\IncompletePayment;
 use Stripe\Exception\ApiErrorException;
 use Stripe\StripeClient;
 
@@ -118,17 +119,20 @@ final class CampaignService
 
         $this->validateReadyToPublish($campaign);
 
-        return DB::transaction(function () use ($campaign) {
-            $escrowAmount = $this->calculateEscrowAmount($campaign);
+        $escrowAmount = $this->calculateEscrowAmount($campaign);
 
-            // Create escrow record — will be linked to Stripe PaymentIntent in Phase 6
+        // Collect the escrow deposit from the brand BEFORE opening the DB
+        // transaction (never make external API calls inside a transaction).
+        $paymentIntentId = $this->fundEscrow($campaign, $escrowAmount);
+
+        return DB::transaction(function () use ($campaign, $escrowAmount, $paymentIntentId) {
             EscrowTransaction::create([
                 'campaign_id' => $campaign->id,
                 'brand_profile_id' => $campaign->brand_profile_id,
                 'total_held' => $escrowAmount,
                 'total_released' => 0,
                 'total_refunded' => 0,
-                'stripe_payment_intent_id' => 'pending_'.$campaign->id,
+                'stripe_payment_intent_id' => $paymentIntentId,
                 'status' => 'held',
                 'held_at' => now(),
             ]);
@@ -183,17 +187,24 @@ final class CampaignService
             'Only closed or cancelled campaigns can be republished.'
         );
 
-        return DB::transaction(function () use ($campaign) {
-            if ($campaign->status === 'cancelled') {
-                $escrowAmount = $this->calculateEscrowAmount($campaign);
+        // A cancelled campaign had its escrow refunded, so republishing must
+        // collect the deposit again. Charge before opening the transaction.
+        $paymentIntentId = null;
+        $escrowAmount = 0.0;
+        if ($campaign->status === 'cancelled') {
+            $escrowAmount = $this->calculateEscrowAmount($campaign);
+            $paymentIntentId = $this->fundEscrow($campaign, $escrowAmount);
+        }
 
+        return DB::transaction(function () use ($campaign, $escrowAmount, $paymentIntentId) {
+            if ($campaign->status === 'cancelled') {
                 EscrowTransaction::create([
                     'campaign_id' => $campaign->id,
                     'brand_profile_id' => $campaign->brand_profile_id,
                     'total_held' => $escrowAmount,
                     'total_released' => 0,
                     'total_refunded' => 0,
-                    'stripe_payment_intent_id' => 'pending_'.$campaign->id.'_'.now()->timestamp,
+                    'stripe_payment_intent_id' => $paymentIntentId,
                     'status' => 'held',
                     'held_at' => now(),
                 ]);
@@ -251,6 +262,67 @@ final class CampaignService
             });
 
         return $cancelled;
+    }
+
+    /**
+     * Fund a campaign's escrow by charging the brand's default payment method into
+     * the platform's Stripe balance (separate charges & transfers model — creators
+     * are later paid via Connect transfers in PayoutService).
+     *
+     * Returns the Stripe PaymentIntent ID to store on the escrow transaction. In
+     * stub mode returns a placeholder so local/dev/test flows work without a card.
+     *
+     * Aborts (422) with a brand-facing message if the brand has no payment method
+     * or the charge fails / needs additional authentication.
+     */
+    private function fundEscrow(Campaign $campaign, float $amount): string
+    {
+        if (config('escrow.stub_mode', true)) {
+            return 'pending_'.$campaign->id.'_'.now()->timestamp;
+        }
+
+        $brandUser = $campaign->brand?->user;
+
+        abort_unless(
+            $brandUser?->hasStripeId() && $brandUser->hasDefaultPaymentMethod(),
+            422,
+            'Add a billing payment method before publishing this campaign.',
+        );
+
+        try {
+            // Off-session charge against the brand's saved default payment method.
+            $payment = $brandUser->charge(
+                (int) round($amount * 100),
+                $brandUser->defaultPaymentMethod()->id,
+                [
+                    'currency' => config('escrow.currency', 'usd'),
+                    'off_session' => true,
+                    'description' => "Escrow deposit for campaign {$campaign->id}",
+                    'metadata' => [
+                        'campaign_id' => $campaign->id,
+                        'brand_profile_id' => $campaign->brand_profile_id,
+                        'type' => 'escrow_deposit',
+                    ],
+                ],
+            );
+
+            return $payment->id;
+        } catch (IncompletePayment $e) {
+            Log::warning('Escrow charge requires authentication', [
+                'campaign_id' => $campaign->id,
+                'payment_intent' => $e->payment->id ?? null,
+            ]);
+
+            abort(422, 'Your bank requires additional authentication for this payment. Please update your card in billing and try again.');
+        } catch (ApiErrorException $e) {
+            Log::error('Escrow funding failed', [
+                'campaign_id' => $campaign->id,
+                'amount' => $amount,
+                'error' => $e->getMessage(),
+            ]);
+
+            abort(422, 'Escrow payment failed. Please check your payment method and try again.');
+        }
     }
 
     /**
