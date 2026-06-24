@@ -53,6 +53,8 @@ final class YouTubeProvider extends AbstractOAuthProvider
                 handle: 'youtube_creator_stub',
                 followerCount: 47000,
                 avgViews: 15600,
+                totalLikes: null,
+                postCount: 215,
                 engagementRate: 2.9,
                 verified: true,
             );
@@ -83,6 +85,8 @@ final class YouTubeProvider extends AbstractOAuthProvider
             handle: ltrim($handle, '@'),
             followerCount: $subscribers,
             avgViews: $avgViews,
+            totalLikes: null,
+            postCount: (int) ($stats['videoCount'] ?? 0),
             engagementRate: 0.0,
             verified: true,
         );

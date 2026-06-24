@@ -22,6 +22,8 @@ final class SocialAccount extends Model
         'token_expires_at',
         'follower_count',
         'avg_views',
+        'total_likes',
+        'post_count',
         'engagement_rate',
         'verified',
         'scopes',

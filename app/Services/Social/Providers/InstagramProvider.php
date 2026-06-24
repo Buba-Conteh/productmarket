@@ -124,6 +124,8 @@ final class InstagramProvider extends AbstractOAuthProvider
                 handle: 'instagram_creator_stub',
                 followerCount: 18700,
                 avgViews: 5200,
+                totalLikes: null,
+                postCount: 96,
                 engagementRate: 3.6,
                 verified: false,
             );
@@ -145,6 +147,8 @@ final class InstagramProvider extends AbstractOAuthProvider
             handle: (string) ($data['username'] ?? ''),
             followerCount: (int) ($data['followers_count'] ?? 0),
             avgViews: 0,
+            totalLikes: null,
+            postCount: (int) ($data['media_count'] ?? 0),
             engagementRate: 0.0,
             verified: false,
         );

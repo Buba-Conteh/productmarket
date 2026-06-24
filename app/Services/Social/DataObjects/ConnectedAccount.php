@@ -11,6 +11,8 @@ final readonly class ConnectedAccount
         public string $handle,
         public int $followerCount = 0,
         public ?int $avgViews = null,
+        public ?int $totalLikes = null,
+        public ?int $postCount = null,
         public ?float $engagementRate = null,
         public bool $verified = false,
     ) {}
