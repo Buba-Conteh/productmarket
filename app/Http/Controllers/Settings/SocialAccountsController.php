@@ -27,6 +27,8 @@ final class SocialAccountsController extends Controller
                 'handle' => $account->handle,
                 'follower_count' => $account->follower_count,
                 'avg_views' => $account->avg_views,
+                'total_likes' => $account->total_likes,
+                'post_count' => $account->post_count,
                 'verified' => $account->verified,
                 'last_synced_at' => $account->last_synced_at?->diffForHumans(),
                 'platform' => [

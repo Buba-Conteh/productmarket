@@ -51,6 +51,8 @@ final class TikTokProvider extends AbstractOAuthProvider
                 handle: 'tiktok_creator_stub',
                 followerCount: 12500,
                 avgViews: 8400,
+                totalLikes: 348000,
+                postCount: 142,
                 engagementRate: 4.2,
                 verified: true,
             );
@@ -72,6 +74,8 @@ final class TikTokProvider extends AbstractOAuthProvider
             handle: (string) ($data['display_name'] ?? ''),
             followerCount: (int) ($data['follower_count'] ?? 0),
             avgViews: 0,
+            totalLikes: (int) ($data['likes_count'] ?? 0),
+            postCount: (int) ($data['video_count'] ?? 0),
             engagementRate: 0.0,
             verified: true,
         );

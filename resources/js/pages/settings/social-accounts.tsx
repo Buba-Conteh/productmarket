@@ -3,7 +3,9 @@ import {
     CheckCircle2,
     Clock,
     ExternalLink,
+    Heart,
     Link2Off,
+    PlaySquare,
     RefreshCw,
     Shield,
     Users,
@@ -24,6 +26,8 @@ type SocialAccount = {
     handle: string;
     follower_count: number;
     avg_views: number | null;
+    total_likes: number | null;
+    post_count: number | null;
     verified: boolean;
     last_synced_at: string | null;
     platform: Platform;
@@ -152,6 +156,24 @@ export default function SocialAccounts({
                                                 )}{' '}
                                                 followers
                                             </span>
+                                            {account.total_likes ? (
+                                                <span className="flex items-center gap-1">
+                                                    <Heart className="size-3" />
+                                                    {formatNumber(
+                                                        account.total_likes,
+                                                    )}{' '}
+                                                    likes
+                                                </span>
+                                            ) : null}
+                                            {account.post_count ? (
+                                                <span className="flex items-center gap-1">
+                                                    <PlaySquare className="size-3" />
+                                                    {formatNumber(
+                                                        account.post_count,
+                                                    )}{' '}
+                                                    posts
+                                                </span>
+                                            ) : null}
                                             {account.avg_views ? (
                                                 <span className="flex items-center gap-1">
                                                     <RefreshCw className="size-3" />

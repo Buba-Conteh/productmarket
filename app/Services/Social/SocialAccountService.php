@@ -44,6 +44,8 @@ final class SocialAccountService
                     'token_expires_at' => $tokens->expiresAt,
                     'follower_count' => $profile->followerCount,
                     'avg_views' => $profile->avgViews,
+                    'total_likes' => $profile->totalLikes,
+                    'post_count' => $profile->postCount,
                     'engagement_rate' => $profile->engagementRate,
                     'verified' => $profile->verified,
                     'scopes' => $grantedScopes,

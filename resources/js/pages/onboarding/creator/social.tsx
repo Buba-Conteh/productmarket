@@ -1,5 +1,13 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { CheckCircle2, ExternalLink, Link2Off, Shield } from 'lucide-react';
+import {
+    CheckCircle2,
+    ExternalLink,
+    Heart,
+    Link2Off,
+    PlaySquare,
+    Shield,
+    Users,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { connect, disconnect } from '@/routes/creator/social';
 
@@ -21,6 +29,8 @@ type SocialAccount = {
     id: string;
     handle: string;
     follower_count: number;
+    total_likes: number | null;
+    post_count: number | null;
     verified: boolean;
     platform: Platform;
 };
@@ -125,10 +135,27 @@ export default function CreatorSocial({ socialAccounts }: Props) {
                                     </div>
 
                                     {isConnected && account ? (
-                                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                                            @{account.handle} &middot;{' '}
-                                            {formatFollowers(account.follower_count)} followers
-                                        </p>
+                                        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                                            <span className="font-medium text-foreground">
+                                                @{account.handle}
+                                            </span>
+                                            <span className="flex items-center gap-1">
+                                                <Users className="size-3" />
+                                                {formatFollowers(account.follower_count)} followers
+                                            </span>
+                                            {account.total_likes ? (
+                                                <span className="flex items-center gap-1">
+                                                    <Heart className="size-3" />
+                                                    {formatFollowers(account.total_likes)} likes
+                                                </span>
+                                            ) : null}
+                                            {account.post_count ? (
+                                                <span className="flex items-center gap-1">
+                                                    <PlaySquare className="size-3" />
+                                                    {formatFollowers(account.post_count)} posts
+                                                </span>
+                                            ) : null}
+                                        </div>
                                     ) : (
                                         <p className="mt-0.5 text-xs text-muted-foreground">
                                             {platform.description}
