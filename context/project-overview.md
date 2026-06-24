@@ -170,7 +170,7 @@ Phases 1–6 are the MVP. Phases 7–10 ship post-launch.
 | 3.3 | Campaign creation — Ripple details | 🟢 Complete | Initial fee, RPM rate, milestone interval, budget |
 | 3.4 | Campaign creation — Pitch details | 🟢 Complete | Product info, budget cap, bid range |
 | 3.5 | AI brief assistant | ⏸ Deferred | Post-MVP — requires Anthropic/OpenAI API integration |
-| 3.6 | Escrow deposit on publish | 🟢 Complete | Stripe PaymentIntent holds funds before campaign goes live |
+| 3.6 | Escrow deposit on publish | 🟢 Complete | CampaignService::fundEscrow() charges the brand off-session into the platform balance on publish (separate charges & transfers). Gated by ESCROW_STUB_MODE — stub for local/test, real charge on staging/prod. Was previously a placeholder PaymentIntent ID with no real charge. |
 | 3.7 | Campaign dashboard — brand | 🟢 Complete | List of all campaigns with status, entries count, budget spent |
 | 3.8 | Campaign detail page — brand | 🟢 Complete | Full campaign view, edit draft, close campaign |
 | 3.9 | Campaign discovery feed — creator | 🟢 Complete | Searchable, filterable feed via Meilisearch |

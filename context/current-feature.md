@@ -1,198 +1,64 @@
-# Campaign UX Improvements
+# Current Feature: Real Escrow PaymentIntent on Campaign Publish
 
 **Status:** In Progress
-**Branch:** feature/campaign-ux-improvements
-**Started:** 2026-05-03
+**Branch:** feature/escrow-paymentintent
+**Started:** 2026-06-24
 
----
+## Problem
 
-## Features
+The brand-funding leg of the escrow flow was never implemented. `CampaignService::publish()`
+(and `republish()` for cancelled campaigns) created an `escrow_transactions` row with a
+**placeholder** `stripe_payment_intent_id` (`pending_<campaign_id>`) and moved the campaign
+straight to `active` — no real money was collected from the brand.
 
-| # | Feature | Status |
-|---|---|---|
-| CUX-1 | Real video file upload for all entry types | 🟢 Complete |
-| CUX-2 | Inline video playback on platform (creator + brand views) | 🟢 Complete |
-| CUX-3 | Campaign card thumbnails (creator discover + brand list) | 🟢 Complete |
-| CUX-4 | "Already applied" indicator on discovery cards | 🟢 Complete |
+This meant the "product owner → creator" money path was only half-wired:
 
----
+- **Brand → escrow (money IN):** not implemented (placeholder only)
+- **Escrow/platform → creator (money OUT):** real, via `PayoutService` (`transfers->create`)
 
-## Overview
+`PayoutService` transfers draw from the **platform's Stripe balance**, so on staging real
+payouts would eventually fail once that balance is drained, because campaigns never top it up.
 
-Four UX improvements to make the platform production-ready:
+## Charge model decision
 
-1. **Video upload** — Replace the URL-paste placeholder in the entry wizard with a real file-upload drop zone. Videos are stored on the local disk (same pattern as campaign thumbnails). The backend stores the path in `video_url` and exposes a full `video_full_url` accessor.
+This is a **separate charges and transfers** integration (confirmed via Stripe best-practices):
 
-2. **On-platform video playback** — Wherever an entry is shown (creator entry detail, brand entry review), render an inline `<video controls>` player using `video_full_url`. Critically for Pitch entries, the brand watches the video pitch before deciding to accept or reject the bid.
+- Escrow is funded at publish time at the **campaign** level — the recipient creators are
+  unknown and there can be many (contest winner + runner-up, ripple milestones across creators).
+- Destination charges (`transfer_data.destination`) route to a single connected account at
+  charge time and do **not** fit escrow.
+- So: charge the brand into the **platform** balance now; pay creators later via
+  `transfers->create` (exactly what `PayoutService` already does).
 
-3. **Campaign card thumbnails** — Every campaign already stores a `thumbnail_url` but it was never shown on cards. Add a 160px image area at the top of every campaign card on the creator Discover page and the brand Campaigns list. Use a gradient placeholder when no thumbnail exists.
-
-4. **Applied indicator on discover cards** — The "you already submitted" notice only appeared on the campaign detail page. Now the discovery grid shows a green "Applied ✓" badge (or "Pending" for unapproved Pitch applications) overlaid on the card thumbnail so creators can see their status at a glance.
-
----
+The brand pays via their saved default payment method (collected during subscription Checkout),
+charged **off-session** through Cashier's `charge()`.
 
 ## Implementation
 
-### Backend
+1. `config/escrow.php` — `stub_mode` (default `true`) + `currency` (default `usd`).
+   - Stub mode preserves the existing placeholder behaviour so local/dev/test/seeders are
+     unaffected. Staging sets `ESCROW_STUB_MODE=false` to perform real charges.
+2. `CampaignService::fundEscrow(Campaign, float): string`
+   - Stub mode → returns `pending_<id>` placeholder (unchanged behaviour).
+   - Real mode → validates the brand has a Stripe customer + default payment method, then
+     charges off-session via Cashier. Returns the real PaymentIntent ID. Aborts 422 with a
+     clear message on failure / SCA-required.
+   - Charge happens **before** the DB transaction (no external calls inside a transaction).
+3. `publish()` and `republish()` use `fundEscrow()` to set the real PaymentIntent ID.
+4. Verify command (`payout:verify-flow`) extended to mirror staging more faithfully:
+   `--connect=acct_...`, Connect active-status check, available-balance check, queue note.
+5. `context/project-overview.md` 3.6 status corrected (was wrongly marked 🟢 Complete).
 
-- `StoreEntryRequest` — Changed `video_url` (string) to `video` (file, mimes:mp4,mov,avi,webm, max 200 MB). `video_url` stays in DB but is set by the controller, not sent from the form.
-- `Entry` model — Added `video_full_url` appended attribute via `FileUploader::url($this->video_url)`.
-- `EntryService::saveDraft()` — Only updates `video_url` when a new path is explicitly provided (prevents overwrite on resubmit without a new video).
-- `CreatorEntryController::store()` / `resubmit()` — Handles file upload before delegating to service.
-- `CreatorCampaignController::index()` — Passes `entered_campaign_ids` and `application_statuses` for the authenticated creator.
+## Staging prerequisites (for a flawless manual test)
 
-### Frontend
+1. `ESCROW_STUB_MODE=false` + Stripe **test** keys.
+2. Brand has subscribed (has a saved default payment method).
+3. Creator has a fully-onboarded Connect account (`stripe_connect_status = active`).
+4. A queue worker / Horizon is running (`ProcessPayoutJob` is queued).
+5. Payout amount ≥ `min_creator_payout` ($25), else it is silently held.
+6. Note: real charges land in Stripe **pending** balance first and become **available** on a
+   rolling delay — instant payouts may need available balance to already exist.
 
-- `submit.tsx` — File drop zone replaces URL input. Uses `FormData` + `router.post` with `forceFormData`. Shows `<video>` preview on selection. Step validation checks `videoFile !== null || !!entry?.video_full_url`.
-- `entries/creator/show.tsx` — Inline `<video controls>` player.
-- `entries/brand/show.tsx` — Inline `<video controls>` player above the text content.
-- `campaigns/creator/index.tsx` — Thumbnail image area on cards + applied/pending badge.
-- `campaigns/brand/index.tsx` — Thumbnail image area on cards.
-- `types/entry.ts` — Added `video_full_url: string | null` to `Entry`; removed `video_url` from `EntryFormData`.
+## Status
 
----
-
-## History
-
-- 2026-05-03: Feature documented and fully implemented. TypeScript types pass, build passes, PHP Pint passes.
-
----
-
-# Video Posting, Metrics & Content Rights
-
-**Status:** In Progress
-**Branch:** feature/video-posting-metrics
-**Started:** 2026-05-20
-
----
-
-## Features
-
-| # | Feature | Status |
-|---|---|---|
-| VPM-1 | Auto-release payout when creator marks entry live (Pitch) | 🟢 Complete |
-| VPM-2 | Creator provides TikTok video URL when posting | 🟢 Complete |
-| VPM-3 | Brand sees video metrics (views + comments) on entry detail | 🟢 Complete |
-| VPM-4 | Content rights section on brand entry detail for live entries | 🟢 Complete |
-| VPM-5 | Creator social metrics (handle + followers) on brand entry sidebar | 🟢 Complete |
-
----
-
-## Overview
-
-When a creator marks an entry as live (posts on social media), the platform should:
-1. **Auto-release funds** — For Pitch entries, payout fires automatically when creator submits the posted URL (removing the manual brand "confirm post" step).
-2. **Track comments** — Add `comment_count` to `entry_platforms`, sync from TikTok API alongside views.
-3. **Brand video metrics** — Show verified views and comments prominently on the brand entry detail page.
-4. **Content rights** — Show a "Brand owns this content" rights acknowledgement card on live entries.
-5. **Creator social metrics** — Under the Creator sidebar on brand entry view, show each platform handle and follower count.
-
----
-
-## Implementation
-
-### Backend
-- New migration: `add_comment_count_to_entry_platforms_table`
-- `Entry` model: add `comment_count` to `withPivot()`
-- `TikTokProvider`: fetch `comment_count` in same API call as `view_count`; expose via `getLastCommentCount()`
-- `ViewSyncService`: store `comment_count` after view sync for TikTok entries
-- `EntryService::markLive()`: for `pitch` entries, auto-trigger payout (replaces brand's `confirmPitchLive()`)
-- `EntryService::loadFullEntry()`: load `creator.socialAccounts.platform`
-
-### Frontend
-- `types/entry.ts`: add `comment_count` to `EntryPlatform.pivot`; add `social_accounts` to `CreatorProfile`
-- `entries/creator/show.tsx`: clearer TikTok URL input label/placeholder
-- `entries/brand/show.tsx`: comment_count display + content rights card + creator social metrics sidebar
-
----
-
-## History
-
-- 2026-05-20: Feature fully implemented. TypeScript clean, build passes, PHP lint passes.
-
----
-
-# TikTok Direct Posting
-
-**Status:** In Progress
-**Branch:** feature/tiktok-direct-posting
-**Started:** 2026-05-20
-
----
-
-## Features
-
-| # | Feature | Status |
-|---|---|---|
-| TDP-1 | DB migration: publish_status + tiktok_publish_id on entry_platforms; scopes on social_accounts | 🔴 Not started |
-| TDP-2 | Add video.publish scope to TikTok OAuth + save scopes on connect | 🔴 Not started |
-| TDP-3 | TikTokPostingService (init, chunked upload, status fetch) | 🔴 Not started |
-| TDP-4 | PublishToTikTokJob (async upload + auto markLive) | 🔴 Not started |
-| TDP-5 | TikTokPublishController + routes | 🔴 Not started |
-| TDP-6 | CreatorEntryController::show() — add socialAccounts prop | 🔴 Not started |
-| TDP-7 | Frontend TikTok posting card on entries/creator/show.tsx | 🔴 Not started |
-
----
-
-## Overview
-
-Allow creators to post entry videos directly to TikTok from the platform after a brand approves their entry. Uses TikTok Content Posting API (Direct Post, FILE_UPLOAD). Video is chunked-uploaded from local storage to TikTok. On success, entry is auto-marked live with the TikTok video URL.
-
----
-
-# Performance Quick Wins
-
-**Status:** Not Started
-**Branch:** fix/performance-quick-wins
-
----
-
-## Features
-
-| # | Feature | Status |
-|---|---|---|
-| PQW-1 | Replace 5-6 COUNT queries per dashboard tab with single GROUP BY aggregate | 🔴 Not started |
-| PQW-2 | Fix N+1 in `ViewSyncService::syncEntry` — platform + social account pre-fetch | 🔴 Not started |
-| PQW-3 | Cache `unreadNotifications()->count()` per-user (60s TTL) in `HandleInertiaRequests` | 🔴 Not started |
-| PQW-4 | Cache subscription status per-request in `HandleInertiaRequests` | 🔴 Not started |
-
----
-
-## Overview
-
-Low-risk performance fixes identified by codebase audit. No functional changes — same data, fewer queries.
-
-### PQW-1 — Dashboard tab COUNT queries
-
-`BrandCampaignController::index`, `BrandEntryController::index`, and `CreatorEntryController::index` each fire 5–6 separate `COUNT(*)` queries to build status tab counts. Replace with a single `GROUP BY status` aggregate.
-
-**Files:** [app/Http/Controllers/Campaign/BrandCampaignController.php](app/Http/Controllers/Campaign/BrandCampaignController.php), [app/Http/Controllers/Entry/BrandEntryController.php](app/Http/Controllers/Entry/BrandEntryController.php), [app/Http/Controllers/Entry/CreatorEntryController.php](app/Http/Controllers/Entry/CreatorEntryController.php)
-
-```php
-$counts = $brand->campaigns()
-    ->selectRaw('status, count(*) as count')
-    ->groupBy('status')
-    ->pluck('count', 'status')
-    ->toArray();
-$counts['all'] = array_sum($counts);
-```
-
-### PQW-2 — N+1 in ViewSyncService
-
-`syncEntry()` fetches `$entry->platforms()->get()` then inside the loop calls `$entry->platforms()->where(...)->first()` again for each platform (1+N queries), and `SocialAccount::where(...)->first()` per platform (another N queries).
-
-**File:** [app/Services/Social/ViewSyncService.php](app/Services/Social/ViewSyncService.php)
-
-Fix: load platforms with pivot once before the loop; index social accounts by platform_id before the loop.
-
-### PQW-3 — unreadNotifications count on every request
-
-`HandleInertiaRequests` calls `unreadNotifications()->count()` on every authenticated page load. Cache per-user with a 60-second TTL.
-
-**File:** [app/Http/Middleware/HandleInertiaRequests.php](app/Http/Middleware/HandleInertiaRequests.php)
-
-### PQW-4 — Subscription status re-queried every request
-
-`subscriptionStatuses()` queries `subscription_statuses` on every page load. Cache per-user per-request using `cache()->remember()` with a short TTL.
-
-**File:** [app/Http/Middleware/HandleInertiaRequests.php](app/Http/Middleware/HandleInertiaRequests.php)
+In progress.
