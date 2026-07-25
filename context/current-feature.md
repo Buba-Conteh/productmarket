@@ -1,64 +1,58 @@
-# Current Feature: Real Escrow PaymentIntent on Campaign Publish
+# Current Feature — Google & Phone (SMS OTP) Signup
 
 **Status:** In Progress
-**Branch:** feature/escrow-paymentintent
-**Started:** 2026-06-24
+**Branch:** feature/google-phone-signup
+**Started:** 2026-07-15
 
-## Problem
+## Goal
 
-The brand-funding leg of the escrow flow was never implemented. `CampaignService::publish()`
-(and `republish()` for cancelled campaigns) created an `escrow_transactions` row with a
-**placeholder** `stripe_payment_intent_id` (`pending_<campaign_id>`) and moved the campaign
-straight to `active` — no real money was collected from the brand.
+Let people sign up / log in with:
 
-This meant the "product owner → creator" money path was only half-wired:
+1. **Google** — surface the existing OAuth flow on the register page (already on
+   login) and fix the role gap: social users were created with **no role**.
+2. **Phone number** — passwordless SMS OTP: enter phone → 6-digit code → verify.
 
-- **Brand → escrow (money IN):** not implemented (placeholder only)
-- **Escrow/platform → creator (money OUT):** real, via `PayoutService` (`transfers->create`)
+Both new-account paths funnel through a shared **"select role"** step (Brand vs
+Creator) before onboarding, since Google/phone don't carry a role.
 
-`PayoutService` transfers draw from the **platform's Stripe balance**, so on staging real
-payouts would eventually fail once that balance is drained, because campaigns never top it up.
+## Decisions
 
-## Charge model decision
+- **Phone = passwordless SMS OTP** (lowest-friction rollout, no password to manage).
+- **Provider = Vonage**, behind an `SMS_STUB_MODE` flag that mirrors the existing
+  `ESCROW_STUB_MODE` pattern — stub logs the code locally (free, works on dev/
+  staging); real Vonage send only when `SMS_STUB_MODE=false` + keys present.
+- **Google role = asked after** the OAuth round-trip.
 
-This is a **separate charges and transfers** integration (confirmed via Stripe best-practices):
+## Backend
 
-- Escrow is funded at publish time at the **campaign** level — the recipient creators are
-  unknown and there can be many (contest winner + runner-up, ripple milestones across creators).
-- Destination charges (`transfer_data.destination`) route to a single connected account at
-  charge time and do **not** fit escrow.
-- So: charge the brand into the **platform** balance now; pay creators later via
-  `transfers->create` (exactly what `PayoutService` already does).
+- Migration: `users.phone` (nullable, unique) + `users.phone_verified_at`; make
+  `users.email` **nullable** so phone-only accounts can exist.
+- Migration + model: `phone_verification_codes` (ULID) — hashed code, expiry,
+  attempts, consumed_at.
+- `config/sms.php` — `stub_mode`, `from`, OTP length/TTL, Vonage keys.
+- `App\Services\Sms\SmsService` — `send()`; stub logs, otherwise Vonage.
+- `App\Services\PhoneOtpService` — generate (hash + store), verify, cooldown.
+- `App\Http\Controllers\Auth\PhoneAuthController` — phone entry, send, verify page,
+  verify, resend. Find-or-create user by phone; passwordless login.
+- `App\Http\Controllers\Auth\RoleSelectionController` — show + assign role.
+- `EnsureOnboardingComplete`: role-less verified user → redirect to role select.
+- Rate limiting via `throttle` on send/resend + per-phone cooldown in service.
 
-The brand pays via their saved default payment method (collected during subscription Checkout),
-charged **off-session** through Cashier's `charge()`.
+## Frontend
 
-## Implementation
+- `auth/register.tsx` — add "Continue with Google" + "Sign up with phone".
+- `auth/login.tsx` — add "Continue with phone" (Google already present).
+- `auth/phone.tsx` — phone entry.
+- `auth/phone-verify.tsx` — OTP entry + resend (uses existing `InputOTP`).
+- `auth/select-role.tsx` — Brand / Creator choice.
 
-1. `config/escrow.php` — `stub_mode` (default `true`) + `currency` (default `usd`).
-   - Stub mode preserves the existing placeholder behaviour so local/dev/test/seeders are
-     unaffected. Staging sets `ESCROW_STUB_MODE=false` to perform real charges.
-2. `CampaignService::fundEscrow(Campaign, float): string`
-   - Stub mode → returns `pending_<id>` placeholder (unchanged behaviour).
-   - Real mode → validates the brand has a Stripe customer + default payment method, then
-     charges off-session via Cashier. Returns the real PaymentIntent ID. Aborts 422 with a
-     clear message on failure / SCA-required.
-   - Charge happens **before** the DB transaction (no external calls inside a transaction).
-3. `publish()` and `republish()` use `fundEscrow()` to set the real PaymentIntent ID.
-4. Verify command (`payout:verify-flow`) extended to mirror staging more faithfully:
-   `--connect=acct_...`, Connect active-status check, available-balance check, queue note.
-5. `context/project-overview.md` 3.6 status corrected (was wrongly marked 🟢 Complete).
+## Notes / follow-ups
 
-## Staging prerequisites (for a flawless manual test)
+- Phone-only accounts have `email = null`. Downstream Stripe customer creation
+  (brand onboarding) and email notifications assume an email — a future step can
+  prompt phone users to add an email. Out of scope for this feature.
+- Real Vonage send requires `SMS_STUB_MODE=false` + `VONAGE_KEY`/`VONAGE_SECRET`.
 
-1. `ESCROW_STUB_MODE=false` + Stripe **test** keys.
-2. Brand has subscribed (has a saved default payment method).
-3. Creator has a fully-onboarded Connect account (`stripe_connect_status = active`).
-4. A queue worker / Horizon is running (`ProcessPayoutJob` is queued).
-5. Payout amount ≥ `min_creator_payout` ($25), else it is silently held.
-6. Note: real charges land in Stripe **pending** balance first and become **available** on a
-   rolling delay — instant payouts may need available balance to already exist.
+## Status: 🟢 Complete
 
-## Status
-
-In progress.
+Full write-up in `context/features/1.16-google-phone-signup.md`.

@@ -34,14 +34,25 @@ export default function Login({
                 {({ processing, errors }) => (
                     <>
                         <div className="grid gap-6">
-                            <div className="grid gap-6">
+                            <div className="grid gap-3">
                                 <Button
+                                    type="button"
                                     variant="outline"
                                     className="w-full"
                                     asChild
                                 >
                                     <a href="/auth/google/redirect">
                                         Continue with Google
+                                    </a>
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="w-full"
+                                    asChild
+                                >
+                                    <a href="/auth/phone">
+                                        Continue with phone
                                     </a>
                                 </Button>
                             </div>
