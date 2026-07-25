@@ -18,7 +18,7 @@ use Laravel\Cashier\Billable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'avatar', 'country', 'status', 'referral_code'])]
+#[Fillable(['name', 'email', 'phone', 'password', 'avatar', 'country', 'status', 'referral_code', 'phone_verified_at', 'email_verified_at'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -29,10 +29,20 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'last_active_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Whether the user has chosen a primary role (brand or creator). Social /
+     * phone signups land without one until they pick on the role-select step.
+     */
+    public function hasSelectedRole(): bool
+    {
+        return $this->hasRole('brand') || $this->hasRole('creator');
     }
 
     public function brandProfile(): HasOne

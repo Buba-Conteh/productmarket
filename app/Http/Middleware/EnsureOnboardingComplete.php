@@ -18,6 +18,12 @@ final class EnsureOnboardingComplete
             return $next($request);
         }
 
+        // Social / phone signups arrive without a role — send them to pick one
+        // before they can reach onboarding or the dashboard.
+        if (! $user->hasSelectedRole()) {
+            return redirect()->route('role.select');
+        }
+
         if ($user->hasRole('brand')) {
             $profile = $user->brandProfile;
 
