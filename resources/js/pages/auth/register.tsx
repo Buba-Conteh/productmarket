@@ -1,4 +1,6 @@
 import { Form, Head } from '@inertiajs/react';
+import { Smartphone } from 'lucide-react';
+import GoogleIcon from '@/components/icons/google-icon';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -32,25 +34,31 @@ export default function Register() {
                             <Button
                                 type="button"
                                 variant="outline"
+                                size="lg"
                                 className="w-full"
                                 asChild
                             >
                                 <a href="/auth/google/redirect">
+                                    <GoogleIcon />
                                     Continue with Google
                                 </a>
                             </Button>
                             <Button
                                 type="button"
                                 variant="outline"
+                                size="lg"
                                 className="w-full"
                                 asChild
                             >
-                                <a href="/auth/phone">Continue with phone</a>
+                                <a href="/auth/phone">
+                                    <Smartphone />
+                                    Continue with phone
+                                </a>
                             </Button>
                         </div>
 
                         <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
-                            <span className="relative z-10 bg-background px-2 text-muted-foreground">
+                            <span className="relative z-10 bg-card px-2 text-muted-foreground">
                                 Or sign up with email
                             </span>
                         </div>
