@@ -1,5 +1,4 @@
 import { Form, Head } from '@inertiajs/react';
-import { Smartphone } from 'lucide-react';
 import GoogleIcon from '@/components/icons/google-icon';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -41,18 +40,6 @@ export default function Register() {
                                 <a href="/auth/google/redirect">
                                     <GoogleIcon />
                                     Continue with Google
-                                </a>
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="lg"
-                                className="w-full"
-                                asChild
-                            >
-                                <a href="/auth/phone">
-                                    <Smartphone />
-                                    Continue with phone
                                 </a>
                             </Button>
                         </div>
