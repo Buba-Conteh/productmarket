@@ -1,53 +1,61 @@
-# Current Feature — Creator UI Polish: Responsive & Consistency Fixes
+# Current Feature — Creator UI Polish: Shared Campaign/Entry Cards
 
 **Status:** In Progress
-**Branch:** fix/creator-ui-consistency
+**Branch:** feature/shared-campaign-entry-cards
 **Started:** 2026-09-20
 
 ## Goal
 
-Part 3 of 4. Three concrete inconsistencies found in the creator-facing UI
-survey:
-
-1. **Earnings payout table is not horizontally scrollable.** `creator/earnings.tsx:154`
-   wraps the 7-column table in `overflow-hidden rounded-xl border` with no
-   `overflow-x-auto`, unlike every other table in the app
-   (`growth/referrals.tsx`, `analytics/brand.tsx`). On narrow viewports the
-   table will clip or squish instead of scrolling.
-2. **Messages list has no page padding.** `messages/index.tsx:26` wraps its
-   content in bare `space-y-6` with no `px-*/py-*`, while every sibling
-   page (`campaigns/creator/index.tsx`, `entries/creator/index.tsx`,
-   `growth/*.tsx`, `analytics/creator.tsx`) uses `px-4 py-6` (or `p-6`).
-   Content sits flush against the viewport edge.
-3. **Creator profile stats are hand-rolled instead of using `StatCard`.**
-   `profiles/creator/show.tsx:122-165` builds 3 stat tiles from scratch
-   (plain `Card`/`CardContent` + icon + number), duplicating markup that
-   `components/dashboard/stat-card.tsx` already provides and that
-   dashboard/earnings/analytics all use.
+Part 4 of 4 (last item). `campaigns/creator/index.tsx:279-365` (campaign
+discovery grid) and `entries/creator/index.tsx:130-233` (my-entries grid)
+each hand-build a nearly identical tile: image-or-gradient thumbnail with a
+letter fallback, a type badge + status badge overlaid on top, budget/entry
+metadata, platform badges. Both files also independently define an
+identical `TYPE_GRADIENTS` map. Extract this into reusable components.
 
 ## Decisions
 
-- Leave `messages/show.tsx` (the chat thread view) untouched — it's
-  intentionally full-bleed for a messenger-style layout, unlike the list
-  page.
-- Leave `profiles/creator/media-kit.tsx`'s stat block untouched — it's a
-  minimal, print-friendly one-pager; `StatCard`'s shadow/gradient/rounded-2xl
-  styling doesn't belong on a printable sheet, and this page is deliberately
-  different from the rest of the app for that reason.
-- Gave "Total Earned" `accent="primary"` to match how `creator/earnings.tsx`
-  treats the same metric; the other two (Views, Live Campaigns) stay
-  `neutral` (default).
+- **`CampaignThumbnail`** (`resources/js/components/campaigns/campaign-thumbnail.tsx`)
+  is the shared presentational piece: renders the image-or-gradient
+  fallback and exposes `topOverlay`/`bottomOverlay` slots for badges, since
+  the two cards' badge sets differ (discovery: type + entry-status; entries:
+  type + entry-status + view count).
+- **`CAMPAIGN_TYPE_LABELS` / `CAMPAIGN_TYPE_GRADIENTS`** move to
+  `resources/js/lib/campaign-type.ts` as the single source of truth,
+  replacing the two duplicated `TYPE_GRADIENTS` maps.
+- **`CampaignCard`** (`resources/js/components/campaigns/campaign-card.tsx`)
+  and **`EntryCard`** (`resources/js/components/entries/entry-card.tsx`)
+  stay as two separate components rather than one mega-component with
+  conditional branches — their card bodies (budget row vs bid row,
+  entries-count vs view-count) are different enough that forcing a single
+  component would need more branching than it saves.
+- **Scope is creator-side only** — `campaigns/creator/index.tsx` and
+  `entries/creator/index.tsx`. The same `TYPE_GRADIENTS`/`STATUS_STYLES`
+  duplication also exists on the brand side (`campaigns/brand/*.tsx`,
+  `entries/brand/*.tsx`) and in `entries/creator/show.tsx`, but those
+  weren't part of the agreed scope (creator card/grid pages specifically).
+  Noted as a follow-up in the feature doc, not touched here.
 
 ## Scope
 
-- `resources/js/pages/creator/earnings.tsx`
-- `resources/js/pages/messages/index.tsx`
-- `resources/js/pages/profiles/creator/show.tsx`
+- New: `resources/js/lib/campaign-type.ts`
+- New: `resources/js/components/campaigns/campaign-thumbnail.tsx`
+- New: `resources/js/components/campaigns/campaign-card.tsx`
+- New: `resources/js/components/entries/entry-card.tsx`
+- Edit: `resources/js/pages/campaigns/creator/index.tsx` (use `CampaignCard`)
+- Edit: `resources/js/pages/entries/creator/index.tsx` (use `EntryCard`)
 
 ## Verification
 
 - `npm run types:check` — pass.
-- `npm run lint:check` — no errors in the touched files.
+- `npm run lint:check` — one real issue found and fixed (missing blank
+  line before a `return` in the extracted `EntryStatusBadge`); no other
+  errors in touched/new files.
 - `npm run build` — pass.
+- **Not done:** a live browser check. This was a structural extraction —
+  every className/prop/conditional was moved as-is into the new
+  components, nothing was rewritten — so type-check + lint + build cover
+  it well, but an authenticated creator session with seeded campaigns/
+  entries would be needed to visually confirm pixel parity.
 
-## Status: 🟢 Complete
+## Status: 🟢 Complete (pending optional browser check)
