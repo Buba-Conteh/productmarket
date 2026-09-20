@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\PhoneAuthController;
 use App\Http\Controllers\Auth\RoleSelectionController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EarlyAccessController;
 use App\Http\Middleware\EnsureOnboardingComplete;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -14,6 +15,13 @@ Route::inertia('/', 'welcome', [
 
 Route::inertia('/terms', 'legal/terms')->name('terms');
 Route::inertia('/privacy', 'legal/privacy')->name('privacy');
+
+// Temporary public lead-capture route for creators/brands — see
+// context/features/early-access-signup.md.
+Route::get('/early-access', [EarlyAccessController::class, 'show'])->name('early-access.show');
+Route::post('/early-access', [EarlyAccessController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('early-access.store');
 
 Route::middleware('guest')->group(function () {
     Route::get('auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])->name('social.redirect');
