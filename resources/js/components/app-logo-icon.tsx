@@ -2,13 +2,13 @@ export default function AppLogoIcon({ className }: { className?: string }) {
     return (
         <>
             <img
-                src="/logo/vyreio_logo_light.svg"
-                alt="Vyreo"
+                src="/logo/trendko_logo_light.svg"
+                alt="Trendko"
                 className={`block dark:hidden ${className ?? ''}`}
             />
             <img
-                src="/logo/vyreio_logo_dark.svg"
-                alt="Vyreo"
+                src="/logo/trendko_logo_dark.svg"
+                alt="Trendko"
                 className={`hidden dark:block ${className ?? ''}`}
             />
         </>

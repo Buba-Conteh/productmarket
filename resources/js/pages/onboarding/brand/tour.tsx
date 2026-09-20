@@ -48,7 +48,7 @@ export default function BrandTour() {
 
     return (
         <>
-            <Head title="Welcome to Vyreo" />
+            <Head title="Welcome to Trendko" />
 
             <div className="space-y-6">
                 <div className="space-y-4">
@@ -80,7 +80,7 @@ export default function BrandTour() {
 
 BrandTour.layout = {
     title: "You're all set!",
-    description: "Here's what you can do on Vyreo.",
+    description: "Here's what you can do on Trendko.",
     steps: BRAND_STEPS,
     currentStep: 2,
 };

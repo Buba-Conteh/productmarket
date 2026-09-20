@@ -165,7 +165,7 @@ export default function CreatorPayout({ profile, plans }: Props) {
 
     return (
         <>
-            <Head title="Welcome to Vyreo" />
+            <Head title="Welcome to Trendko" />
 
             <div className="space-y-6">
                 {/* Platform overview */}
@@ -313,7 +313,7 @@ export default function CreatorPayout({ profile, plans }: Props) {
 
 CreatorPayout.layout = {
     title: "You're all set!",
-    description: 'Start earning on Vyreo.',
+    description: 'Start earning on Trendko.',
     steps: CREATOR_STEPS,
     currentStep: 3,
 };
