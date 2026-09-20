@@ -1,6 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
-import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { NotificationBell } from '@/components/notification-bell';
@@ -73,7 +72,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
     return (
         <>
             <div className="border-b border-sidebar-border/80">
-                <div className="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
+                <div className="mx-auto flex h-16 items-center overflow-hidden px-4 md:max-w-7xl">
                     {/* Mobile Menu */}
                     <div className="lg:hidden">
                         <Sheet>
@@ -94,7 +93,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                     Navigation menu
                                 </SheetTitle>
                                 <SheetHeader className="flex justify-start text-left">
-                                    <AppLogoIcon className="h-9 w-auto" />
+                                    <AppLogoIcon className="h-11 w-auto" />
                                 </SheetHeader>
                                 <div className="flex h-full flex-1 flex-col space-y-4 p-4">
                                     <div className="flex h-full flex-col justify-between text-sm">
@@ -140,7 +139,22 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                         prefetch
                         className="flex items-center space-x-2"
                     >
-                        <AppLogo />
+                        <img
+                            src="/logo/trendko_logo_light.svg"
+                            alt="Trendko"
+                            width={220}
+                            height={96}
+                            className="block w-auto dark:hidden"
+                            style={{ height: '96px' }}
+                        />
+                        <img
+                            src="/logo/trendko_logo_dark.svg"
+                            alt="Trendko"
+                            width={220}
+                            height={96}
+                            className="hidden w-auto dark:block"
+                            style={{ height: '96px' }}
+                        />
                     </Link>
 
                     {/* Desktop Navigation */}

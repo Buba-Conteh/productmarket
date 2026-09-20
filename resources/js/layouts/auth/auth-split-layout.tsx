@@ -16,9 +16,9 @@ export default function AuthSplitLayout({
                     className="relative z-20 flex items-center text-lg font-medium"
                 >
                     <img
-                        src="/logo/vyreio_logo_dark.svg"
-                        alt="Vyreo"
-                        className="h-12 w-auto"
+                        src="/logo/trendko_logo_dark.svg"
+                        alt="Trendko"
+                        className="h-16 w-auto"
                     />
                 </Link>
             </div>
@@ -29,14 +29,14 @@ export default function AuthSplitLayout({
                         className="relative z-20 flex items-center justify-center lg:hidden"
                     >
                         <img
-                            src="/logo/vyreio_logo_light.svg"
-                            alt="Vyreo"
-                            className="h-12 w-auto dark:hidden sm:h-14"
+                            src="/logo/trendko_logo_light.svg"
+                            alt="Trendko"
+                            className="h-16 w-auto sm:h-20 dark:hidden"
                         />
                         <img
-                            src="/logo/vyreio_logo_dark.svg"
-                            alt="Vyreo"
-                            className="hidden h-12 w-auto dark:block sm:h-14"
+                            src="/logo/trendko_logo_dark.svg"
+                            alt="Trendko"
+                            className="hidden h-16 w-auto sm:h-20 dark:block"
                         />
                     </Link>
                     <div className="flex flex-col items-start gap-2 text-left sm:items-center sm:text-center">

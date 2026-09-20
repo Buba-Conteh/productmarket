@@ -26,7 +26,7 @@ export default function Welcome({
 
     return (
         <>
-            <Head title="Vyreo — Viral Content Marketing">
+            <Head title="Trendko — Viral Content Marketing">
                 <link rel="preconnect" href="https://fonts.bunny.net" />
                 <link
                     href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700"
@@ -40,18 +40,24 @@ export default function Welcome({
             >
                 {/* ── Navbar ── */}
                 <header className="fixed inset-x-0 top-0 z-50 border-b border-gray-200/60 bg-white/80 backdrop-blur-md dark:border-gray-800/60 dark:bg-gray-950/80">
-                    <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+                    <div className="mx-auto flex h-16 max-w-7xl items-center justify-between overflow-hidden px-4 sm:px-6 lg:px-8">
                         {/* Logo */}
                         <div className="flex items-center gap-2">
                             <img
-                                src="/logo/vyreio_logo_light.svg"
-                                alt="Vyreo"
-                                className="h-10 w-auto dark:hidden"
+                                src="/logo/trendko_logo_light.svg"
+                                alt="Trendko"
+                                width={220}
+                                height={96}
+                                className="w-auto dark:hidden"
+                                style={{ height: '96px' }}
                             />
                             <img
-                                src="/logo/vyreio_logo_dark.svg"
-                                alt="Vyreo"
-                                className="hidden h-10 w-auto dark:block"
+                                src="/logo/trendko_logo_dark.svg"
+                                alt="Trendko"
+                                width={220}
+                                height={96}
+                                className="hidden w-auto dark:block"
+                                style={{ height: '96px' }}
                             />
                         </div>
 
@@ -139,7 +145,7 @@ export default function Welcome({
                         </div>
 
                         {/* Headline */}
-                        <h1 className="mb-6 text-5xl font-bold leading-tight tracking-tight sm:text-6xl lg:text-7xl">
+                        <h1 className="mb-6 text-5xl leading-tight font-bold tracking-tight sm:text-6xl lg:text-7xl">
                             Content marketing{' '}
                             <span className="bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">
                                 you can trust
@@ -148,9 +154,8 @@ export default function Welcome({
 
                         <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-gray-400 sm:text-xl">
                             Connect brands with creators through Contest,
-                            Ripple, and Pitch campaigns. Pay for real,
-                            verified views — never take a creator's word for
-                            it again.
+                            Ripple, and Pitch campaigns. Pay for real, verified
+                            views — never take a creator's word for it again.
                         </p>
 
                         {/* CTA row */}
@@ -213,10 +218,7 @@ export default function Welcome({
                                 text: 'Real-time campaign analytics',
                             },
                         ].map(({ icon: Icon, text }) => (
-                            <div
-                                key={text}
-                                className="flex items-center gap-2"
-                            >
+                            <div key={text} className="flex items-center gap-2">
                                 <Icon className="size-4 text-orange-500" />
                                 {text}
                             </div>
@@ -225,13 +227,10 @@ export default function Welcome({
                 </div>
 
                 {/* ── How it works ── */}
-                <section
-                    id="how-it-works"
-                    className="py-24 dark:bg-gray-950"
-                >
+                <section id="how-it-works" className="py-24 dark:bg-gray-950">
                     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                         <div className="mb-14 text-center">
-                            <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-orange-500">
+                            <p className="mb-3 text-sm font-semibold tracking-widest text-orange-500 uppercase">
                                 Campaign types
                             </p>
                             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -253,10 +252,10 @@ export default function Welcome({
                                     Contest
                                 </h3>
                                 <p className="mb-5 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
-                                    Open the floor to all creators. They
-                                    compete privately — brand picks a winner
-                                    who posts publicly. Best organic reach,
-                                    zero wasted spend.
+                                    Open the floor to all creators. They compete
+                                    privately — brand picks a winner who posts
+                                    publicly. Best organic reach, zero wasted
+                                    spend.
                                 </p>
                                 <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                                     {[
@@ -292,10 +291,10 @@ export default function Welcome({
                                     Ripple
                                 </h3>
                                 <p className="mb-5 text-sm leading-relaxed text-orange-100">
-                                    Pay creators an upfront fee, then
-                                    milestone bonuses as views accumulate.
-                                    The content keeps earning as long as it
-                                    keeps performing.
+                                    Pay creators an upfront fee, then milestone
+                                    bonuses as views accumulate. The content
+                                    keeps earning as long as it keeps
+                                    performing.
                                 </p>
                                 <ul className="space-y-2 text-sm text-orange-100">
                                     {[
@@ -328,9 +327,9 @@ export default function Welcome({
                                 </h3>
                                 <p className="mb-5 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
                                     Describe your product, set a budget. Let
-                                    creators pitch you their approach and
-                                    rate. Accept the bid that fits — you only
-                                    pay when you approve.
+                                    creators pitch you their approach and rate.
+                                    Accept the bid that fits — you only pay when
+                                    you approve.
                                 </p>
                                 <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                                     {[
@@ -361,7 +360,7 @@ export default function Welcome({
                     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                         <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
                             <div>
-                                <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-orange-500">
+                                <p className="mb-3 text-sm font-semibold tracking-widest text-orange-500 uppercase">
                                     The difference
                                 </p>
                                 <h2 className="mb-6 text-3xl font-bold tracking-tight sm:text-4xl">
@@ -374,10 +373,10 @@ export default function Welcome({
                                 <p className="mb-8 text-gray-500 dark:text-gray-400">
                                     Every other platform lets creators
                                     self-report performance. We pull verified
-                                    counts directly from TikTok, Instagram,
-                                    and YouTube APIs every six hours. If a
-                                    post underperforms, the brand simply
-                                    doesn't pay for it.
+                                    counts directly from TikTok, Instagram, and
+                                    YouTube APIs every six hours. If a post
+                                    underperforms, the brand simply doesn't pay
+                                    for it.
                                 </p>
 
                                 <div className="grid gap-5 sm:grid-cols-2">
@@ -446,22 +445,23 @@ export default function Welcome({
                                         </div>
                                         {/* Fake bar chart */}
                                         <div className="flex h-24 items-end gap-2">
-                                            {[40, 65, 45, 80, 60, 90, 75, 100, 85, 95, 70, 88].map(
-                                                (h, i) => (
+                                            {[
+                                                40, 65, 45, 80, 60, 90, 75, 100,
+                                                85, 95, 70, 88,
+                                            ].map((h, i) => (
+                                                <div
+                                                    key={i}
+                                                    className="flex-1 rounded-t bg-orange-100 dark:bg-orange-950/50"
+                                                    style={{
+                                                        height: `${h}%`,
+                                                    }}
+                                                >
                                                     <div
-                                                        key={i}
-                                                        className="flex-1 rounded-t bg-orange-100 dark:bg-orange-950/50"
-                                                        style={{
-                                                            height: `${h}%`,
-                                                        }}
-                                                    >
-                                                        <div
-                                                            className="h-1/3 rounded-t bg-orange-400"
-                                                            style={{}}
-                                                        />
-                                                    </div>
-                                                ),
-                                            )}
+                                                        className="h-1/3 rounded-t bg-orange-400"
+                                                        style={{}}
+                                                    />
+                                                </div>
+                                            ))}
                                         </div>
                                         <div className="mt-4 grid grid-cols-3 gap-3 text-center">
                                             {[
@@ -515,16 +515,16 @@ export default function Welcome({
                 <section id="for-brands" className="py-24 dark:bg-gray-950">
                     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                         <div className="mb-14 text-center">
-                            <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-orange-500">
+                            <p className="mb-3 text-sm font-semibold tracking-widest text-orange-500 uppercase">
                                 For brands
                             </p>
                             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
                                 Launch campaigns in minutes
                             </h2>
                             <p className="mx-auto mt-4 max-w-xl text-gray-500 dark:text-gray-400">
-                                Set your brief, lock escrow, and watch
-                                verified results come in. No spreadsheets, no
-                                invoices, no guesswork.
+                                Set your brief, lock escrow, and watch verified
+                                results come in. No spreadsheets, no invoices,
+                                no guesswork.
                             </p>
                         </div>
 
@@ -577,7 +577,7 @@ export default function Welcome({
                 >
                     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                         <div className="mb-14 text-center">
-                            <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-orange-500">
+                            <p className="mb-3 text-sm font-semibold tracking-widest text-orange-500 uppercase">
                                 Pricing
                             </p>
                             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -591,7 +591,7 @@ export default function Welcome({
 
                         {/* Brand plans */}
                         <div className="mb-6">
-                            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold tracking-widest text-gray-500 uppercase dark:text-gray-400">
                                 <Users className="size-4" />
                                 Brand plans
                             </h3>
@@ -716,7 +716,7 @@ export default function Welcome({
 
                         {/* Creator plans */}
                         <div>
-                            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                            <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold tracking-widest text-gray-500 uppercase dark:text-gray-400">
                                 <Play className="size-4" />
                                 Creator plans
                             </h3>
@@ -821,8 +821,7 @@ export default function Welcome({
                         </h2>
                         <p className="mb-10 text-gray-400">
                             Join thousands of brands and creators already on
-                            Vyreo. Free to start — no credit card
-                            required.
+                            Trendko. Free to start — no credit card required.
                         </p>
                         {canRegister && (
                             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -849,11 +848,14 @@ export default function Welcome({
                 <footer className="border-t border-gray-800 bg-gray-950 py-12">
                     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                         <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
-                            <div className="flex items-center gap-2">
+                            <div className="flex h-12 items-center gap-2 overflow-hidden">
                                 <img
-                                    src="/logo/vyreio_logo_dark.svg"
-                                    alt="Vyreo"
-                                    className="h-9 w-auto"
+                                    src="/logo/trendko_logo_dark.svg"
+                                    alt="Trendko"
+                                    width={220}
+                                    height={96}
+                                    className="w-auto"
+                                    style={{ height: '96px' }}
                                 />
                             </div>
                             <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-500">
@@ -899,9 +901,7 @@ export default function Welcome({
                                 >
                                     Privacy
                                 </Link>
-                                <span>
-                                    © {new Date().getFullYear()} Vyreo
-                                </span>
+                                <span>© {new Date().getFullYear()} Trendko</span>
                             </div>
                         </div>
                     </div>
