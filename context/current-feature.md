@@ -1,58 +1,39 @@
-# Current Feature — Google & Phone (SMS OTP) Signup
+# Current Feature — Creator UI Polish: Header Cleanup
 
 **Status:** In Progress
-**Branch:** feature/google-phone-signup
-**Started:** 2026-07-15
+**Branch:** fix/header-cleanup
+**Started:** 2026-09-20
 
 ## Goal
 
-Let people sign up / log in with:
+Part 1 of a 4-part creator UI/process improvement pass. Remove Laravel
+react-starter-kit leftovers from the global app header
+([app-header.tsx](../resources/js/components/app-header.tsx)) that read as
+unfinished, generic scaffolding rather than product UI:
 
-1. **Google** — surface the existing OAuth flow on the register page (already on
-   login) and fix the role gap: social users were created with **no role**.
-2. **Phone number** — passwordless SMS OTP: enter phone → 6-digit code → verify.
-
-Both new-account paths funnel through a shared **"select role"** step (Brand vs
-Creator) before onboarding, since Google/phone don't carry a role.
+- "Repository" link → `github.com/laravel/react-starter-kit`
+- "Documentation" link → `laravel.com/docs/starter-kits#react`
+- A search icon button with no click handler (dead control)
 
 ## Decisions
 
-- **Phone = passwordless SMS OTP** (lowest-friction rollout, no password to manage).
-- **Provider = Vonage**, behind an `SMS_STUB_MODE` flag that mirrors the existing
-  `ESCROW_STUB_MODE` pattern — stub logs the code locally (free, works on dev/
-  staging); real Vonage send only when `SMS_STUB_MODE=false` + keys present.
-- **Google role = asked after** the OAuth round-trip.
+- No real global search exists yet (Meilisearch indexing is deferred per
+  `context/project-overview.md` 3.11/7.5), so the search button is removed
+  rather than wired to a fake action. Can be reintroduced once search ships.
+- `rightNavItems` (the Repository/Documentation array) is removed entirely
+  since nothing else in the codebase references it.
 
-## Backend
+## Scope
 
-- Migration: `users.phone` (nullable, unique) + `users.phone_verified_at`; make
-  `users.email` **nullable** so phone-only accounts can exist.
-- Migration + model: `phone_verification_codes` (ULID) — hashed code, expiry,
-  attempts, consumed_at.
-- `config/sms.php` — `stub_mode`, `from`, OTP length/TTL, Vonage keys.
-- `App\Services\Sms\SmsService` — `send()`; stub logs, otherwise Vonage.
-- `App\Services\PhoneOtpService` — generate (hash + store), verify, cooldown.
-- `App\Http\Controllers\Auth\PhoneAuthController` — phone entry, send, verify page,
-  verify, resend. Find-or-create user by phone; passwordless login.
-- `App\Http\Controllers\Auth\RoleSelectionController` — show + assign role.
-- `EnsureOnboardingComplete`: role-less verified user → redirect to role select.
-- Rate limiting via `throttle` on send/resend + per-phone cooldown in service.
+- `resources/js/components/app-header.tsx` only. No route/controller changes.
 
-## Frontend
+## Verification
 
-- `auth/register.tsx` — add "Continue with Google" + "Sign up with phone".
-- `auth/login.tsx` — add "Continue with phone" (Google already present).
-- `auth/phone.tsx` — phone entry.
-- `auth/phone-verify.tsx` — OTP entry + resend (uses existing `InputOTP`).
-- `auth/select-role.tsx` — Brand / Creator choice.
+- `npm run types:check` — pass.
+- `npm run lint:check` — no errors in `app-header.tsx` (remaining errors in
+  output are pre-existing, in files this change doesn't touch).
+- `npm run build` — pass.
 
-## Notes / follow-ups
+## Status: 🟢 Complete — ready to commit
 
-- Phone-only accounts have `email = null`. Downstream Stripe customer creation
-  (brand onboarding) and email notifications assume an email — a future step can
-  prompt phone users to add an email. Out of scope for this feature.
-- Real Vonage send requires `SMS_STUB_MODE=false` + `VONAGE_KEY`/`VONAGE_SECRET`.
-
-## Status: 🟢 Complete
-
-Full write-up in `context/features/1.16-google-phone-signup.md`.
+Awaiting user confirmation to commit per workflow.
