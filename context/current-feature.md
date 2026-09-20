@@ -1,39 +1,46 @@
-# Current Feature — Creator UI Polish: Header Cleanup
+# Current Feature — Creator UI Polish: Sidebar Navigation
 
 **Status:** In Progress
-**Branch:** fix/header-cleanup
+**Branch:** fix/creator-sidebar-nav
 **Started:** 2026-09-20
 
 ## Goal
 
-Part 1 of a 4-part creator UI/process improvement pass. Remove Laravel
-react-starter-kit leftovers from the global app header
-([app-header.tsx](../resources/js/components/app-header.tsx)) that read as
-unfinished, generic scaffolding rather than product UI:
+Part 2 of 4. Messages, Analytics, and Referrals pages are fully built and
+routed but have no entry in the sidebar
+([app-sidebar.tsx](../resources/js/components/app-sidebar.tsx)), so they're
+only reachable by typing the URL directly. A prior commit (`312c3ec`)
+removed these links, describing them as "unimplemented" — inaccurate for
+these three (only Achievements/Billing were genuinely unimplemented).
 
-- "Repository" link → `github.com/laravel/react-starter-kit`
-- "Documentation" link → `laravel.com/docs/starter-kits#react`
-- A search icon button with no click handler (dead control)
+Add them back for both `creatorSections` and `brandSections` (Analytics has
+a role-specific route for each; Messages and Referrals are shared).
+
+## Routes (confirmed in routes/*.php)
+
+- Messages → `/messages` (`messages.index`) — both roles.
+- Analytics → `/creator/analytics` (creator) / `/analytics` (brand).
+- Referrals → `/referrals` (`referrals.index`) — both roles.
 
 ## Decisions
 
-- No real global search exists yet (Meilisearch indexing is deferred per
-  `context/project-overview.md` 3.11/7.5), so the search button is removed
-  rather than wired to a fake action. Can be reintroduced once search ships.
-- `rightNavItems` (the Repository/Documentation array) is removed entirely
-  since nothing else in the codebase references it.
+- Keep using raw path strings (`/messages`, etc.) to match the existing
+  convention in `app-sidebar.tsx` rather than switching to Wayfinder route
+  helpers, since neither is imported there today.
+- Add Messages under a new "Communication" section, Analytics under a
+  renamed/expanded existing section, Referrals under "Growth" — for both
+  brand and creator, since both are affected by the same missing-links bug.
+- Do not touch Achievements/Billing (genuinely not implemented per the
+  removal commit).
 
 ## Scope
 
-- `resources/js/components/app-header.tsx` only. No route/controller changes.
+- `resources/js/components/app-sidebar.tsx` only.
 
 ## Verification
 
 - `npm run types:check` — pass.
-- `npm run lint:check` — no errors in `app-header.tsx` (remaining errors in
-  output are pre-existing, in files this change doesn't touch).
+- `npm run lint:check` — no errors in `app-sidebar.tsx`.
 - `npm run build` — pass.
 
-## Status: 🟢 Complete — ready to commit
-
-Awaiting user confirmation to commit per workflow.
+## Status: 🟢 Complete

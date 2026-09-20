@@ -1,9 +1,12 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
+    BarChart3,
     Compass,
     FileVideo,
+    Gift,
     LayoutGrid,
     Megaphone,
+    MessageSquare,
     Settings,
     Wallet,
 } from 'lucide-react';
@@ -32,6 +35,22 @@ const brandSections: NavSection[] = [
             { title: 'Campaigns', href: '/campaigns', icon: Megaphone },
         ],
     },
+    {
+        label: 'Communication',
+        items: [
+            { title: 'Messages', href: '/messages', icon: MessageSquare },
+        ],
+    },
+    {
+        label: 'Insights',
+        items: [
+            { title: 'Analytics', href: '/analytics', icon: BarChart3 },
+        ],
+    },
+    {
+        label: 'Growth',
+        items: [{ title: 'Referrals', href: '/referrals', icon: Gift }],
+    },
 ];
 
 const creatorSections: NavSection[] = [
@@ -48,6 +67,26 @@ const creatorSections: NavSection[] = [
         items: [
             { title: 'Wallet', href: '/wallet', icon: Wallet },
         ],
+    },
+    {
+        label: 'Communication',
+        items: [
+            { title: 'Messages', href: '/messages', icon: MessageSquare },
+        ],
+    },
+    {
+        label: 'Insights',
+        items: [
+            {
+                title: 'Analytics',
+                href: '/creator/analytics',
+                icon: BarChart3,
+            },
+        ],
+    },
+    {
+        label: 'Growth',
+        items: [{ title: 'Referrals', href: '/referrals', icon: Gift }],
     },
 ];
 
