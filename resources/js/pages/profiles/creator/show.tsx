@@ -8,6 +8,7 @@ import {
     TrendingUp,
     User,
 } from 'lucide-react';
+import { StatCard } from '@/components/dashboard/stat-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -120,48 +121,22 @@ export default function CreatorProfileShow({ creator, entries }: Props) {
 
                 {/* Stats */}
                 <div className="grid gap-4 sm:grid-cols-3">
-                    <Card>
-                        <CardContent className="flex items-center gap-3 pt-6">
-                            <Eye className="size-8 text-muted-foreground" />
-                            <div>
-                                <p className="text-2xl font-bold">
-                                    {formatCount(creator.total_views)}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                    Total Verified Views
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="flex items-center gap-3 pt-6">
-                            <Award className="size-8 text-muted-foreground" />
-                            <div>
-                                <p className="text-2xl font-bold">
-                                    {creator.entries_count}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                    Live Campaigns
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="flex items-center gap-3 pt-6">
-                            <TrendingUp className="size-8 text-muted-foreground" />
-                            <div>
-                                <p className="text-2xl font-bold">
-                                    $
-                                    {Number(
-                                        creator.total_earned,
-                                    ).toLocaleString()}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                    Total Earned
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <StatCard
+                        label="Total Verified Views"
+                        value={formatCount(creator.total_views)}
+                        icon={Eye}
+                    />
+                    <StatCard
+                        label="Live Campaigns"
+                        value={String(creator.entries_count)}
+                        icon={Award}
+                    />
+                    <StatCard
+                        label="Total Earned"
+                        value={`$${Number(creator.total_earned).toLocaleString()}`}
+                        icon={TrendingUp}
+                        accent="primary"
+                    />
                 </div>
 
                 {/* Social Accounts */}

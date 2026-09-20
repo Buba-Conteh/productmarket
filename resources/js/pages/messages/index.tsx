@@ -23,7 +23,7 @@ export default function MessagesIndex({ threads }: Props) {
     return (
         <>
             <Head title="Messages" />
-            <div className="space-y-6">
+            <div className="space-y-6 px-4 py-6">
                 <Heading title="Messages" description="Your conversations with brands and creators." />
 
                 {threads.length === 0 ? (

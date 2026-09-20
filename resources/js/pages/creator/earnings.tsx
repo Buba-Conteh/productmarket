@@ -151,8 +151,8 @@ export default function CreatorEarnings({
                             </CardContent>
                         </Card>
                     ) : (
-                        <div className="mt-4 overflow-hidden rounded-xl border">
-                            <table className="w-full text-sm">
+                        <div className="mt-4 overflow-x-auto rounded-xl border">
+                            <table className="w-full min-w-[720px] text-sm">
                                 <thead className="border-b bg-muted/40">
                                     <tr>
                                         <th className="px-4 py-3 text-left font-medium text-muted-foreground">Campaign</th>
