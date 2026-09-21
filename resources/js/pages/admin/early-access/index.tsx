@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { Mail } from 'lucide-react';
+import { Download, Mail } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,6 +11,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AdminLayout from '@/layouts/admin-layout';
+import { exportMethod as exportWaitlist } from '@/routes/admin/early-access';
 
 type Role = 'creator' | 'brand';
 
@@ -48,10 +49,18 @@ export default function AdminEarlyAccessIndex({
             <Head title="Early Access — Admin" />
 
             <div className="space-y-6 p-6">
-                <Heading
-                    title="Early Access Waitlist"
-                    description={`${signups.total.toLocaleString()} signup${signups.total !== 1 ? 's' : ''}`}
-                />
+                <div className="flex items-center justify-between">
+                    <Heading
+                        title="Early Access Waitlist"
+                        description={`${signups.total.toLocaleString()} signup${signups.total !== 1 ? 's' : ''}`}
+                    />
+                    <Button asChild variant="outline" className="gap-2">
+                        <a href={exportWaitlist.url()}>
+                            <Download className="size-4" />
+                            Export CSV
+                        </a>
+                    </Button>
+                </div>
 
                 <div className="rounded-xl border border-border">
                     <Table>

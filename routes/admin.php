@@ -19,6 +19,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 
     Route::prefix('early-access')->name('early-access.')->group(function () {
         Route::get('/', [AdminEarlyAccessController::class, 'index'])->name('index');
+        Route::get('export', [AdminEarlyAccessController::class, 'exportCsv'])->name('export');
     });
 
     Route::get('settings', [AdminSettingsController::class, 'edit'])->name('settings.edit');
