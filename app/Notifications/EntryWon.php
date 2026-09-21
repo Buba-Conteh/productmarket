@@ -35,7 +35,7 @@ final class EntryWon extends Notification implements ShouldQueue
             ->greeting("Congratulations {$notifiable->name}!")
             ->line("Your entry won the **{$campaignTitle}** contest.")
             ->line("Prize: \${$prize} will be transferred to your account.")
-            ->action('View Entry', url("/creator/entries/{$this->entry->id}"));
+            ->action('View Entry', url("/entries/{$this->entry->id}"));
     }
 
     /** @return array<string, mixed> */
@@ -47,7 +47,7 @@ final class EntryWon extends Notification implements ShouldQueue
             'campaign_id' => $this->entry->campaign_id,
             'campaign_title' => $this->entry->campaign->title,
             'message' => "You won the {$this->entry->campaign->title} contest! 🎉",
-            'url' => "/creator/entries/{$this->entry->id}",
+            'url' => "/entries/{$this->entry->id}",
         ];
     }
 }

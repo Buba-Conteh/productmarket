@@ -33,7 +33,7 @@ final class EntryApproved extends Notification implements ShouldQueue
             ->subject("Your entry was approved — {$campaignTitle}")
             ->greeting("Hi {$notifiable->name},")
             ->line("Great news! Your entry for **{$campaignTitle}** has been approved.")
-            ->action('View Entry', url("/creator/entries/{$this->entry->id}"))
+            ->action('View Entry', url("/entries/{$this->entry->id}"))
             ->line('Post your content and submit the live URL to start earning.');
     }
 
@@ -46,7 +46,7 @@ final class EntryApproved extends Notification implements ShouldQueue
             'campaign_id' => $this->entry->campaign_id,
             'campaign_title' => $this->entry->campaign->title,
             'message' => "Your entry for {$this->entry->campaign->title} was approved",
-            'url' => "/creator/entries/{$this->entry->id}",
+            'url' => "/entries/{$this->entry->id}",
         ];
     }
 }

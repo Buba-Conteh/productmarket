@@ -43,7 +43,7 @@ final class NewMessage extends Notification implements ShouldQueue
             'thread_id' => $this->message->thread_id,
             'sender_name' => $senderName,
             'message' => "{$senderName} sent you a message",
-            'url' => "/messages/{$thread->id}",
+            'url' => "/messages/entry/{$thread->entry_id}",
         ];
     }
 }

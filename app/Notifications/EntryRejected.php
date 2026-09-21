@@ -35,7 +35,7 @@ final class EntryRejected extends Notification implements ShouldQueue
             ->greeting("Hi {$notifiable->name},")
             ->line("Your entry for **{$campaignTitle}** was not accepted.")
             ->line("Reason: {$reason}")
-            ->action('View Entry', url("/creator/entries/{$this->entry->id}"));
+            ->action('View Entry', url("/entries/{$this->entry->id}"));
     }
 
     /** @return array<string, mixed> */
@@ -48,7 +48,7 @@ final class EntryRejected extends Notification implements ShouldQueue
             'campaign_title' => $this->entry->campaign->title,
             'reason' => $this->entry->rejection_reason,
             'message' => "Your entry for {$this->entry->campaign->title} was not accepted",
-            'url' => "/creator/entries/{$this->entry->id}",
+            'url' => "/entries/{$this->entry->id}",
         ];
     }
 }

@@ -31,7 +31,7 @@ final class CampaignClosed extends Notification implements ShouldQueue
             ->subject("Campaign closed — {$this->campaign->title}")
             ->greeting("Hi {$notifiable->name},")
             ->line("The campaign **{$this->campaign->title}** has been closed and is no longer accepting new entries.")
-            ->action('View Your Entry', url('/creator/entries'))
+            ->action('View Your Entry', url('/entries'))
             ->line('Thank you for participating.');
     }
 
@@ -43,7 +43,7 @@ final class CampaignClosed extends Notification implements ShouldQueue
             'campaign_id' => $this->campaign->id,
             'campaign_title' => $this->campaign->title,
             'message' => "The campaign \"{$this->campaign->title}\" has been closed.",
-            'url' => '/creator/entries',
+            'url' => '/entries',
         ];
     }
 }

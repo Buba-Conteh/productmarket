@@ -34,7 +34,7 @@ final class PayoutProcessed extends Notification implements ShouldQueue
             ->subject("Payout of \${$amount} processed")
             ->greeting("Hi {$notifiable->name},")
             ->line("A payout of **\${$amount}** for **{$campaignTitle}** has been sent to your account.")
-            ->action('View Earnings', url('/creator/earnings'));
+            ->action('View Earnings', url('/wallet'));
     }
 
     /** @return array<string, mixed> */
@@ -47,7 +47,7 @@ final class PayoutProcessed extends Notification implements ShouldQueue
             'campaign_title' => $this->payout->campaign->title,
             'net_amount' => $this->payout->net_amount,
             'message' => 'Payout of $'.number_format((float) $this->payout->net_amount, 2)." processed for {$this->payout->campaign->title}",
-            'url' => '/creator/earnings',
+            'url' => '/wallet',
         ];
     }
 }

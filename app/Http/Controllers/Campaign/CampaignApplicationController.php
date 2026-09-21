@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Campaign;
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\CampaignApplication;
+use App\Notifications\ApplicationReviewed;
+use App\Notifications\ApplicationSubmitted;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -34,11 +36,15 @@ final class CampaignApplicationController extends Controller
             'pitch' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $campaign->applications()->create([
+        $application = $campaign->applications()->create([
             'creator_profile_id' => $creatorProfile->id,
             'pitch' => $validated['pitch'] ?? null,
             'status' => 'pending',
         ]);
+
+        $campaign->brand?->user?->notify(
+            new ApplicationSubmitted($application->load('campaign', 'creator'))
+        );
 
         return back()->with('success', 'Application submitted! The brand will review it shortly.');
     }
@@ -75,6 +81,8 @@ final class CampaignApplicationController extends Controller
 
         $application->update(['status' => 'approved']);
 
+        $this->notifyCreator($application);
+
         return back()->with('success', 'Application approved. The creator can now submit an entry.');
     }
 
@@ -87,7 +95,19 @@ final class CampaignApplicationController extends Controller
 
         $application->update(['status' => 'rejected']);
 
+        $this->notifyCreator($application);
+
         return back()->with('success', 'Application rejected.');
+    }
+
+    /**
+     * Tell the creator their application was approved or rejected.
+     */
+    private function notifyCreator(CampaignApplication $application): void
+    {
+        $application->creator?->user?->notify(
+            new ApplicationReviewed($application->fresh(['campaign', 'creator']))
+        );
     }
 
     /**

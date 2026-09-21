@@ -6,8 +6,9 @@ namespace App\Http\Controllers\Messaging;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Support\Facades\Cache;
 
 final class NotificationController extends Controller
 {
@@ -18,14 +19,7 @@ final class NotificationController extends Controller
             ->latest()
             ->limit(20)
             ->get()
-            ->map(fn ($n) => [
-                'id' => $n->id,
-                'type' => $n->data['type'] ?? null,
-                'message' => $n->data['message'] ?? null,
-                'url' => $n->data['url'] ?? null,
-                'read_at' => $n->read_at,
-                'created_at' => $n->created_at,
-            ]);
+            ->map(fn (DatabaseNotification $n): array => $this->serialize($n));
 
         return response()->json([
             'notifications' => $notifications,
@@ -33,20 +27,42 @@ final class NotificationController extends Controller
         ]);
     }
 
-    public function markRead(Request $request, string $id): RedirectResponse
+    public function markRead(Request $request, string $id): JsonResponse
     {
-        $request->user()
-            ->notifications()
+        $user = $request->user();
+
+        $user->notifications()
             ->findOrFail($id)
             ->markAsRead();
 
-        return back();
+        Cache::forget("unread_notifications_{$user->id}");
+
+        return response()->json([
+            'unread_count' => $user->unreadNotifications()->count(),
+        ]);
     }
 
-    public function markAllRead(Request $request): RedirectResponse
+    public function markAllRead(Request $request): JsonResponse
     {
-        $request->user()->unreadNotifications->markAsRead();
+        $user = $request->user();
 
-        return back();
+        $user->unreadNotifications()->update(['read_at' => now()]);
+
+        Cache::forget("unread_notifications_{$user->id}");
+
+        return response()->json(['unread_count' => 0]);
+    }
+
+    /** @return array<string, mixed> */
+    private function serialize(DatabaseNotification $notification): array
+    {
+        return [
+            'id' => $notification->id,
+            'type' => $notification->data['type'] ?? null,
+            'message' => $notification->data['message'] ?? null,
+            'url' => $notification->data['url'] ?? null,
+            'read_at' => $notification->read_at?->toISOString(),
+            'created_at' => $notification->created_at?->toISOString(),
+        ];
     }
 }
