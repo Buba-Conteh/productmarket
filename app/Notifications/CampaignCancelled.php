@@ -31,7 +31,7 @@ final class CampaignCancelled extends Notification implements ShouldQueue
             ->subject("Campaign cancelled — {$this->campaign->title}")
             ->greeting("Hi {$notifiable->name},")
             ->line("We're letting you know that the campaign **{$this->campaign->title}** has been cancelled by the brand.")
-            ->action('Browse Campaigns', url('/creator/campaigns'))
+            ->action('Browse Campaigns', url('/discover'))
             ->line('We hope to see you participate in other campaigns soon.');
     }
 
@@ -43,7 +43,7 @@ final class CampaignCancelled extends Notification implements ShouldQueue
             'campaign_id' => $this->campaign->id,
             'campaign_title' => $this->campaign->title,
             'message' => "The campaign \"{$this->campaign->title}\" has been cancelled.",
-            'url' => '/creator/campaigns',
+            'url' => '/discover',
         ];
     }
 }

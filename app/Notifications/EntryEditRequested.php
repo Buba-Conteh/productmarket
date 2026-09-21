@@ -34,7 +34,7 @@ final class EntryEditRequested extends Notification implements ShouldQueue
             ->greeting("Hi {$notifiable->name},")
             ->line("The brand has requested changes to your entry for **{$campaignTitle}**.")
             ->line("Notes: {$this->editRequest->notes}")
-            ->action('View Entry', url("/creator/entries/{$this->editRequest->entry_id}"));
+            ->action('View Entry', url("/entries/{$this->editRequest->entry_id}"));
     }
 
     /** @return array<string, mixed> */
@@ -49,7 +49,7 @@ final class EntryEditRequested extends Notification implements ShouldQueue
             'campaign_title' => $campaignTitle,
             'notes' => $this->editRequest->notes,
             'message' => "Edit requested on your entry for {$campaignTitle}",
-            'url' => "/creator/entries/{$this->editRequest->entry_id}",
+            'url' => "/entries/{$this->editRequest->entry_id}",
         ];
     }
 }

@@ -14,8 +14,11 @@ use Inertia\Response;
 final class NotificationPreferenceController extends Controller
 {
     private const TYPES = [
+        'application_submitted',
+        'application_reviewed',
         'entry_submitted',
         'entry_approved',
+        'entry_live',
         'entry_rejected',
         'entry_edit_requested',
         'entry_won',

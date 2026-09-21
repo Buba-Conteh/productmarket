@@ -18,7 +18,21 @@ final class PayoutFailureAlert extends Notification
     /** @return array<int, string> */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
+    }
+
+    /** @return array<string, mixed> */
+    public function toArray(object $notifiable): array
+    {
+        $payout = $this->payout;
+        $creatorName = $payout->creator?->display_name ?? 'a creator';
+
+        return [
+            'type' => 'payout_failure_alert',
+            'payout_id' => $payout->id,
+            'message' => "Payout to {$creatorName} failed after {$payout->retry_count} attempts",
+            'url' => '/admin',
+        ];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -36,7 +50,7 @@ final class PayoutFailureAlert extends Notification
             ->line("**Amount:** \${$payout->net_amount} (gross: \${$payout->gross_amount})")
             ->line("**Type:** {$payout->payout_type}")
             ->line("**Failure Reason:** {$payout->failure_reason}")
-            ->action('Review in Admin Panel', url('/admin/payouts'))
+            ->action('Review in Admin Panel', url('/admin'))
             ->line('Please investigate and retry or contact the creator as needed.');
     }
 }

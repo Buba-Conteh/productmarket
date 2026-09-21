@@ -12,6 +12,7 @@ use App\Models\EntryEditRequest;
 use App\Models\EntryRippleEarning;
 use App\Notifications\EntryApproved;
 use App\Notifications\EntryEditRequested;
+use App\Notifications\EntryLive;
 use App\Notifications\EntryNotSelected;
 use App\Notifications\EntryRejected;
 use App\Notifications\EntrySubmitted;
@@ -264,6 +265,12 @@ final readonly class EntryService
 
         if ($payout) {
             ProcessPayoutJob::dispatch($payout->id);
+        }
+
+        // Notify brand that the content is live
+        $brandUser = $entry->campaign?->brand?->user;
+        if ($brandUser) {
+            $brandUser->notify(new EntryLive($entry));
         }
 
         return $entry;

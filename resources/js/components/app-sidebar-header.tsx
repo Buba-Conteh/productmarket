@@ -1,6 +1,6 @@
-import { Bell, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { Button } from '@/components/ui/button';
+import { NotificationBell } from '@/components/notification-bell';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
 
@@ -25,15 +25,7 @@ export function AppSidebarHeader({
                         className="h-9 w-56 rounded-full border border-border bg-muted/40 pr-3 pl-9 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/30 lg:w-72"
                     />
                 </div>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="relative rounded-full"
-                    aria-label="Notifications"
-                >
-                    <Bell className="size-4" />
-                    <span className="absolute top-2 right-2 size-2 rounded-full bg-primary ring-2 ring-background" />
-                </Button>
+                <NotificationBell />
             </div>
         </header>
     );

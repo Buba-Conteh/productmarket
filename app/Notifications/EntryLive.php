@@ -11,7 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-final class EntryNotSelected extends Notification implements ShouldQueue
+final class EntryLive extends Notification implements ShouldQueue
 {
     use Queueable, RespectsNotificationPreferences;
 
@@ -22,32 +22,41 @@ final class EntryNotSelected extends Notification implements ShouldQueue
     /** @return string[] */
     public function via(object $notifiable): array
     {
-        return $this->channels($notifiable, 'entry_not_selected');
+        return $this->channels($notifiable, 'entry_live');
     }
 
     public function toMail(object $notifiable): MailMessage
     {
+        $creatorName = $this->entry->creator->display_name;
         $campaignTitle = $this->entry->campaign->title;
 
         return (new MailMessage)
-            ->subject("Contest results — {$campaignTitle}")
+            ->subject("Content is live — {$campaignTitle}")
             ->greeting("Hi {$notifiable->name},")
-            ->line("Thank you for entering the **{$campaignTitle}** contest.")
-            ->line('A winner has been selected and your entry was not chosen this time.')
-            ->action('View Entry', url("/entries/{$this->entry->id}"))
-            ->line('Keep creating — we hope to see you in future campaigns!');
+            ->line("{$creatorName} has posted their content for **{$campaignTitle}**.")
+            ->action('View Entry', url($this->url()))
+            ->line('Verified view tracking starts now.');
     }
 
     /** @return array<string, mixed> */
     public function toArray(object $notifiable): array
     {
+        $creatorName = $this->entry->creator->display_name;
+        $campaignTitle = $this->entry->campaign->title;
+
         return [
-            'type' => 'entry_not_selected',
+            'type' => 'entry_live',
             'entry_id' => $this->entry->id,
             'campaign_id' => $this->entry->campaign_id,
-            'campaign_title' => $this->entry->campaign->title,
-            'message' => "A winner was selected for \"{$this->entry->campaign->title}\" — your entry was not chosen this time.",
-            'url' => "/entries/{$this->entry->id}",
+            'campaign_title' => $campaignTitle,
+            'creator_name' => $creatorName,
+            'message' => "{$creatorName} posted their content for {$campaignTitle}",
+            'url' => $this->url(),
         ];
+    }
+
+    private function url(): string
+    {
+        return "/campaigns/{$this->entry->campaign_id}/entries/{$this->entry->id}";
     }
 }

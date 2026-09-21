@@ -34,7 +34,7 @@ final class EntrySubmitted extends Notification implements ShouldQueue
             ->subject("New entry submitted — {$campaignTitle}")
             ->greeting("Hi {$notifiable->name},")
             ->line("{$creatorName} submitted an entry for **{$campaignTitle}**.")
-            ->action('Review Entry', url("/brand/entries/{$this->entry->id}"))
+            ->action('Review Entry', url("/campaigns/{$this->entry->campaign_id}/entries/{$this->entry->id}"))
             ->line('Log in to review and approve or request edits.');
     }
 
@@ -48,7 +48,7 @@ final class EntrySubmitted extends Notification implements ShouldQueue
             'campaign_title' => $this->entry->campaign->title,
             'creator_name' => $this->entry->creator->display_name,
             'message' => "{$this->entry->creator->display_name} submitted an entry for {$this->entry->campaign->title}",
-            'url' => "/brand/entries/{$this->entry->id}",
+            'url' => "/campaigns/{$this->entry->campaign_id}/entries/{$this->entry->id}",
         ];
     }
 }
