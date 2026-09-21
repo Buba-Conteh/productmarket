@@ -1,84 +1,65 @@
-# Current Feature — Early Access Signup Route
+# Current Feature — Admin Early Access List
 
 **Status:** In Progress
-**Branch:** feature/early-access-signup
-**Started:** 2026-09-20
+**Branch:** feature/admin-early-access-list
+**Started:** 2026-09-21
 
 ## Goal
 
-A temporary, standalone public route to collect an email list of
-interested creators and brands ahead of/alongside the existing
-registration flow. Not part of the core roadmap in
-`context/project-overview.md` — a marketing/lead-capture utility.
+The `/early-access` waitlist route (see
+`context/features/early-access-signup.md`) was built with "no admin UI —
+query the DB directly" as an explicit decision. The user now wants a
+simple admin page to see the collected emails without needing DB access.
 
 ## Decisions
 
-- **Standalone route, not linked from `welcome.tsx`.** Confirmed with the
-  user: `/early-access` is a URL to be shared directly (ads, social bio),
-  not surfaced in the main site nav, since registration is already open.
-- **No admin UI.** Signups land in a plain table; confirmed with the user
-  that querying the DB directly (tinker/DB client) is enough since this is
-  meant to be temporary.
-- **One combined form, not two.** A single page with a Brand/Creator role
-  toggle (reusing the visual pattern from `auth/select-role.tsx`), rather
-  than separate routes per role — the two audiences answer the same three
-  fields (name, email, role).
-- **Reuses `AuthLayout`** (the guest-friendly boxed-card layout used by
-  login/register/phone) rather than a full custom landing page — this is a
-  small utility form, not a marketing page, and `AuthLayout` has no
-  authenticated-user dependency so it's safe for a fully public route.
-  Since the page name `early-access` doesn't match any existing prefix
-  case in `app.tsx`'s layout switch (it would otherwise fall through to
-  the authenticated `AppLayout` default), added one explicit case.
-- **Inline `$request->validate()` in the controller**, not a separate
-  FormRequest class — matches the existing pattern for other small guest
-  flows (`PhoneAuthController`, `RoleSelectionController`), appropriate for
-  a 3-field temporary route.
-- **Unique on email** (across both roles) — prevents duplicate signups;
-  a friendly "You're already on the list" message on conflict.
+- Kept genuinely simple per the request: a paginated, read-only table
+  (name, email, role, joined date), no search/filter/export/delete. If
+  that turns out to be too bare, filters can be added later — matches the
+  existing `admin/users/index.tsx` pattern closely enough to extend.
+- Follows the existing admin module conventions exactly:
+  `Admin\AdminEarlyAccessController@index`, nested under the existing
+  `role:admin` middleware group in `routes/admin.php`, a page under
+  `pages/admin/early-access/index.tsx` using `AdminLayout`, and a new
+  sidebar entry in `admin-sidebar.tsx`.
+- Ordered newest-first (`created_at desc`), paginate 20 per page — same
+  as the users list.
 
 ## Backend
 
-- Migration: `early_access_signups` (ulid id, `name` nullable, `email`
-  unique, `role` enum contest/... no — enum('creator','brand'), timestamps).
-- Model: `App\Models\EarlyAccessSignup` (ULID, fillable name/email/role).
-- Controller: `App\Http\Controllers\EarlyAccessController` — `show()`
-  renders the page; `store()` validates + creates + redirects back with a
-  flash `status` message.
-- Routes (`routes/web.php`, public, no auth): `GET /early-access` (show),
-  `POST /early-access` (store, throttled `throttle:10,1`).
+- `App\Http\Controllers\Admin\AdminEarlyAccessController::index()` —
+  paginates `EarlyAccessSignup`, no filters.
+- Route: `GET /admin/early-access` (`admin.early-access.index`), inside
+  the existing `role:admin` group.
 
 ## Frontend
 
-- `resources/js/pages/early-access.tsx` — role toggle (Brand/Creator, icons
-  from `select-role.tsx`), name (optional), email (required), submit,
-  flash `status` success message.
-- `resources/js/app.tsx` — one new layout-switch case for `early-access`.
+- `resources/js/pages/admin/early-access/index.tsx` — simple table page.
+- `resources/js/components/admin-sidebar.tsx` — new "Early Access" link
+  in the "Manage" section.
 
 ## Verification
 
 - `./vendor/bin/pint --test` on new/touched PHP files — pass.
-- `php artisan migrate` — table created cleanly.
-- `php artisan route:list --path=early-access` — both routes registered.
+- `php artisan route:list --path=admin/early-access` — route registered
+  correctly under the `role:admin` group.
+- `npm run build` — pass; generated the Wayfinder route helper
+  (`resources/js/routes/admin/early-access/index.ts`) automatically.
 - `npm run types:check` / `npm run lint:check` — pass, no errors in
   touched files.
-- `npm run build` — pass.
-- **Live HTTP verification** (no browser-automation tool was available in
-  this environment, so driven via `Invoke-WebRequest` with a real session
-  + CSRF cookie against the local Herd site, `http://productmarket.test`):
-  - `GET /early-access` → 200, Inertia payload resolves to the
-    `early-access` component.
-  - Valid submission (role=creator, email=test-early-access@example.com)
-    → redirects back to the same page with the flash success message
-    ("You're on the list...") present in the response.
-  - Re-submitting the same email → response contains "already on the
-    list", confirming the unique-email validation path (and, by
-    necessity, that the first row was actually persisted).
-  - A local test row (`test-early-access@example.com`) remains in the
-    dev SQLite DB from this check — harmless, dev-only.
-  - Did not visually confirm the disabled-submit-button state or the
-    green text styling, since that requires a real browser; the
-    server-side behavior that matters (validation, persistence, flash
-    message) is confirmed above.
+- **Live HTTP verification** (same `Invoke-WebRequest` + session/CSRF
+  approach as the earlier early-access route, since no browser-automation
+  tool is available in this environment): logged in as the seeded admin
+  (`admin@productmarket.com`), then loaded `/admin/early-access` — 200,
+  and the page's data genuinely contains two real rows: a live signup
+  ("Buba Conteh", `contehbuba404@gmail.com`, submitted via the public form
+  since the feature shipped) and the test row from the previous session's
+  verification (`test-early-access@example.com`). Confirms the
+  `role:admin` gate, the controller, and the page all work end-to-end
+  with real data.
+- Noted but out of scope: logging in as this seeded admin redirects to
+  `/auth/select-role` rather than the dashboard — a pre-existing quirk
+  unrelated to this change (the `role:admin` middleware itself works
+  correctly, as proven above). Not touched.
 
 ## Status: 🟢 Complete

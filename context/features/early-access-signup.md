@@ -40,8 +40,10 @@ POST /early-access   → validate → create row → redirect back with flash
 - **Standalone, unlinked route.** Confirmed with the user: shared directly
   (ads, social bio), not surfaced in `welcome.tsx`'s nav, since
   registration is already open on the main site.
-- **No admin UI.** Signups are queried directly from the DB (tinker/DB
-  client) rather than building a page for what's meant to be temporary.
+- **No admin UI** *(superseded — see
+  [admin-early-access-list.md](admin-early-access-list.md))*. Originally
+  signups were queried directly from the DB; a simple read-only admin
+  page was added shortly after.
 - **One combined form**, not separate creator/brand routes — both
   audiences answer the same three fields.
 - **Inline `$request->validate()`**, not a FormRequest class — matches
