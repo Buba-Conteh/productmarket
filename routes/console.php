@@ -8,6 +8,7 @@ use App\Jobs\RefreshSocialTokensJob;
 use App\Jobs\ReleaseHeldPayoutsJob;
 use App\Jobs\ResolveContestDeadlineJob;
 use App\Jobs\SyncAllLiveEntriesJob;
+use App\Jobs\SyncSocialAccountStatsJob;
 use App\Models\Campaign;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -43,6 +44,13 @@ if ((bool) config('social_oauth.sync.enabled', true)) {
     Schedule::job(new RefreshSocialTokensJob)
         ->hourly()
         ->name('refresh-expiring-social-tokens')
+        ->withoutOverlapping();
+
+    $statsFrequencyHours = max(1, (int) config('social_oauth.sync.stats_frequency_hours', 12));
+
+    Schedule::job(new SyncSocialAccountStatsJob)
+        ->cron("30 */{$statsFrequencyHours} * * *")
+        ->name('sync-social-account-stats')
         ->withoutOverlapping();
 
     Schedule::call(function (): void {

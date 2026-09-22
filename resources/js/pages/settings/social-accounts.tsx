@@ -1,18 +1,16 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import {
     CheckCircle2,
-    Clock,
     ExternalLink,
-    Heart,
     Link2Off,
-    PlaySquare,
     RefreshCw,
     Shield,
-    Users,
 } from 'lucide-react';
+import { useState } from 'react';
 import Heading from '@/components/heading';
+import { SocialStatChips } from '@/components/social/social-stat-chips';
 import { Button } from '@/components/ui/button';
-import { connect, disconnect } from '@/routes/creator/social';
+import { connect, disconnect, refresh } from '@/routes/creator/social';
 
 type Platform = {
     id: string;
@@ -59,23 +57,12 @@ const PLATFORM_META: Record<
     },
 };
 
-function formatNumber(n: number): string {
-    if (n >= 1_000_000) {
-return `${(n / 1_000_000).toFixed(1)}M`;
-}
-
-    if (n >= 1_000) {
-return `${(n / 1_000).toFixed(1)}K`;
-}
-
-    return String(n);
-}
-
 export default function SocialAccounts({
     socialAccounts,
     supportedPlatforms,
 }: Props) {
     const { errors } = usePage().props as { errors: Record<string, string> };
+    const [refreshing, setRefreshing] = useState<string | null>(null);
 
     const connectedMap = Object.fromEntries(
         socialAccounts.map((a) => [a.platform.slug, a]),
@@ -89,6 +76,19 @@ export default function SocialAccounts({
         router.delete(disconnect.url({ platform: slug }), {
             preserveScroll: true,
         });
+    }
+
+    function refreshPlatform(slug: string) {
+        setRefreshing(slug);
+
+        router.post(
+            refresh.url({ platform: slug }),
+            {},
+            {
+                preserveScroll: true,
+                onFinish: () => setRefreshing(null),
+            },
+        );
     }
 
     const displayedSlugs = supportedPlatforms.filter(
@@ -145,51 +145,17 @@ export default function SocialAccounts({
                                     </div>
 
                                     {isConnected && account ? (
-                                        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-                                            <span className="font-medium text-foreground">
+                                        <div className="mt-0.5 space-y-0.5">
+                                            <p className="text-xs font-medium text-foreground">
                                                 @{account.handle}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <Users className="size-3" />
-                                                {formatNumber(
-                                                    account.follower_count,
-                                                )}{' '}
-                                                followers
-                                            </span>
-                                            {account.total_likes ? (
-                                                <span className="flex items-center gap-1">
-                                                    <Heart className="size-3" />
-                                                    {formatNumber(
-                                                        account.total_likes,
-                                                    )}{' '}
-                                                    likes
-                                                </span>
-                                            ) : null}
-                                            {account.post_count ? (
-                                                <span className="flex items-center gap-1">
-                                                    <PlaySquare className="size-3" />
-                                                    {formatNumber(
-                                                        account.post_count,
-                                                    )}{' '}
-                                                    posts
-                                                </span>
-                                            ) : null}
-                                            {account.avg_views ? (
-                                                <span className="flex items-center gap-1">
-                                                    <RefreshCw className="size-3" />
-                                                    ~{formatNumber(
-                                                        account.avg_views,
-                                                    )}{' '}
-                                                    avg views
-                                                </span>
-                                            ) : null}
-                                            {account.last_synced_at && (
-                                                <span className="flex items-center gap-1">
-                                                    <Clock className="size-3" />
-                                                    Synced{' '}
-                                                    {account.last_synced_at}
-                                                </span>
-                                            )}
+                                            </p>
+                                            <SocialStatChips
+                                                account={{
+                                                    ...account,
+                                                    engagement_rate: null,
+                                                }}
+                                                showSyncedAt
+                                            />
                                         </div>
                                     ) : (
                                         <p className="mt-0.5 text-xs text-muted-foreground">
@@ -200,17 +166,35 @@ export default function SocialAccounts({
 
                                 {/* Action */}
                                 {isConnected ? (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() =>
-                                            disconnectPlatform(slug)
-                                        }
-                                        className="shrink-0 text-muted-foreground hover:text-destructive"
-                                    >
-                                        <Link2Off className="mr-1.5 size-3.5" />
-                                        Disconnect
-                                    </Button>
+                                    <div className="flex shrink-0 items-center gap-1">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            disabled={refreshing === slug}
+                                            onClick={() =>
+                                                refreshPlatform(slug)
+                                            }
+                                            className="text-muted-foreground"
+                                        >
+                                            <RefreshCw
+                                                className={`mr-1.5 size-3.5 ${refreshing === slug ? 'animate-spin' : ''}`}
+                                            />
+                                            {refreshing === slug
+                                                ? 'Refreshing'
+                                                : 'Refresh'}
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                                disconnectPlatform(slug)
+                                            }
+                                            className="text-muted-foreground hover:text-destructive"
+                                        >
+                                            <Link2Off className="mr-1.5 size-3.5" />
+                                            Disconnect
+                                        </Button>
+                                    </div>
                                 ) : (
                                     <Button
                                         variant="outline"

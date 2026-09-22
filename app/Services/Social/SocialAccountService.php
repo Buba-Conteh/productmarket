@@ -11,6 +11,8 @@ use App\Services\Social\DataObjects\TokenSet;
 use App\Services\Social\Exceptions\PlatformConnectionException;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 final class SocialAccountService
 {
@@ -53,6 +55,70 @@ final class SocialAccountService
                 ],
             );
         });
+    }
+
+    public function findForUser(User $user, string $platformSlug): ?SocialAccount
+    {
+        return SocialAccount::query()
+            ->where('user_id', $user->id)
+            ->whereHas('platform', fn ($query) => $query->where('slug', $platformSlug))
+            ->first();
+    }
+
+    /**
+     * Re-query the platform for an already-connected account and persist the
+     * fresh metrics. Returns false when the platform could not be reached.
+     */
+    public function syncStats(SocialAccount $account): bool
+    {
+        $platform = $account->platform()->firstOrFail();
+        $provider = $this->factory->make($platform->slug);
+
+        $this->refreshIfNeeded($account);
+
+        try {
+            $profile = $provider->fetchAccountProfile(new TokenSet(
+                accessToken: (string) $account->oauth_token,
+                refreshToken: $account->oauth_refresh_token,
+                expiresAt: $account->token_expires_at
+                    ? CarbonImmutable::parse($account->token_expires_at)
+                    : null,
+            ));
+        } catch (PlatformConnectionException|Throwable $e) {
+            Log::warning('social_account_stats_sync_failed', [
+                'social_account_id' => $account->id,
+                'platform' => $platform->slug,
+                'message' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+
+        $account->update([
+            'handle' => $profile->handle !== '' ? $profile->handle : $account->handle,
+            'follower_count' => $profile->followerCount,
+            'avg_views' => $this->preferFresh($profile->avgViews, $account->avg_views),
+            'total_likes' => $this->preferFresh($profile->totalLikes, $account->total_likes),
+            'post_count' => $this->preferFresh($profile->postCount, $account->post_count),
+            'engagement_rate' => $this->preferFresh(
+                $profile->engagementRate,
+                $account->engagement_rate !== null ? (float) $account->engagement_rate : null,
+            ),
+            'verified' => $profile->verified,
+            'last_synced_at' => now(),
+        ]);
+
+        return true;
+    }
+
+    /**
+     * The live profile endpoints return 0 for metrics they do not expose
+     * (avg views, engagement rate). Keep the last known value in that case
+     * rather than blanking a number the creator already sees on their profile.
+     */
+    private function preferFresh(int|float|null $fresh, int|float|null $current): int|float|null
+    {
+        return ($fresh === null || (float) $fresh === 0.0) ? $current : $fresh;
     }
 
     public function disconnect(User $user, string $platformSlug): void

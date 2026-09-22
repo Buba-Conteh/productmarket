@@ -12,6 +12,9 @@ Route::middleware(['auth', 'verified', 'role:creator'])->group(function (): void
     Route::prefix('creator/social')->name('creator.social.')->group(function (): void {
         Route::get('{platform}/connect', [SocialAccountController::class, 'redirect'])->name('connect');
         Route::get('{platform}/callback', [SocialAccountController::class, 'callback'])->name('callback');
+        Route::post('{platform}/refresh', [SocialAccountController::class, 'refresh'])
+            ->middleware('throttle:10,1')
+            ->name('refresh');
         Route::delete('{platform}', [SocialAccountController::class, 'destroy'])->name('disconnect');
     });
 });

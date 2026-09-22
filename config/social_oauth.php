@@ -34,6 +34,7 @@ return [
     'sync' => [
         'enabled' => env('VIEW_SYNC_ENABLED', true),
         'frequency_hours' => (int) env('VIEW_SYNC_FREQUENCY_HOURS', 6),
+        'stats_frequency_hours' => (int) env('SOCIAL_STATS_SYNC_FREQUENCY_HOURS', 12),
         'token_refresh_buffer_minutes' => (int) env('OAUTH_TOKEN_REFRESH_BUFFER_MINUTES', 60),
         'stub_mode' => env('VIEW_SYNC_STUB_MODE', true),
     ],

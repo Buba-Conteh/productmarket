@@ -1,14 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
-import {
-    Award,
-    Eye,
-    Globe,
-    MapPin,
-    Share2,
-    TrendingUp,
-    User,
-} from 'lucide-react';
+import { Award, Eye, MapPin, Share2, TrendingUp, User } from 'lucide-react';
 import { StatCard } from '@/components/dashboard/stat-card';
+import { ConnectedAccountRow } from '@/components/social/connected-account-row';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,24 +12,13 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { formatCompactNumber as formatCount } from '@/lib/format';
 import type { CreatorPublicProfile, EntryPortfolioItem } from '@/types';
 
 type Props = {
     creator: CreatorPublicProfile;
     entries: EntryPortfolioItem[];
 };
-
-function formatCount(n: number): string {
-    if (n >= 1_000_000) {
-return `${(n / 1_000_000).toFixed(1)}M`;
-}
-
-    if (n >= 1_000) {
-return `${(n / 1_000).toFixed(1)}K`;
-}
-
-    return String(n);
-}
 
 const CAMPAIGN_TYPE_LABELS: Record<string, string> = {
     contest: 'Contest',
@@ -85,7 +67,11 @@ export default function CreatorProfileShow({ creator, entries }: Props) {
                                         )}
                                     </div>
                                     <div className="flex gap-2">
-                                        <Button variant="outline" size="sm" asChild>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            asChild
+                                        >
                                             <Link
                                                 href={`/creators/${creator.id}/media-kit`}
                                             >
@@ -144,64 +130,20 @@ export default function CreatorProfileShow({ creator, entries }: Props) {
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-base">
-                                Verified Social Accounts
+                                Connected Social Accounts
                             </CardTitle>
+                            <CardDescription>
+                                Metrics pulled directly from each platform —
+                                never self-reported.
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="divide-y">
-                                {creator.social_accounts.map((account, i) => (
-                                    <div
-                                        key={i}
-                                        className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <Globe className="size-4 text-muted-foreground" />
-                                            <div>
-                                                <p className="text-sm font-medium">
-                                                    {account.platform.name}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    @{account.handle}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-6 text-right text-sm">
-                                            <div>
-                                                <p className="font-semibold">
-                                                    {formatCount(
-                                                        account.follower_count,
-                                                    )}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    Followers
-                                                </p>
-                                            </div>
-                                            {account.avg_views !== null && (
-                                                <div>
-                                                    <p className="font-semibold">
-                                                        {formatCount(
-                                                            account.avg_views,
-                                                        )}
-                                                    </p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        Avg Views
-                                                    </p>
-                                                </div>
-                                            )}
-                                            {account.engagement_rate !==
-                                                null && (
-                                                <div>
-                                                    <p className="font-semibold">
-                                                        {account.engagement_rate}
-                                                        %
-                                                    </p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        Engagement
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
+                                {creator.social_accounts.map((account) => (
+                                    <ConnectedAccountRow
+                                        key={account.platform.slug}
+                                        account={account}
+                                    />
                                 ))}
                             </div>
                         </CardContent>
