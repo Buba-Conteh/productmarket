@@ -1,16 +1,14 @@
 import { Head } from '@inertiajs/react';
-import { Globe, MapPin, Printer } from 'lucide-react';
+import { MapPin, Printer } from 'lucide-react';
+import { ConnectedAccountRow } from '@/components/social/connected-account-row';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { formatCompactNumber as formatCount } from '@/lib/format';
 import type { EntryPortfolioItem } from '@/types';
+import type { SocialAccountSummary } from '@/types/profile';
 
 type MediaKitCreator = {
     id: string;
@@ -21,31 +19,13 @@ type MediaKitCreator = {
     total_views: number;
     user: { name: string; avatar: string | null; country: string | null };
     niches: { name: string }[];
-    social_accounts: {
-        platform: { name: string; slug: string };
-        handle: string;
-        follower_count: number;
-        avg_views: number | null;
-        engagement_rate: string | null;
-    }[];
+    social_accounts: SocialAccountSummary[];
 };
 
 type Props = {
     creator: MediaKitCreator;
     entries: EntryPortfolioItem[];
 };
-
-function formatCount(n: number): string {
-    if (n >= 1_000_000) {
-return `${(n / 1_000_000).toFixed(1)}M`;
-}
-
-    if (n >= 1_000) {
-return `${(n / 1_000).toFixed(1)}K`;
-}
-
-    return String(n);
-}
 
 export default function CreatorMediaKit({ creator, entries }: Props) {
     const initials = creator.display_name
@@ -151,62 +131,18 @@ export default function CreatorMediaKit({ creator, entries }: Props) {
                     {/* Social accounts */}
                     {creator.social_accounts.length > 0 && (
                         <div>
-                            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                            <h2 className="mb-3 text-sm font-semibold tracking-wide text-muted-foreground uppercase">
                                 Social Platforms
                             </h2>
                             <div className="space-y-3">
-                                {creator.social_accounts.map((account, i) => (
+                                {creator.social_accounts.map((account) => (
                                     <div
-                                        key={i}
-                                        className="flex items-center justify-between rounded-lg border p-3"
+                                        key={account.platform.slug}
+                                        className="rounded-lg border px-3"
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <Globe className="size-4 text-muted-foreground" />
-                                            <div>
-                                                <p className="text-sm font-medium">
-                                                    {account.platform.name}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    @{account.handle}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-6 text-right text-sm">
-                                            <div>
-                                                <p className="font-semibold">
-                                                    {formatCount(
-                                                        account.follower_count,
-                                                    )}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    Followers
-                                                </p>
-                                            </div>
-                                            {account.avg_views !== null && (
-                                                <div>
-                                                    <p className="font-semibold">
-                                                        {formatCount(
-                                                            account.avg_views,
-                                                        )}
-                                                    </p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        Avg Views
-                                                    </p>
-                                                </div>
-                                            )}
-                                            {account.engagement_rate !==
-                                                null && (
-                                                <div>
-                                                    <p className="font-semibold">
-                                                        {account.engagement_rate}
-                                                        %
-                                                    </p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        Engagement
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
+                                        <ConnectedAccountRow
+                                            account={account}
+                                        />
                                     </div>
                                 ))}
                             </div>
@@ -218,7 +154,7 @@ export default function CreatorMediaKit({ creator, entries }: Props) {
                         <>
                             <Separator />
                             <div>
-                                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                                <h2 className="mb-3 text-sm font-semibold tracking-wide text-muted-foreground uppercase">
                                     Recent Work
                                 </h2>
                                 <div className="grid gap-3 sm:grid-cols-2">

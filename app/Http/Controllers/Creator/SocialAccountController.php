@@ -65,6 +65,27 @@ final class SocialAccountController extends Controller
             ->with('status', ucfirst($platform).' account connected.');
     }
 
+    /**
+     * Pull fresh metrics for an already-connected account on demand.
+     */
+    public function refresh(Request $request, string $platform): RedirectResponse
+    {
+        $this->validatePlatform($platform);
+
+        $account = $this->accounts->findForUser($request->user(), $platform);
+
+        abort_if($account === null, 404);
+
+        $synced = $this->accounts->syncStats($account);
+
+        return back()->with(
+            'status',
+            $synced
+                ? ucfirst($platform).' stats updated.'
+                : "We couldn't reach {$platform} just now. Your last known stats are still shown.",
+        );
+    }
+
     public function destroy(Request $request, string $platform): RedirectResponse
     {
         $this->validatePlatform($platform);

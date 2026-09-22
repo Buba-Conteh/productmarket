@@ -1,13 +1,6 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import {
-    CheckCircle2,
-    ExternalLink,
-    Heart,
-    Link2Off,
-    PlaySquare,
-    Shield,
-    Users,
-} from 'lucide-react';
+import { CheckCircle2, ExternalLink, Link2Off, Shield } from 'lucide-react';
+import { SocialStatChips } from '@/components/social/social-stat-chips';
 import { Button } from '@/components/ui/button';
 import { connect, disconnect } from '@/routes/creator/social';
 
@@ -39,11 +32,17 @@ type Props = {
     socialAccounts: SocialAccount[];
 };
 
-const PLATFORMS: { slug: string; name: string; description: string; color: string }[] = [
+const PLATFORMS: {
+    slug: string;
+    name: string;
+    description: string;
+    color: string;
+}[] = [
     {
         slug: 'tiktok',
         name: 'TikTok',
-        description: 'Connect to enable verified view tracking on TikTok entries.',
+        description:
+            'Connect to enable verified view tracking on TikTok entries.',
         color: 'bg-black text-white',
     },
     {
@@ -55,22 +54,11 @@ const PLATFORMS: { slug: string; name: string; description: string; color: strin
     {
         slug: 'youtube',
         name: 'YouTube',
-        description: 'Connect to track verified views on YouTube videos and Shorts.',
+        description:
+            'Connect to track verified views on YouTube videos and Shorts.',
         color: 'bg-red-600 text-white',
     },
 ];
-
-function formatFollowers(count: number): string {
-    if (count >= 1_000_000) {
-return `${(count / 1_000_000).toFixed(1)}M`;
-}
-
-    if (count >= 1_000) {
-return `${(count / 1_000).toFixed(1)}K`;
-}
-
-    return String(count);
-}
 
 export default function CreatorSocial({ socialAccounts }: Props) {
     const { errors } = usePage().props as { errors: Record<string, string> };
@@ -135,26 +123,17 @@ export default function CreatorSocial({ socialAccounts }: Props) {
                                     </div>
 
                                     {isConnected && account ? (
-                                        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-                                            <span className="font-medium text-foreground">
+                                        <div className="mt-0.5 space-y-0.5">
+                                            <p className="text-xs font-medium text-foreground">
                                                 @{account.handle}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <Users className="size-3" />
-                                                {formatFollowers(account.follower_count)} followers
-                                            </span>
-                                            {account.total_likes ? (
-                                                <span className="flex items-center gap-1">
-                                                    <Heart className="size-3" />
-                                                    {formatFollowers(account.total_likes)} likes
-                                                </span>
-                                            ) : null}
-                                            {account.post_count ? (
-                                                <span className="flex items-center gap-1">
-                                                    <PlaySquare className="size-3" />
-                                                    {formatFollowers(account.post_count)} posts
-                                                </span>
-                                            ) : null}
+                                            </p>
+                                            <SocialStatChips
+                                                account={{
+                                                    ...account,
+                                                    avg_views: null,
+                                                    engagement_rate: null,
+                                                }}
+                                            />
                                         </div>
                                     ) : (
                                         <p className="mt-0.5 text-xs text-muted-foreground">
@@ -166,7 +145,9 @@ export default function CreatorSocial({ socialAccounts }: Props) {
                                 {isConnected ? (
                                     <button
                                         type="button"
-                                        onClick={() => disconnectPlatform(platform.slug)}
+                                        onClick={() =>
+                                            disconnectPlatform(platform.slug)
+                                        }
                                         className="shrink-0 text-muted-foreground transition-colors hover:text-destructive"
                                         title={`Disconnect ${platform.name}`}
                                     >
@@ -176,7 +157,9 @@ export default function CreatorSocial({ socialAccounts }: Props) {
                                     <Button
                                         size="sm"
                                         variant="outline"
-                                        onClick={() => connectPlatform(platform.slug)}
+                                        onClick={() =>
+                                            connectPlatform(platform.slug)
+                                        }
                                         className="shrink-0"
                                     >
                                         <ExternalLink className="mr-1.5 size-3" />
@@ -192,8 +175,9 @@ export default function CreatorSocial({ socialAccounts }: Props) {
                 <div className="flex gap-2 rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
                     <Shield className="mt-0.5 size-3.5 shrink-0" />
                     <p>
-                        We only request read-only access. Your credentials are encrypted
-                        and never shared. You can disconnect at any time from settings.
+                        We only request read-only access. Your credentials are
+                        encrypted and never shared. You can disconnect at any
+                        time from settings.
                     </p>
                 </div>
 

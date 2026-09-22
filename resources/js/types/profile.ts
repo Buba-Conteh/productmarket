@@ -3,7 +3,11 @@ export type SocialAccountSummary = {
     handle: string;
     follower_count: number;
     avg_views: number | null;
+    total_likes?: number | null;
+    post_count?: number | null;
     engagement_rate: string | null;
+    verified?: boolean;
+    last_synced_at?: string | null;
 };
 
 export type CreatorNiche = {

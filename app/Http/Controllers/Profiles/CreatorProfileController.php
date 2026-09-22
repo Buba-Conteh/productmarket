@@ -50,8 +50,10 @@ final class CreatorProfileController
             ->where('entries.status', 'live')
             ->sum('entry_platforms.verified_view_count');
 
+        // Every connected account is listed. `verified` only records whether the
+        // platform's API confirmed the account (Instagram Basic Display never
+        // does), so filtering on it would hide accounts the creator did connect.
         $socialAccounts = $creatorProfile->user->socialAccounts
-            ->where('verified', true)
             ->map(fn ($account) => [
                 'id' => $account->id,
                 'platform' => [
@@ -62,8 +64,13 @@ final class CreatorProfileController
                 'handle' => $account->handle,
                 'follower_count' => $account->follower_count,
                 'avg_views' => $account->avg_views,
+                'total_likes' => $account->total_likes,
+                'post_count' => $account->post_count,
                 'engagement_rate' => $account->engagement_rate,
-            ]);
+                'verified' => $account->verified,
+                'last_synced_at' => $account->last_synced_at?->diffForHumans(),
+            ])
+            ->values();
 
         return Inertia::render('profiles/creator/show', [
             'creator' => [
@@ -123,7 +130,6 @@ final class CreatorProfileController
             ->sum('entry_platforms.verified_view_count');
 
         $socialAccounts = $creatorProfile->user->socialAccounts
-            ->where('verified', true)
             ->map(fn ($account) => [
                 'platform' => [
                     'name' => $account->platform->name,
@@ -132,8 +138,12 @@ final class CreatorProfileController
                 'handle' => $account->handle,
                 'follower_count' => $account->follower_count,
                 'avg_views' => $account->avg_views,
+                'total_likes' => $account->total_likes,
+                'post_count' => $account->post_count,
                 'engagement_rate' => $account->engagement_rate,
-            ]);
+                'verified' => $account->verified,
+            ])
+            ->values();
 
         return Inertia::render('profiles/creator/media-kit', [
             'creator' => [
