@@ -3,6 +3,7 @@
 use App\Http\Controllers\Entry\BrandEntryController;
 use App\Http\Controllers\Entry\CreatorEntryController;
 use App\Http\Controllers\Entry\TikTokPublishController;
+use App\Http\Controllers\Entry\VideoUploadUrlController;
 use App\Http\Middleware\EnsureCreatorEntryLimit;
 use App\Http\Middleware\EnsureOnboardingComplete;
 use Illuminate\Support\Facades\Route;
@@ -21,6 +22,10 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified', EnsureOnboardingComplete::class, 'role:creator'])
     ->prefix('entries')
     ->group(function () {
+        // Presigned bucket upload URL for entry videos
+        Route::post('/upload-url', [VideoUploadUrlController::class, 'store'])
+            ->name('entries.creator.upload-url');
+
         // My entries list
         Route::get('/', [CreatorEntryController::class, 'index'])
             ->name('entries.creator.index');

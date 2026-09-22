@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Entry;
 
+use App\Support\DirectUpload;
 use Illuminate\Foundation\Http\FormRequest;
 
 final class StoreEntryRequest extends FormRequest
@@ -24,7 +25,12 @@ final class StoreEntryRequest extends FormRequest
         $rules = [
             'save_draft' => ['nullable', 'boolean'],
             'requirements_acknowledged' => [$isDraft ? 'nullable' : 'required', 'boolean'],
-            'video' => ['nullable', 'file', 'mimes:mp4,mov,avi,webm', 'max:204800'],
+            // Direct bucket upload: the browser has already PUT the file and
+            // hands back the signed reference issued by VideoUploadUrlController.
+            'video_path' => ['nullable', 'string', 'max:255'],
+            'video_signature' => ['nullable', 'string', 'required_with:video_path'],
+            // Multipart fallback for hosts with no bucket attached.
+            'video' => ['nullable', 'file', 'mimes:mp4,mov,avi,webm', 'max:'.DirectUpload::FALLBACK_MAX_KILOBYTES],
             'video_duration_sec' => ['nullable', 'integer', 'min:1'],
             'caption' => ['nullable', 'string', 'max:5000'],
             'tags' => ['nullable', 'array'],

@@ -1,46 +1,37 @@
-# Current Fix — TikTok token exchange sends client_id instead of client_key
+# Current Feature — Direct-to-bucket entry video upload
 
-**Status:** 🟢 Complete — see context/features/fix-tiktok-token-exchange.md
-**Branch:** `fix/tiktok-token-exchange-client-key`
+**Status:** 🟢 Complete — see context/features/4.13-direct-video-upload.md
+**Branch:** `feature/direct-video-upload`
 
 ## Symptom
 
-With the callback routing fixed, TikTok now returns the creator to the correct
-controller, but the connect fails with the generic alert:
-"We couldn't connect your tiktok account. Try again shortly."
+Creators submitting an entry with a video hit a fatal error in production:
+
+```
+Symfony\Component\ErrorHandler\Error\FatalError:
+Allowed memory size of 268435456 bytes exhausted (tried to allocate 132120608 bytes)
+at vendor/symfony/http-foundation/Request.php:1589
+```
 
 ## Root cause
 
-`AbstractOAuthProvider::exchangeCodeForToken()` and `refreshAccessToken()` both
-hardcode `client_id` in the request body:
+`StoreEntryRequest` allowed videos up to 200 MB (`max:204800`). A multipart POST is buffered by PHP
+before Laravel sees it, so a large video exhausted `memory_limit` during request parsing — the crash
+happens in `Request.php`, before any application code runs. The rule was also unreachable in the
+first place: `upload_max_filesize` is 25 MB locally and `post_max_size` 100 MB in the container.
 
-```php
-'client_id' => $this->config[$this->clientIdKey()],
-```
+## Fix
 
-TikTok's `/v2/oauth/token/` requires **`client_key`**, not `client_id`. The class
-already knows the correct name — `TikTokProvider::clientIdParamName()` returns
-`client_key` — but it is only applied when building the authorization URL, not
-when exchanging the code. TikTok rejects the exchange, the exception is caught in
-`SocialAccountController::callback()`, and the creator sees the generic message.
+Videos now upload straight from the browser to the storage bucket via a presigned `PUT`, so the
+bytes never pass through PHP. The cap becomes a real 500 MB. Hosts with no bucket attached (local
+dev on the `local` disk) fall back to a multipart POST capped at 20 MB, which is what PHP can
+actually handle.
 
-This is not a sandbox limitation; it fails the same way against production
-credentials. Instagram and YouTube are unaffected because `clientIdParamName()`
-defaults to `client_id` for them.
+The client-supplied bucket path is verified with an HMAC bound to the creator, and the object's
+existence and size are re-checked server-side before it is attached to the entry.
 
-## Secondary issue — the real error is hidden
+## Follow-up
 
-TikTok returns **HTTP 200 with an `error` body** for some failures, so
-`$response->failed()` does not catch them. `parseTokenResponse()` then throws the
-unhelpful "Access token missing from response", discarding TikTok's actual
-`error_description`. The genuine reason never reaches the log.
-
-## Scope
-
-1. Use `clientIdParamName()` in both token requests, so TikTok gets `client_key`.
-2. Treat a 2xx response carrying an `error` payload as a failure, and include the
-   platform's own `error_description` in the thrown exception so
-   `social_account_connect_failed` logs say what actually went wrong.
-
-## Out of scope
-- No change to scopes, the callback routing (already fixed), or the login flow.
+⚠️ The Laravel Cloud bucket needs CORS (`PUT` + `Content-Type` from the app origin) before the
+direct path works in production. The browser → bucket leg could not be verified locally because
+local dev has no bucket.
