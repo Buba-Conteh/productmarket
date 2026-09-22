@@ -1,57 +1,46 @@
-# Current Fix — TikTok (and IG/YouTube) connect callback lands on the dashboard
+# Current Fix — TikTok token exchange sends client_id instead of client_key
 
-**Status:** 🟢 Complete — see context/features/fix-social-connect-callback-url.md
-**Branch:** `fix/social-connect-callback-url`
+**Status:** 🟢 Complete — see context/features/fix-tiktok-token-exchange.md
+**Branch:** `fix/tiktok-token-exchange-client-key`
 
-## Symptom (production, TikTok sandbox)
+## Symptom
 
-A creator grants permission on TikTok, is returned to the site, lands on the
-**dashboard**, and the account never shows as connected.
+With the callback routing fixed, TikTok now returns the creator to the correct
+controller, but the connect fails with the generic alert:
+"We couldn't connect your tiktok account. Try again shortly."
 
 ## Root cause
 
-The app has two separate OAuth callbacks:
-
-| Purpose | Route | Controller |
-|---|---|---|
-| Social **login** | `auth/{provider}/callback` | `SocialAuthController`, inside `Route::middleware('guest')` |
-| Account **connect** | `creator/social/{platform}/callback` | `SocialAccountController` |
-
-`config/social_oauth.php` pointed the **connect** flow at the **login** callback:
+`AbstractOAuthProvider::exchangeCodeForToken()` and `refreshAccessToken()` both
+hardcode `client_id` in the request body:
 
 ```php
-'redirect' => env('TIKTOK_REDIRECT_URI', '/auth/tiktok/callback'),
+'client_id' => $this->config[$this->clientIdKey()],
 ```
 
-So TikTok returns the creator to `/auth/tiktok/callback`, which is guarded by
-`guest`. The creator is authenticated, so `RedirectIfAuthenticated` sends them
-straight to the dashboard and `SocialAccountController@callback` never runs —
-no `social_accounts` row is written. `SocialAuthController` could not have
-handled it either; its driver map only covers `google` and `linkedin`.
+TikTok's `/v2/oauth/token/` requires **`client_key`**, not `client_id`. The class
+already knows the correct name — `TikTokProvider::clientIdParamName()` returns
+`client_key` — but it is only applied when building the authorization URL, not
+when exchanging the code. TikTok rejects the exchange, the exception is caught in
+`SocialAccountController::callback()`, and the creator sees the generic message.
 
-Setting `TIKTOK_REDIRECT_URI` in the environment does not save it, because the
-value deployed there is the same login path (it has to be, to match what is
-registered in the TikTok developer portal). An empty value is worse:
-`url('')` resolves to the site root, which also bounces to the dashboard.
+This is not a sandbox limitation; it fails the same way against production
+credentials. Instagram and YouTube are unaffected because `clientIdParamName()`
+defaults to `client_id` for them.
+
+## Secondary issue — the real error is hidden
+
+TikTok returns **HTTP 200 with an `error` body** for some failures, so
+`$response->failed()` does not catch them. `parseTokenResponse()` then throws the
+unhelpful "Access token missing from response", discarding TikTok's actual
+`error_description`. The genuine reason never reaches the log.
 
 ## Scope
 
-1. **`AbstractOAuthProvider::redirectUri()`** — derive the redirect from
-   `route('creator.social.callback', ['platform' => ...])`. The connect callback
-   becomes the single source of truth and cannot drift onto the login route.
-2. **`config/social_oauth.php`** — drop the per-platform `redirect` keys and the
-   `*_REDIRECT_URI` env vars for the connect flow. Nothing else reads them.
-   (`config/services.php` keeps its own redirects for Socialite *login* — untouched.)
-3. **`SocialAccountController`** — stop using `redirect()->intended()` after a
-   successful connect. A stale `url.intended` in the session is a second,
-   independent way to land on the dashboard. Return the creator to wherever they
-   started the connect from (settings or onboarding) instead.
-
-## Required outside the code
-The TikTok developer portal must list the new callback as an allowed redirect
-URI, exactly: `https://<prod-domain>/creator/social/tiktok/callback`.
-Same shape for Instagram and YouTube when those are enabled.
+1. Use `clientIdParamName()` in both token requests, so TikTok gets `client_key`.
+2. Treat a 2xx response carrying an `error` payload as a failure, and include the
+   platform's own `error_description` in the thrown exception so
+   `social_account_connect_failed` logs say what actually went wrong.
 
 ## Out of scope
-- The social **login** flow (`SocialAuthController` / Socialite) is not touched.
-- No new OAuth scopes or platforms.
+- No change to scopes, the callback routing (already fixed), or the login flow.
