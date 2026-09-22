@@ -26,6 +26,7 @@ final class SocialAccountController extends Controller
 
         $state = Str::random(40);
         $request->session()->put($this->stateKey($platform), $state);
+        $request->session()->put($this->originKey($platform), $this->resolveOrigin($request));
 
         $url = $this->accounts->buildAuthorizationUrl($platform, $state);
 
@@ -37,6 +38,7 @@ final class SocialAccountController extends Controller
         $this->validatePlatform($platform);
 
         $expectedState = $request->session()->pull($this->stateKey($platform));
+        $origin = $request->session()->pull($this->originKey($platform)) ?? $this->defaultOrigin($request);
 
         abort_unless(
             $expectedState !== null && hash_equals($expectedState, (string) $request->query('state', '')),
@@ -56,12 +58,14 @@ final class SocialAccountController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
-            return redirect()->route('onboarding.creator.social')
+            return redirect()->to($origin)
                 ->withErrors(['platform' => "We couldn't connect your {$platform} account. Try again shortly."]);
         }
 
-        return redirect()
-            ->intended(route('onboarding.creator.social'))
+        // Deliberately not redirect()->intended(): a stale `url.intended` left in
+        // the session sends the creator to the dashboard after a successful
+        // connect, which reads as "nothing happened".
+        return redirect()->to($origin)
             ->with('status', ucfirst($platform).' account connected.');
     }
 
@@ -106,5 +110,32 @@ final class SocialAccountController extends Controller
     private function stateKey(string $platform): string
     {
         return "social_oauth_state_{$platform}";
+    }
+
+    private function originKey(string $platform): string
+    {
+        return "social_oauth_origin_{$platform}";
+    }
+
+    /**
+     * The page the creator started the connect from, so the callback can put
+     * them back there. Only same-host URLs are trusted as a redirect target.
+     */
+    private function resolveOrigin(Request $request): string
+    {
+        $previous = (string) url()->previous();
+
+        if ($previous !== '' && parse_url($previous, PHP_URL_HOST) === $request->getHost()) {
+            return $previous;
+        }
+
+        return $this->defaultOrigin($request);
+    }
+
+    private function defaultOrigin(Request $request): string
+    {
+        return $request->user()?->creatorProfile?->isOnboarded()
+            ? route('social-accounts.edit')
+            : route('onboarding.creator.social');
     }
 }
