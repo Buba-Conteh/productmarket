@@ -11,6 +11,7 @@ use App\Models\ContentType;
 use App\Models\Entry;
 use App\Models\Platform;
 use App\Services\EntryService;
+use App\Support\DirectUpload;
 use App\Support\FileUploader;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -84,6 +85,10 @@ final class CreatorEntryController extends Controller
             'entry' => $existingEntry,
             'platforms' => Platform::where('is_active', true)->orderBy('sort_order')->get(),
             'contentTypes' => ContentType::where('is_active', true)->orderBy('sort_order')->get(),
+            'upload' => [
+                'direct' => DirectUpload::supported(),
+                'maxBytes' => DirectUpload::maxBytes(),
+            ],
         ]);
     }
 
@@ -95,13 +100,12 @@ final class CreatorEntryController extends Controller
         $creator = $request->user()->creatorProfile;
         $data = $request->validated();
 
-        if ($request->hasFile('video')) {
-            $data['video_url'] = FileUploader::store($request->file('video'), 'entries/videos');
-        } else {
-            $data['video_url'] = Entry::where('campaign_id', $campaign->id)
+        $data['video_url'] = $this->resolveVideoPath(
+            $request,
+            Entry::where('campaign_id', $campaign->id)
                 ->where('creator_profile_id', $creator->id)
-                ->value('video_url');
-        }
+                ->value('video_url'),
+        );
 
         if (! $request->boolean('save_draft') && empty($data['video_url'])) {
             return back()->withErrors(['video' => 'A video is required to submit your entry.']);
@@ -174,11 +178,7 @@ final class CreatorEntryController extends Controller
             ->where('status', 'draft')
             ->firstOrFail();
 
-        if ($request->hasFile('video')) {
-            $data['video_url'] = FileUploader::replace($entry->video_url, $request->file('video'), 'entries/videos');
-        } else {
-            $data['video_url'] = $entry->video_url;
-        }
+        $data['video_url'] = $this->resolveVideoPath($request, $entry->video_url);
 
         // Address any pending edit requests
         $pendingEdit = $entry->editRequests()->where('status', 'pending')->latest()->first();
@@ -199,6 +199,33 @@ final class CreatorEntryController extends Controller
         return redirect()
             ->route('entries.creator.show', $entry)
             ->with('success', 'Entry resubmitted for review.');
+    }
+
+    /**
+     * Resolve the entry's video from a direct bucket upload, the multipart
+     * fallback, or the file already attached to the draft.
+     */
+    private function resolveVideoPath(StoreEntryRequest $request, ?string $current): ?string
+    {
+        $path = $request->validated('video_path');
+
+        if (filled($path)) {
+            $claimed = DirectUpload::claim(
+                (string) $path,
+                (string) $request->validated('video_signature'),
+                (string) $request->user()->id,
+            );
+
+            FileUploader::delete($current);
+
+            return $claimed;
+        }
+
+        if ($request->hasFile('video')) {
+            return FileUploader::replace($current, $request->file('video'), 'entries/videos');
+        }
+
+        return $current;
     }
 
     private function authorizeCreator(Request $request, Entry $entry): void

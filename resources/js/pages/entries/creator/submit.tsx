@@ -28,6 +28,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useDirectUpload } from '@/hooks/use-direct-upload';
+import type { UploadedFileRef } from '@/hooks/use-direct-upload';
 import { cn } from '@/lib/utils';
 import type {
     Campaign,
@@ -42,6 +44,11 @@ type Props = {
     entry: Entry | null;
     platforms: Platform[];
     contentTypes: ContentType[];
+    upload: {
+        /** Bucket-backed host — the file goes straight to storage. */
+        direct: boolean;
+        maxBytes: number;
+    };
 };
 
 const STEPS = ['Requirements', 'Video', 'Publishing', 'Review'] as const;
@@ -78,6 +85,7 @@ export default function SubmitEntry({
     entry,
     platforms,
     contentTypes,
+    upload,
 }: Props) {
     const { props } = usePage();
     const flash = (props as { flash?: { success?: string; error?: string } })
@@ -92,7 +100,11 @@ export default function SubmitEntry({
     // Video file state
     const [videoFile, setVideoFile] = useState<File | null>(null);
     const [videoPreview, setVideoPreview] = useState<string | null>(null);
+    // Kept so a failed submit does not re-upload a file the bucket already has.
+    const [uploadedRef, setUploadedRef] = useState<UploadedFileRef | null>(null);
     const videoInputRef = useRef<HTMLInputElement>(null);
+    const directUpload = useDirectUpload();
+    const maxVideoMb = Math.round(upload.maxBytes / (1024 * 1024));
 
     // The existing uploaded video from a saved draft
     const existingVideoUrl = entry?.video_full_url ?? null;
@@ -144,7 +156,17 @@ export default function SubmitEntry({
         const file = e.target.files?.[0] ?? null;
         if (!file) return;
 
+        if (file.size > upload.maxBytes) {
+            setErrors((prev) => ({
+                ...prev,
+                video: `File is too large (${formatBytes(file.size)}). Maximum size is ${maxVideoMb} MB.`,
+            }));
+
+            return;
+        }
+
         setVideoFile(file);
+        setUploadedRef(null);
         setErrors((prev) => {
             const next = { ...prev };
             delete next.video;
@@ -157,12 +179,16 @@ export default function SubmitEntry({
 
     function removeVideo() {
         setVideoFile(null);
+        setUploadedRef(null);
         if (videoPreview) URL.revokeObjectURL(videoPreview);
         setVideoPreview(null);
         if (videoInputRef.current) videoInputRef.current.value = '';
     }
 
-    function buildFormData(isDraft: boolean): FormData {
+    function buildFormData(
+        isDraft: boolean,
+        uploaded: UploadedFileRef | null,
+    ): FormData {
         const data = new FormData();
         data.append('save_draft', isDraft ? '1' : '0');
         data.append(
@@ -170,7 +196,10 @@ export default function SubmitEntry({
             form.requirements_acknowledged ? '1' : '0',
         );
 
-        if (videoFile) {
+        if (uploaded) {
+            data.append('video_path', uploaded.path);
+            data.append('video_signature', uploaded.signature);
+        } else if (videoFile) {
             data.append('video', videoFile);
         } else if (entry?.video_url) {
             data.append('existing_video', entry.video_url);
@@ -239,11 +268,28 @@ export default function SubmitEntry({
         setStep((s) => Math.max(s - 1, 0));
     }
 
-    function saveDraft() {
+    async function send(isDraft: boolean) {
         setSubmitting(true);
+
+        let uploaded: UploadedFileRef | null = uploadedRef;
+
+        if (videoFile && upload.direct && !uploaded) {
+            try {
+                uploaded = await directUpload.upload(videoFile);
+                setUploadedRef(uploaded);
+            } catch {
+                setErrors({
+                    video: 'The video upload failed. Check your connection and try again.',
+                });
+                setSubmitting(false);
+
+                return;
+            }
+        }
+
         router.post(
             `/discover/${campaign.id}/entry`,
-            buildFormData(true),
+            buildFormData(isDraft, uploaded),
             {
                 forceFormData: true,
                 onError: (serverErrors) => {
@@ -255,24 +301,16 @@ export default function SubmitEntry({
         );
     }
 
+    function saveDraft() {
+        void send(true);
+    }
+
     function submitEntry() {
         if (!validateStep()) {
             return;
         }
 
-        setSubmitting(true);
-        router.post(
-            `/discover/${campaign.id}/entry`,
-            buildFormData(false),
-            {
-                forceFormData: true,
-                onError: (serverErrors) => {
-                    setErrors(serverErrors);
-                    setSubmitting(false);
-                },
-                onFinish: () => setSubmitting(false),
-            },
-        );
+        void send(false);
     }
 
     // Filter platforms to those allowed by the campaign
@@ -372,7 +410,9 @@ export default function SubmitEntry({
                                 <div
                                     className="prose prose-sm dark:prose-invert max-w-none"
                                     dangerouslySetInnerHTML={{
-                                        __html: DOMPurify.sanitize(campaign.brief),
+                                        __html: DOMPurify.sanitize(
+                                            campaign.brief,
+                                        ),
                                     }}
                                 />
                             </CardContent>
@@ -437,7 +477,10 @@ export default function SubmitEntry({
 
                         {campaign.type === 'pitch' && (
                             <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
-                                Your video pitch stays private on the platform. The brand reviews it before deciding to accept your bid. You'll post publicly only after they pay.
+                                Your video pitch stays private on the platform.
+                                The brand reviews it before deciding to accept
+                                your bid. You'll post publicly only after they
+                                pay.
                             </div>
                         )}
 
@@ -448,10 +491,11 @@ export default function SubmitEntry({
                                 <video
                                     src={existingVideoUrl}
                                     controls
-                                    className="w-full rounded-lg aspect-video bg-black"
+                                    className="aspect-video w-full rounded-lg bg-black"
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    This video is saved from your draft. Upload a new one to replace it.
+                                    This video is saved from your draft. Upload
+                                    a new one to replace it.
                                 </p>
                             </div>
                         )}
@@ -463,24 +507,41 @@ export default function SubmitEntry({
                                 <video
                                     src={videoPreview}
                                     controls
-                                    className="w-full rounded-lg aspect-video bg-black"
+                                    className="aspect-video w-full rounded-lg bg-black"
                                 />
                                 <div className="flex items-center justify-between rounded-lg border p-2 text-sm">
                                     <span className="truncate font-medium">
                                         {videoFile.name}
                                     </span>
-                                    <div className="flex items-center gap-2 shrink-0">
+                                    <div className="flex shrink-0 items-center gap-2">
                                         <span className="text-muted-foreground">
                                             {formatBytes(videoFile.size)}
                                         </span>
                                         <button
                                             onClick={removeVideo}
-                                            className="text-muted-foreground hover:text-destructive"
+                                            disabled={submitting}
+                                            className="text-muted-foreground hover:text-destructive disabled:opacity-50"
                                         >
                                             <X className="size-4" />
                                         </button>
                                     </div>
                                 </div>
+
+                                {directUpload.progress !== null && (
+                                    <div className="space-y-1">
+                                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                                            <div
+                                                className="h-full rounded-full bg-primary transition-all"
+                                                style={{
+                                                    width: `${directUpload.progress}%`,
+                                                }}
+                                            />
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">
+                                            Uploading — {directUpload.progress}%
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -496,7 +557,9 @@ export default function SubmitEntry({
                                 />
                                 <button
                                     type="button"
-                                    onClick={() => videoInputRef.current?.click()}
+                                    onClick={() =>
+                                        videoInputRef.current?.click()
+                                    }
                                     className={cn(
                                         'w-full rounded-lg border-2 border-dashed p-8 text-center transition-colors hover:border-primary/50 hover:bg-muted/30',
                                         errors.video
@@ -511,7 +574,8 @@ export default function SubmitEntry({
                                             : 'Click to upload your video'}
                                     </p>
                                     <p className="mt-1 text-xs text-muted-foreground">
-                                        MP4, MOV, AVI or WebM · max 200 MB
+                                        MP4, MOV, AVI or WebM · max {maxVideoMb}{' '}
+                                        MB
                                     </p>
                                 </button>
                                 {errors.video && (
