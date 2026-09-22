@@ -126,11 +126,20 @@ abstract class AbstractOAuthProvider implements PlatformProvider
         return $this->parseTokenResponse($response->json());
     }
 
+    /**
+     * Where the platform returns the creator after they grant permission.
+     *
+     * This is always the account-connect callback, derived from the route so it
+     * cannot drift onto the social *login* callback (`auth/{provider}/callback`).
+     * That route is wrapped in `guest` middleware, so an authenticated creator
+     * sent there is bounced to the dashboard and the connection is silently lost.
+     *
+     * This exact URL must be registered as an allowed redirect URI in each
+     * platform's developer portal.
+     */
     protected function redirectUri(): string
     {
-        $path = (string) ($this->config['redirect'] ?? '');
-
-        return str_starts_with($path, 'http') ? $path : url($path);
+        return route('creator.social.callback', ['platform' => $this->platformSlug()]);
     }
 
     protected function stubMode(): bool
