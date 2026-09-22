@@ -9,6 +9,7 @@ use App\Services\Social\Contracts\PlatformProvider;
 use App\Services\Social\DataObjects\TokenSet;
 use App\Services\Social\Exceptions\PlatformConnectionException;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 
 abstract class AbstractOAuthProvider implements PlatformProvider
@@ -76,18 +77,16 @@ abstract class AbstractOAuthProvider implements PlatformProvider
             return $this->stubTokenSet();
         }
 
-        $response = Http::asForm()->post($this->config['token_url'], [
-            'client_id' => $this->config[$this->clientIdKey()],
-            'client_secret' => $this->config[$this->clientSecretKey()],
+        $response = Http::asForm()->post($this->config['token_url'], $this->tokenRequestPayload([
             'code' => $code,
             'grant_type' => 'authorization_code',
             'redirect_uri' => $this->redirectUri(),
-        ]);
+        ]));
 
-        if ($response->failed()) {
+        if ($error = $this->tokenResponseError($response)) {
             throw PlatformConnectionException::tokenExchangeFailed(
                 $this->platformSlug(),
-                (string) $response->body(),
+                $error,
             );
         }
 
@@ -109,21 +108,67 @@ abstract class AbstractOAuthProvider implements PlatformProvider
             );
         }
 
-        $response = Http::asForm()->post($this->config['token_url'], [
-            'client_id' => $this->config[$this->clientIdKey()],
-            'client_secret' => $this->config[$this->clientSecretKey()],
+        $response = Http::asForm()->post($this->config['token_url'], $this->tokenRequestPayload([
             'refresh_token' => $account->oauth_refresh_token,
             'grant_type' => 'refresh_token',
-        ]);
+        ]));
 
-        if ($response->failed()) {
+        if ($error = $this->tokenResponseError($response)) {
             throw PlatformConnectionException::refreshFailed(
                 $this->platformSlug(),
-                (string) $response->body(),
+                $error,
             );
         }
 
         return $this->parseTokenResponse($response->json());
+    }
+
+    /**
+     * Credentials for a token request, keyed by the name the platform expects.
+     *
+     * TikTok's /v2/oauth/token/ requires `client_key`, not the standard
+     * `client_id` — the same distinction `clientIdParamName()` already makes for
+     * the authorization URL. Sending `client_id` makes TikTok reject the
+     * exchange, which surfaces to the creator as a failed connection.
+     *
+     * @param  array<string, mixed>  $extra
+     * @return array<string, mixed>
+     */
+    protected function tokenRequestPayload(array $extra): array
+    {
+        return array_merge([
+            $this->clientIdParamName() => $this->config[$this->clientIdKey()],
+            'client_secret' => $this->config[$this->clientSecretKey()],
+        ], $extra);
+    }
+
+    /**
+     * The platform's own error message, or null when the response is good.
+     *
+     * TikTok answers some failures with HTTP 200 and an `error` body, so status
+     * alone is not enough. Returning the platform's `error_description` keeps the
+     * real reason in the logs instead of a bare "access token missing".
+     */
+    protected function tokenResponseError(Response $response): ?string
+    {
+        if ($response->failed()) {
+            return (string) $response->body();
+        }
+
+        $error = $response->json('error');
+
+        // Some platforms report success as error: "ok" or an {code: "ok"} object.
+        if (is_array($error)) {
+            $error = $error['code'] ?? null;
+        }
+
+        if (! is_string($error) || $error === '' || $error === 'ok') {
+            return null;
+        }
+
+        $description = $response->json('error_description');
+
+        return $description ? "{$error}: {$description}" : $error;
     }
 
     /**
