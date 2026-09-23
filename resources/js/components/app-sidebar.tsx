@@ -8,6 +8,7 @@ import {
     Megaphone,
     MessageSquare,
     Settings,
+    Users,
     Wallet,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -33,6 +34,7 @@ const brandSections: NavSection[] = [
         items: [
             { title: 'Dashboard', href: '/dashboard', icon: LayoutGrid },
             { title: 'Campaigns', href: '/campaigns', icon: Megaphone },
+            { title: 'Find Creators', href: '/creators', icon: Users },
         ],
     },
     {

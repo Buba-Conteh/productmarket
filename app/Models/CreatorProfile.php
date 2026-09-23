@@ -68,4 +68,9 @@ final class CreatorProfile extends Model
     {
         return $this->hasMany(CreatorAnalytic::class);
     }
+
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(CampaignInvitation::class);
+    }
 }

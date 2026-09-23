@@ -11,6 +11,7 @@ use App\Services\EntryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -28,8 +29,17 @@ final class BrandEntryController extends Controller
         $this->authorizeBrand($request, $campaign);
 
         $status = $request->query('status', 'all');
+        $search = $request->query('search');
+        $sort = in_array($request->query('sort'), ['newest', 'oldest', 'views', 'bid'], true)
+            ? $request->query('sort')
+            : 'newest';
 
-        $entries = $this->entryService->campaignEntries($campaign, $status);
+        $entries = $this->entryService->campaignEntries(
+            $campaign,
+            $status,
+            search: is_string($search) ? $search : null,
+            sort: $sort,
+        );
 
         $campaign->load([
             'contestDetails',
@@ -54,7 +64,11 @@ final class BrandEntryController extends Controller
         return Inertia::render('entries/brand/index', [
             'campaign' => $campaign,
             'entries' => $entries,
-            'filters' => ['status' => $status],
+            'filters' => [
+                'status' => $status,
+                'search' => is_string($search) ? $search : null,
+                'sort' => $sort,
+            ],
             'counts' => [
                 'all' => $allCount,
                 'pending_review' => $statusCounts['pending_review'] ?? 0,
@@ -63,6 +77,7 @@ final class BrandEntryController extends Controller
                 'rejected' => $statusCounts['rejected'] ?? 0,
             ],
             'applications' => $applications,
+            'summary' => $this->summary($campaign, $allCount),
         ]);
     }
 
@@ -170,6 +185,30 @@ final class BrandEntryController extends Controller
         $this->entryService->requestEdit($entry, $request->user()->id, $validated['notes']);
 
         return back()->with('success', 'Edit request sent to the creator.');
+    }
+
+    /**
+     * Headline numbers for the review dashboard.
+     *
+     * @return array<string, int|string>
+     */
+    private function summary(Campaign $campaign, int $totalEntries): array
+    {
+        $reach = DB::table('entry_platforms')
+            ->join('entries', 'entries.id', '=', 'entry_platforms.entry_id')
+            ->where('entries.campaign_id', $campaign->id)
+            ->selectRaw('coalesce(sum(entry_platforms.verified_view_count), 0) as views')
+            ->selectRaw('coalesce(sum(entry_platforms.comment_count), 0) as comments')
+            ->first();
+
+        return [
+            'total_entries' => $totalEntries,
+            'total_views' => (int) ($reach->views ?? 0),
+            'total_comments' => (int) ($reach->comments ?? 0),
+            'paid_out' => (string) $campaign->payouts()
+                ->where('status', 'paid')
+                ->sum('gross_amount'),
+        ];
     }
 
     private function authorizeBrand(Request $request, Campaign $campaign): void

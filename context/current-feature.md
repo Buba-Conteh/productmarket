@@ -1,37 +1,77 @@
-# Current Feature — Direct-to-bucket entry video upload
+# Current Feature — Entries UX overhaul + creator directory & campaign invites
 
-**Status:** 🟢 Complete — see context/features/4.13-direct-video-upload.md
-**Branch:** `feature/direct-video-upload`
+**Status:** 🟢 Complete — see context/features/ui-5-entries-ux-creator-directory.md
+**Branch:** `feature/entries-ux-creator-directory`
 
-## Symptom
+## Goals
 
-Creators submitting an entry with a video hit a fatal error in production:
+1. **Raise the UI bar on the entry surfaces** (brand review list, brand entry
+   detail, creator my-entries, creator entry detail) to the standard the
+   dashboard / wallet / analytics pages already set.
+2. **Give brands a real creator directory** — aggregate social presence
+   (followers, likes, comments) across all three connected platforms, plus a
+   per-platform breakdown.
+3. **Let brands invite a creator to enter a specific campaign**, with the
+   invitation surfaced to the creator and acceptable/declinable.
 
-```
-Symfony\Component\ErrorHandler\Error\FatalError:
-Allowed memory size of 268435456 bytes exhausted (tried to allocate 132120608 bytes)
-at vendor/symfony/http-foundation/Request.php:1589
-```
+## Problems being fixed
 
-## Root cause
+### UI
+- `STATUS_STYLES` / `STATUS_LABELS` for entry status are **hand-copied into 7
+  files** and every copy uses light-only colours (`bg-yellow-100
+  text-yellow-700`). In dark mode these render as near-white chips with
+  low-contrast text.
+- The same is true of pagination (9 copies), flash banners (10 copies) and
+  status filter tabs (2 copies) — each a slightly different hand-rolled block.
+- The brand entry review list is a flat row of text: no creator avatar, no
+  social proof, no video thumbnail, no view counts, no search, no sort. A brand
+  reviewing 40 entries has nothing to triage on.
+- Creator "My Entries" has no summary of how the portfolio is doing.
+- **"Find Creators" is not in the brand sidebar at all** — the page exists at
+  `/creators` but is unreachable from the nav.
 
-`StoreEntryRequest` allowed videos up to 200 MB (`max:204800`). A multipart POST is buffered by PHP
-before Laravel sees it, so a large video exhausted `memory_limit` during request parsing — the crash
-happens in `Request.php`, before any application code runs. The rule was also unreachable in the
-first place: `upload_max_filesize` is 25 MB locally and `post_max_size` 100 MB in the container.
+### Creator discovery
+- `CreatorSearchController` returns only per-account followers/avg-views. No
+  totals, no likes, no comments, no sorting, no engagement summary.
+- Comments are not available at account level from any of the three provider
+  APIs under current OAuth scopes (TikTok `user/info` exposes `likes_count` and
+  `video_count` only). Verified comment counts **are** already tracked
+  per-post on `entry_platforms.comment_count`, so the directory aggregates
+  those — comments earned on campaign content, which is the verified number
+  the platform can actually stand behind.
 
-## Fix
+### Invites
+- No invitation concept exists anywhere. Brands can only wait for creators to
+  find a campaign.
 
-Videos now upload straight from the browser to the storage bucket via a presigned `PUT`, so the
-bytes never pass through PHP. The cap becomes a real 500 MB. Hosts with no bucket attached (local
-dev on the `local` disk) fall back to a multipart POST capped at 20 MB, which is what PHP can
-actually handle.
+## Plan
 
-The client-supplied bucket path is verified with an HMAC bound to the creator, and the object's
-existence and size are re-checked server-side before it is attached to the entry.
+### Shared frontend primitives (new)
+| File | Purpose |
+|---|---|
+| `lib/entry-status.ts` | One source of truth for entry status label + dark-mode-safe tone classes |
+| `components/entries/entry-status-badge.tsx` | Shared status chip |
+| `components/ui/filter-tabs.tsx` | Segmented pill filter with counts |
+| `components/ui/pagination-nav.tsx` | Shared paginator |
+| `components/ui/empty-state.tsx` | Shared empty state |
+| `components/ui/flash-alert.tsx` | Shared flash success/error banner |
+| `components/creators/creator-card.tsx` | Directory tile with aggregate + per-platform social presence |
+| `components/creators/creator-social-summary.tsx` | Followers / likes / comments totals row |
 
-## Follow-up
+### Backend
+- Migration + `CampaignInvitation` model (`campaign_invitations`).
+- `CampaignInvitationController` — brand `store`, creator `index`/`accept`/`decline`.
+- `CampaignInvitationSent` notification (in-app + mail, respecting prefs).
+- `CreatorSearchController` — aggregate social totals, comment aggregation,
+  sort options, and the brand's invitable campaigns for the invite dialog.
+- `EntryService::campaignEntries` — accept search + sort; eager-load what the
+  richer review row needs.
 
-⚠️ The Laravel Cloud bucket needs CORS (`PUT` + `Content-Type` from the app origin) before the
-direct path works in production. The browser → bucket leg could not be verified locally because
-local dev has no bucket.
+### Pages touched
+`entries/brand/index`, `entries/brand/show`, `entries/creator/index`,
+`entries/creator/show`, `brand/creators/index`, `campaigns/brand/{index,show,applications}`,
+`components/entries/entry-card`, `components/app-sidebar`.
+
+## Out of scope
+- Meilisearch indexing of creators (7.5) — still SQL.
+- Account-level comment sync (no provider support under current scopes).

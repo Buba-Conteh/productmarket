@@ -16,6 +16,7 @@ final class NotificationPreferenceController extends Controller
     private const TYPES = [
         'application_submitted',
         'application_reviewed',
+        'campaign_invitation',
         'entry_submitted',
         'entry_approved',
         'entry_live',

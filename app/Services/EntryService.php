@@ -434,24 +434,53 @@ final readonly class EntryService
 
     /**
      * Get entries for a campaign (brand review dashboard).
+     *
+     * @param  string|null  $search  Matches creator display name or account name.
+     * @param  string  $sort  One of: newest, oldest, views, bid.
      */
-    public function campaignEntries(Campaign $campaign, ?string $status = null, int $perPage = 15): LengthAwarePaginator
-    {
+    public function campaignEntries(
+        Campaign $campaign,
+        ?string $status = null,
+        int $perPage = 15,
+        ?string $search = null,
+        string $sort = 'newest',
+    ): LengthAwarePaginator {
         $query = $campaign->entries()
             ->with([
-                'creator.user',
+                'creator.user.socialAccounts.platform:id,name,slug',
                 'creator.niches',
                 'contentType',
                 'platforms',
                 'pitchDetails',
                 'editRequests' => fn ($q) => $q->latest(),
             ])
-            ->where('status', '!=', 'draft')
-            ->latest('submitted_at');
+            ->where('status', '!=', 'draft');
 
         if ($status && $status !== 'all') {
             $query->where('status', $status);
         }
+
+        if ($search !== null && $search !== '') {
+            $query->whereHas('creator', fn ($q) => $q
+                ->where('display_name', 'like', "%{$search}%")
+                ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$search}%"))
+            );
+        }
+
+        match ($sort) {
+            'oldest' => $query->orderBy('submitted_at'),
+            'views' => $query->orderByDesc(
+                DB::table('entry_platforms')
+                    ->selectRaw('coalesce(sum(verified_view_count), 0)')
+                    ->whereColumn('entry_platforms.entry_id', 'entries.id')
+            ),
+            'bid' => $query->orderByDesc(
+                DB::table('entry_pitch_details')
+                    ->selectRaw('coalesce(max(proposed_bid), 0)')
+                    ->whereColumn('entry_pitch_details.entry_id', 'entries.id')
+            ),
+            default => $query->latest('submitted_at'),
+        };
 
         return $query->paginate($perPage);
     }

@@ -1,16 +1,11 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import {
-    ArrowLeft,
-    CheckCircle2,
-    AlertCircle,
-    Check,
-    X,
-    User,
-} from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { ArrowLeft, Check, User, X } from 'lucide-react';
 import Heading from '@/components/heading';
+import { FlashAlert } from '@/components/shared/flash-alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { REVIEW_STATUS_STYLES } from '@/lib/entry-status';
 import type { Campaign, CampaignApplication, PaginatedData } from '@/types';
 
 type Props = {
@@ -18,20 +13,10 @@ type Props = {
     applications: PaginatedData<CampaignApplication>;
 };
 
-const STATUS_STYLES: Record<string, string> = {
-    pending: 'bg-yellow-100 text-yellow-700',
-    approved: 'bg-green-100 text-green-700',
-    rejected: 'bg-red-100 text-red-700',
-};
-
 export default function CampaignApplications({
     campaign,
     applications,
 }: Props) {
-    const { props } = usePage();
-    const flash = (props as { flash?: { success?: string; error?: string } })
-        .flash;
-
     function approve(applicationId: string) {
         router.post(
             `/campaigns/${campaign.id}/applications/${applicationId}/approve`,
@@ -53,18 +38,7 @@ export default function CampaignApplications({
             <Head title={`Applications — ${campaign.title}`} />
 
             <div className="mx-auto max-w-3xl px-4 py-6">
-                {flash?.success && (
-                    <div className="mb-4 flex items-center gap-2 rounded-lg bg-green-50 p-3 text-sm text-green-700">
-                        <CheckCircle2 className="size-4 shrink-0" />
-                        {flash.success}
-                    </div>
-                )}
-                {flash?.error && (
-                    <div className="mb-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
-                        <AlertCircle className="size-4 shrink-0" />
-                        {flash.error}
-                    </div>
-                )}
+                <FlashAlert />
 
                 <Button
                     variant="ghost"
@@ -132,7 +106,7 @@ export default function CampaignApplications({
                                             </div>
                                         </div>
                                         <span
-                                            className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${STATUS_STYLES[app.status] ?? ''}`}
+                                            className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${REVIEW_STATUS_STYLES[app.status] ?? ''}`}
                                         >
                                             {app.status}
                                         </span>

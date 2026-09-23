@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 const TYPE_LABELS: Record<string, string> = {
     application_submitted: 'Pitch application received',
     application_reviewed: 'Pitch application reviewed',
+    campaign_invitation: 'Invited to a campaign',
     entry_submitted: 'Entry submitted',
     entry_approved: 'Entry approved',
     entry_live: 'Entry content went live',

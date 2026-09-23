@@ -18,6 +18,7 @@ import {
     XCircle,
 } from 'lucide-react';
 import { useState } from 'react';
+import { EntryStatusBadge } from '@/components/entries/entry-status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,23 +35,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
-import type { Campaign, Entry, EntryStatus } from '@/types';
+import type { Campaign, Entry } from '@/types';
 
 type Props = {
     campaign: Campaign;
     entry: Entry;
-};
-
-const STATUS_STYLES: Record<EntryStatus, string> = {
-    draft: 'bg-muted text-muted-foreground',
-    pending_review: 'bg-yellow-100 text-yellow-700',
-    approved: 'bg-blue-100 text-blue-700',
-    rejected: 'bg-red-100 text-red-700',
-    live: 'bg-green-100 text-green-700',
-    won: 'bg-purple-100 text-purple-700',
-    not_selected: 'bg-gray-100 text-gray-600',
-    disqualified: 'bg-red-100 text-red-700',
 };
 
 function formatDate(date: string | null): string {
@@ -229,14 +218,7 @@ export default function BrandEntryShow({ campaign, entry }: Props) {
                             <Badge variant="outline" className="capitalize">
                                 {entry.type}
                             </Badge>
-                            <span
-                                className={cn(
-                                    'rounded-full px-2.5 py-0.5 text-xs font-medium capitalize',
-                                    STATUS_STYLES[entry.status],
-                                )}
-                            >
-                                {entry.status.replace('_', ' ')}
-                            </span>
+                            <EntryStatusBadge status={entry.status} />
                         </div>
                     </div>
 

@@ -7,7 +7,9 @@ namespace App\Http\Controllers\Entry;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Entry\StoreEntryRequest;
 use App\Models\Campaign;
+use App\Models\CampaignInvitation;
 use App\Models\ContentType;
+use App\Models\CreatorProfile;
 use App\Models\Entry;
 use App\Models\Platform;
 use App\Services\EntryService;
@@ -15,6 +17,7 @@ use App\Support\DirectUpload;
 use App\Support\FileUploader;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -40,6 +43,13 @@ final class CreatorEntryController extends Controller
             ->pluck('count', 'status')
             ->toArray();
 
+        $reach = DB::table('entry_platforms')
+            ->join('entries', 'entries.id', '=', 'entry_platforms.entry_id')
+            ->where('entries.creator_profile_id', $creator->id)
+            ->selectRaw('coalesce(sum(entry_platforms.verified_view_count), 0) as views')
+            ->selectRaw('coalesce(sum(entry_platforms.comment_count), 0) as comments')
+            ->first();
+
         return Inertia::render('entries/creator/index', [
             'entries' => $entries,
             'filters' => ['status' => $status],
@@ -51,7 +61,42 @@ final class CreatorEntryController extends Controller
                 'live' => $statusCounts['live'] ?? 0,
                 'rejected' => $statusCounts['rejected'] ?? 0,
             ],
+            'summary' => [
+                'total_views' => (int) ($reach->views ?? 0),
+                'total_comments' => (int) ($reach->comments ?? 0),
+                'total_earned' => (string) $creator->total_earned,
+                'pending_earnings' => (string) $creator->pending_earnings,
+            ],
+            'invitations' => $this->pendingInvitations($creator),
         ]);
+    }
+
+    /**
+     * Live-campaign invitations this creator has not yet responded to.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function pendingInvitations(CreatorProfile $creator): array
+    {
+        return $creator->invitations()
+            ->where('campaign_invitations.status', CampaignInvitation::STATUS_PENDING)
+            ->whereHas('campaign', fn ($q) => $q->where('status', 'active'))
+            ->with(['campaign.brand:id,company_name,logo'])
+            ->latest()
+            ->get()
+            ->map(fn (CampaignInvitation $invitation) => [
+                'id' => $invitation->id,
+                'message' => $invitation->message,
+                'created_at' => $invitation->created_at?->toIso8601String(),
+                'campaign' => [
+                    'id' => $invitation->campaign->id,
+                    'title' => $invitation->campaign->title,
+                    'type' => $invitation->campaign->type,
+                    'deadline' => $invitation->campaign->deadline?->toIso8601String(),
+                    'brand_name' => $invitation->campaign->brand?->company_name,
+                ],
+            ])
+            ->all();
     }
 
     /**

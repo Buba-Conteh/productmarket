@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Brand\CreatorSearchController;
+use App\Http\Controllers\Campaign\CampaignInvitationController;
 use App\Http\Controllers\Profiles\BrandProfileController;
 use App\Http\Controllers\Profiles\CreatorProfileController;
 use App\Http\Middleware\EnsureOnboardingComplete;
@@ -20,9 +21,22 @@ Route::middleware(['auth', 'verified', EnsureOnboardingComplete::class])->group(
     Route::get('brands/{brandProfile}', [BrandProfileController::class, 'show'])
         ->name('profiles.brand.show');
 
-    // Creator search — brand only
+    // Creator search + campaign invitations — brand only
     Route::middleware('role:brand')->group(function (): void {
         Route::get('creators', [CreatorSearchController::class, 'index'])
             ->name('brand.creators.index');
+
+        Route::post('creators/{creatorProfile}/invite', [CampaignInvitationController::class, 'store'])
+            ->name('brand.creators.invite')
+            ->middleware('throttle:30,1');
+    });
+
+    // Invitation responses — creator only
+    Route::middleware('role:creator')->group(function (): void {
+        Route::post('invitations/{invitation}/accept', [CampaignInvitationController::class, 'accept'])
+            ->name('invitations.accept');
+
+        Route::post('invitations/{invitation}/decline', [CampaignInvitationController::class, 'decline'])
+            ->name('invitations.decline');
     });
 });

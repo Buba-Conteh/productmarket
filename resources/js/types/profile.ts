@@ -58,6 +58,17 @@ export type BrandPublicProfile = {
     user: { avatar: string | null };
 };
 
+export type CreatorSocialTotals = {
+    followers: number;
+    likes: number;
+    posts: number;
+    views: number;
+    comments: number;
+    live_entries: number;
+    platform_count: number;
+    engagement_rate: number | null;
+};
+
 export type CreatorSearchResult = {
     id: string;
     display_name: string;
@@ -65,11 +76,15 @@ export type CreatorSearchResult = {
     total_earned: string;
     user: { name: string; avatar: string | null; country: string | null };
     niches: { id: string; name: string }[];
-    social_accounts: {
-        platform: { name: string; slug: string };
-        handle: string;
-        follower_count: number;
-        avg_views: number | null;
-        engagement_rate: string | null;
-    }[];
+    totals: CreatorSocialTotals;
+    social_accounts: SocialAccountSummary[];
+    /** Campaigns this creator already has a pending invitation to. */
+    invited_campaign_ids: string[];
+};
+
+/** A brand campaign a creator can be invited to. */
+export type InvitableCampaign = {
+    id: string;
+    title: string;
+    type: string;
 };

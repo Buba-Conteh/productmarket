@@ -26,8 +26,9 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { campaignStatusStyle } from '@/lib/campaign-type';
 import { cn } from '@/lib/utils';
-import type { Campaign, CampaignStatus } from '@/types';
+import type { Campaign } from '@/types';
 
 function getYoutubeThumbnail(url: string): string | null {
     try {
@@ -73,15 +74,6 @@ function formatFileSize(bytes: number): string {
 
 type Props = {
     campaign: Campaign;
-};
-
-const STATUS_STYLES: Record<CampaignStatus, string> = {
-    draft: 'bg-muted text-muted-foreground',
-    pending_escrow: 'bg-yellow-100 text-yellow-700',
-    active: 'bg-green-100 text-green-700',
-    closed: 'bg-orange-100 text-orange-700',
-    completed: 'bg-blue-100 text-blue-700',
-    cancelled: 'bg-red-100 text-red-700',
 };
 
 const TYPE_ICONS: Record<string, React.ElementType> = {
@@ -205,7 +197,8 @@ export default function BrandCampaignShow({ campaign }: Props) {
                                 <span
                                     className={cn(
                                         'rounded-full px-2.5 py-0.5 text-xs font-medium capitalize',
-                                        STATUS_STYLES[campaign.status],
+                                        'ring-1 ring-inset',
+                                        campaignStatusStyle(campaign.status),
                                     )}
                                 >
                                     {campaign.status.replace('_', ' ')}

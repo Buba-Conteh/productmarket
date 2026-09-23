@@ -1,7 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Calendar, Eye, Plus, Users } from 'lucide-react';
 import Heading from '@/components/heading';
-import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,7 +10,9 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import type { Campaign, CampaignStatus, PaginatedData } from '@/types';
+import { campaignStatusStyle } from '@/lib/campaign-type';
+import { cn } from '@/lib/utils';
+import type { Campaign, PaginatedData } from '@/types';
 
 type Props = {
     campaigns: PaginatedData<Campaign>;
@@ -27,15 +28,6 @@ const STATUS_TABS: { key: string; label: string }[] = [
     { key: 'completed', label: 'Completed' },
     { key: 'cancelled', label: 'Cancelled' },
 ];
-
-const STATUS_STYLES: Record<CampaignStatus, string> = {
-    draft: 'bg-muted text-muted-foreground',
-    pending_escrow: 'bg-yellow-100 text-yellow-700',
-    active: 'bg-green-100 text-green-700',
-    closed: 'bg-orange-100 text-orange-700',
-    completed: 'bg-blue-100 text-blue-700',
-    cancelled: 'bg-red-100 text-red-700',
-};
 
 const TYPE_LABELS: Record<string, string> = {
     contest: 'Contest',
@@ -180,10 +172,10 @@ export default function BrandCampaignIndex({
                                             <span
                                                 className={cn(
                                                     'rounded-full px-2 py-0.5 text-xs font-medium',
-                                                    STATUS_STYLES[
-                                                        campaign.status
-                                                    ] ??
-                                                        'bg-muted text-muted-foreground',
+                                                    'ring-1 ring-inset',
+                                                    campaignStatusStyle(
+                                                        campaign.status,
+                                                    ),
                                                 )}
                                             >
                                                 {campaign.status.replace(

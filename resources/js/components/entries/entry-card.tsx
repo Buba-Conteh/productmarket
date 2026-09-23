@@ -1,32 +1,10 @@
 import { Link } from '@inertiajs/react';
 import { Calendar, Eye } from 'lucide-react';
 import { CampaignThumbnail } from '@/components/campaigns/campaign-thumbnail';
+import { EntryStatusBadge } from '@/components/entries/entry-status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import type { Entry, EntryStatus } from '@/types';
-
-const STATUS_STYLES: Record<EntryStatus, string> = {
-    draft: 'bg-muted text-muted-foreground',
-    pending_review: 'bg-yellow-100 text-yellow-700',
-    approved: 'bg-blue-100 text-blue-700',
-    rejected: 'bg-red-100 text-red-700',
-    live: 'bg-green-100 text-green-700',
-    won: 'bg-purple-100 text-purple-700',
-    not_selected: 'bg-gray-100 text-gray-600',
-    disqualified: 'bg-red-100 text-red-700',
-};
-
-const STATUS_LABELS: Record<EntryStatus, string> = {
-    draft: 'Draft',
-    pending_review: 'Pending Review',
-    approved: 'Approved',
-    rejected: 'Rejected',
-    live: 'Live',
-    won: 'Won',
-    not_selected: 'Not Selected',
-    disqualified: 'Disqualified',
-};
+import type { Entry } from '@/types';
 
 function formatDate(date: string | null): string {
     if (!date) {
@@ -70,13 +48,10 @@ export function EntryCard({ entry, href }: Props) {
                             >
                                 {entry.type}
                             </Badge>
-                            <span
-                                className={cn(
-                                    'rounded-full px-2.5 py-1 text-xs font-medium',
-                                    STATUS_STYLES[entry.status],
-                                )}
-                            >
-                                {STATUS_LABELS[entry.status]}
+                            {/* Solid backing so the tinted chip stays legible
+                                over an arbitrary thumbnail image. */}
+                            <span className="rounded-full bg-background/90 backdrop-blur-sm">
+                                <EntryStatusBadge status={entry.status} />
                             </span>
                         </>
                     }
@@ -104,7 +79,7 @@ export function EntryCard({ entry, href }: Props) {
                     {entry.pitch_details && (
                         <div className="flex items-center gap-1.5 text-sm">
                             <span className="text-muted-foreground">Bid:</span>
-                            <span className="font-semibold text-green-600">
+                            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                                 $
                                 {Number(
                                     entry.pitch_details.proposed_bid,
@@ -115,7 +90,7 @@ export function EntryCard({ entry, href }: Props) {
                                     <span className="text-muted-foreground">
                                         → Accepted:
                                     </span>
-                                    <span className="font-semibold text-green-700">
+                                    <span className="font-semibold text-emerald-700 dark:text-emerald-300">
                                         $
                                         {Number(
                                             entry.pitch_details.accepted_bid,
@@ -154,7 +129,7 @@ export function EntryCard({ entry, href }: Props) {
                     )}
 
                     {entry.rejection_reason && (
-                        <p className="line-clamp-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-600 dark:bg-red-950/30">
+                        <p className="line-clamp-2 rounded-md bg-rose-500/10 px-3 py-2 text-xs text-rose-700 dark:text-rose-400">
                             {entry.rejection_reason}
                         </p>
                     )}

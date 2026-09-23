@@ -95,6 +95,11 @@ final class Campaign extends Model
         return $this->hasMany(CampaignApplication::class);
     }
 
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(CampaignInvitation::class);
+    }
+
     public function entries(): HasMany
     {
         return $this->hasMany(Entry::class);
