@@ -29,7 +29,7 @@ return new class extends Migration
         });
 
         Schema::table('notifications', function (Blueprint $table) {
-            $table->unsignedBigInteger('notifiable_id')->after('notifiable_type');
+            $table->unsignedBigInteger('notifiable_id')->nullable()->after('notifiable_type');
             $table->index(['notifiable_type', 'notifiable_id']);
         });
     }
