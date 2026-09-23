@@ -1,4 +1,5 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, usePage } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 import GoogleIcon from '@/components/icons/google-icon';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -18,6 +19,17 @@ import { login } from '@/routes';
 import { store } from '@/routes/register';
 
 export default function Register() {
+    const { url } = usePage();
+    const [selectedRole, setSelectedRole] = useState<string>('');
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const role = params.get('role');
+        if (role === 'brand' || role === 'creator') {
+            setSelectedRole(role);
+        }
+    }, [url]);
+
     return (
         <>
             <Head title="Register" />
@@ -85,7 +97,7 @@ export default function Register() {
 
                             <div className="grid gap-2">
                                 <Label>I am a</Label>
-                                <Select name="role" required>
+                                <Select name="role" value={selectedRole} onValueChange={setSelectedRole} required>
                                     <SelectTrigger tabIndex={3}>
                                         <SelectValue placeholder="Select your role" />
                                     </SelectTrigger>
