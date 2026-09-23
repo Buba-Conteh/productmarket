@@ -36,14 +36,16 @@ final class VerifyPayoutFlowCommand extends Command
 
     public function handle(EntryService $entryService): int
     {
-        $stripe = new StripeClient(config('cashier.secret'));
+        $secret = config('cashier.secret');
 
         // Safety: never run against live Stripe.
-        if (! str_starts_with((string) config('cashier.secret'), 'sk_test_')) {
+        if (! str_starts_with((string) $secret, 'sk_test_')) {
             $this->error('Refusing to run: STRIPE_SECRET is not a test key (sk_test_).');
 
             return self::FAILURE;
         }
+
+        $stripe = new StripeClient($secret);
 
         // Fake notifications/broadcasts so the queued PayoutProcessed notification
         // does not depend on mail/Reverb config. Money flow is unaffected.

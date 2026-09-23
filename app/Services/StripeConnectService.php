@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\CreatorProfile;
+use Illuminate\Support\Facades\Log;
 use Stripe\StripeClient;
 
 final readonly class StripeConnectService
@@ -13,7 +14,19 @@ final readonly class StripeConnectService
 
     public function __construct()
     {
-        $this->stripe = new StripeClient(config('cashier.secret'));
+        $secret = config('cashier.secret');
+
+        if (! $secret) {
+            Log::error('Stripe secret key is not configured. Check STRIPE_SECRET environment variable.');
+            throw new \RuntimeException('Stripe secret key is not configured.');
+        }
+
+        if (! str_starts_with($secret, 'sk_')) {
+            Log::error('Invalid Stripe secret key format. Expected to start with "sk_". Check STRIPE_SECRET environment variable.');
+            throw new \RuntimeException('Invalid Stripe secret key format.');
+        }
+
+        $this->stripe = new StripeClient($secret);
     }
 
     /**

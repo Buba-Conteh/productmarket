@@ -337,7 +337,11 @@ final class CampaignService
         }
 
         try {
-            $stripe = new StripeClient(config('cashier.secret'));
+            $secret = config('cashier.secret');
+            if (! $secret || ! str_starts_with($secret, 'sk_')) {
+                throw new \RuntimeException('Invalid or missing Stripe secret key.');
+            }
+            $stripe = new StripeClient($secret);
             $refund = $stripe->refunds->create([
                 'payment_intent' => $escrow->stripe_payment_intent_id,
                 'amount' => (int) round($refundable * 100),
