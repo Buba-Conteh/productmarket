@@ -88,3 +88,35 @@ export type InvitableCampaign = {
     title: string;
     type: string;
 };
+
+/** A video on a connected platform account, synced into `creator_videos`. */
+export type PlatformVideoItem = {
+    id: string;
+    title: string | null;
+    thumbnail_url: string | null;
+    share_url: string | null;
+    view_count: number;
+    like_count: number;
+    comment_count: number;
+    duration_sec: number | null;
+    posted_at: string | null;
+};
+
+/** One platform's showcase rail on the creator profile. */
+export type CreatorVideoRail = {
+    platform: { name: string; slug: string };
+    handle: string;
+    videos: PlatformVideoItem[];
+};
+
+/** A video produced through a ProductMarket campaign, hosted in our bucket. */
+export type EntryVideoItem = {
+    id: string;
+    campaign_title: string | null;
+    campaign_type: string | null;
+    caption: string | null;
+    video_url: string | null;
+    duration_sec: number | null;
+    view_count: number;
+    posted_at: string | null;
+};

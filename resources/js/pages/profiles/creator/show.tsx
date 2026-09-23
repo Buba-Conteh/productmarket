@@ -1,5 +1,13 @@
 import { Head, Link } from '@inertiajs/react';
-import { Award, Eye, MapPin, Share2, TrendingUp, User } from 'lucide-react';
+import {
+    Award,
+    Clapperboard,
+    Eye,
+    MapPin,
+    Share2,
+    TrendingUp,
+    User,
+} from 'lucide-react';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { ConnectedAccountRow } from '@/components/social/connected-account-row';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,12 +20,18 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { EntryVideoCard } from '@/components/videos/entry-video-card';
+import { PlatformVideoCard } from '@/components/videos/platform-video-card';
+import { VideoRail } from '@/components/videos/video-rail';
 import { formatCompactNumber as formatCount } from '@/lib/format';
 import type { CreatorPublicProfile, EntryPortfolioItem } from '@/types';
+import type { CreatorVideoRail, EntryVideoItem } from '@/types/profile';
 
 type Props = {
     creator: CreatorPublicProfile;
     entries: EntryPortfolioItem[];
+    videoRails: CreatorVideoRail[];
+    platformVideos: EntryVideoItem[];
 };
 
 const CAMPAIGN_TYPE_LABELS: Record<string, string> = {
@@ -26,7 +40,12 @@ const CAMPAIGN_TYPE_LABELS: Record<string, string> = {
     pitch: 'Pitch',
 };
 
-export default function CreatorProfileShow({ creator, entries }: Props) {
+export default function CreatorProfileShow({
+    creator,
+    entries,
+    videoRails,
+    platformVideos,
+}: Props) {
     const initials = creator.display_name
         .split(' ')
         .map((w) => w[0])
@@ -146,6 +165,72 @@ export default function CreatorProfileShow({ creator, entries }: Props) {
                                     />
                                 ))}
                             </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Video showcase — one rail per connected platform, plus the
+                    videos made through ProductMarket itself. */}
+                {(videoRails.length > 0 || platformVideos.length > 0) && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base">Videos</CardTitle>
+                            <CardDescription>
+                                Recent content from each connected platform.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-7">
+                            {platformVideos.length > 0 && (
+                                <VideoRail
+                                    title={
+                                        <>
+                                            <Clapperboard className="size-4 text-primary" />
+                                            <h3 className="text-sm font-semibold">
+                                                Made on ProductMarket
+                                            </h3>
+                                        </>
+                                    }
+                                    meta={
+                                        <span className="text-xs text-muted-foreground">
+                                            {platformVideos.length} video
+                                            {platformVideos.length === 1
+                                                ? ''
+                                                : 's'}
+                                        </span>
+                                    }
+                                >
+                                    {platformVideos.map((video) => (
+                                        <EntryVideoCard
+                                            key={video.id}
+                                            video={video}
+                                        />
+                                    ))}
+                                </VideoRail>
+                            )}
+
+                            {videoRails.map((rail) => (
+                                <VideoRail
+                                    key={rail.platform.slug}
+                                    title={
+                                        <h3 className="text-sm font-semibold">
+                                            {rail.platform.name}
+                                        </h3>
+                                    }
+                                    meta={
+                                        <span className="truncate text-xs text-muted-foreground">
+                                            @{rail.handle}
+                                        </span>
+                                    }
+                                >
+                                    {rail.videos.map((video) => (
+                                        <PlatformVideoCard
+                                            key={video.id}
+                                            video={video}
+                                            platformSlug={rail.platform.slug}
+                                        />
+                                    ))}
+                                </VideoRail>
+                            ))}
                         </CardContent>
                     </Card>
                 )}

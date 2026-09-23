@@ -6,6 +6,7 @@ namespace App\Services\Social\Providers;
 
 use App\Models\SocialAccount;
 use App\Services\Social\DataObjects\ConnectedAccount;
+use App\Services\Social\DataObjects\PlatformVideo;
 use App\Services\Social\DataObjects\TokenSet;
 use App\Services\Social\Exceptions\PlatformConnectionException;
 use Carbon\CarbonImmutable;
@@ -128,11 +129,12 @@ final class InstagramProvider extends AbstractOAuthProvider
                 postCount: 96,
                 engagementRate: 3.6,
                 verified: false,
+                avatarUrl: 'https://placehold.co/200x200/C13584/FFFFFF/png?text=IG',
             );
         }
 
         $response = Http::get(self::GRAPH_BASE.'/me', [
-            'fields' => 'id,username,followers_count,media_count',
+            'fields' => 'id,username,followers_count,media_count,profile_picture_url',
             'access_token' => $tokens->accessToken,
         ]);
 
@@ -151,7 +153,62 @@ final class InstagramProvider extends AbstractOAuthProvider
             postCount: (int) ($data['media_count'] ?? 0),
             engagementRate: 0.0,
             verified: false,
+            avatarUrl: $data['profile_picture_url'] ?? null,
         );
+    }
+
+    /**
+     * Only video media is returned — the rail is a video showcase, so stills and
+     * carousels are filtered out rather than shown as unplayable tiles.
+     *
+     * @return PlatformVideo[]
+     */
+    public function fetchRecentVideos(SocialAccount $account, int $limit = 12): array
+    {
+        if ($this->stubMode()) {
+            return $this->stubVideos($limit, 'instagram');
+        }
+
+        $response = Http::get(self::GRAPH_BASE.'/me/media', [
+            'fields' => 'id,caption,media_type,media_product_type,permalink,thumbnail_url,media_url,timestamp,like_count,comments_count',
+            'limit' => min($limit * 2, 50),
+            'access_token' => $account->oauth_token,
+        ]);
+
+        if ($response->failed()) {
+            return [];
+        }
+
+        $videos = [];
+
+        foreach ($response->json('data', []) as $media) {
+            if (($media['media_type'] ?? '') !== 'VIDEO') {
+                continue;
+            }
+
+            $videos[] = new PlatformVideo(
+                platformVideoId: (string) ($media['id'] ?? ''),
+                title: $media['caption'] ?? null,
+                thumbnailUrl: $media['thumbnail_url'] ?? $media['media_url'] ?? null,
+                shareUrl: $media['permalink'] ?? null,
+                // Instagram exposes play counts only through the insights
+                // endpoint, one call per media. Left at zero and hidden in the
+                // UI rather than spending a request per tile.
+                viewCount: 0,
+                likeCount: (int) ($media['like_count'] ?? 0),
+                commentCount: (int) ($media['comments_count'] ?? 0),
+                durationSec: null,
+                postedAt: isset($media['timestamp'])
+                    ? CarbonImmutable::parse($media['timestamp'])
+                    : null,
+            );
+
+            if (count($videos) >= $limit) {
+                break;
+            }
+        }
+
+        return $videos;
     }
 
     public function fetchViewCount(SocialAccount $account, string $postedUrl): int

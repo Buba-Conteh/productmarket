@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Social;
 
+use App\Models\CreatorVideo;
 use App\Models\Platform;
 use App\Models\SocialAccount;
 use App\Models\User;
@@ -12,6 +13,7 @@ use App\Services\Social\Exceptions\PlatformConnectionException;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 final class SocialAccountService
@@ -49,6 +51,7 @@ final class SocialAccountService
                     'total_likes' => $profile->totalLikes,
                     'post_count' => $profile->postCount,
                     'engagement_rate' => $profile->engagementRate,
+                    'avatar_url' => $profile->avatarUrl,
                     'verified' => $profile->verified,
                     'scopes' => $grantedScopes,
                     'last_synced_at' => now(),
@@ -104,11 +107,77 @@ final class SocialAccountService
                 $profile->engagementRate,
                 $account->engagement_rate !== null ? (float) $account->engagement_rate : null,
             ),
+            'avatar_url' => $profile->avatarUrl ?? $account->avatar_url,
             'verified' => $profile->verified,
             'last_synced_at' => now(),
         ]);
 
         return true;
+    }
+
+    /**
+     * Pull the account's recent videos into `creator_videos`.
+     *
+     * Existing rows are updated in place so a video keeps its id across syncs,
+     * and videos the creator has since deleted on the platform are removed.
+     * Returns the number of videos now stored, or null when the platform could
+     * not be reached (the previous set is then left untouched).
+     */
+    public function syncVideos(SocialAccount $account, int $limit = 12): ?int
+    {
+        $platform = $account->platform()->firstOrFail();
+        $provider = $this->factory->make($platform->slug);
+
+        $this->refreshIfNeeded($account);
+
+        try {
+            $videos = $provider->fetchRecentVideos($account, $limit);
+        } catch (PlatformConnectionException|Throwable $e) {
+            Log::warning('social_account_video_sync_failed', [
+                'social_account_id' => $account->id,
+                'platform' => $platform->slug,
+                'message' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        return DB::transaction(function () use ($account, $platform, $videos): int {
+            $seen = [];
+
+            foreach ($videos as $video) {
+                if ($video->platformVideoId === '') {
+                    continue;
+                }
+
+                CreatorVideo::updateOrCreate(
+                    [
+                        'social_account_id' => $account->id,
+                        'platform_video_id' => $video->platformVideoId,
+                    ],
+                    [
+                        'platform_id' => $platform->id,
+                        'title' => $video->title !== null ? Str::limit($video->title, 480) : null,
+                        'thumbnail_url' => $video->thumbnailUrl,
+                        'share_url' => $video->shareUrl,
+                        'view_count' => $video->viewCount,
+                        'like_count' => $video->likeCount,
+                        'comment_count' => $video->commentCount,
+                        'duration_sec' => $video->durationSec,
+                        'posted_at' => $video->postedAt,
+                        'synced_at' => now(),
+                    ],
+                );
+
+                $seen[] = $video->platformVideoId;
+            }
+
+            CreatorVideo::where('social_account_id', $account->id)
+                ->when($seen !== [], fn ($q) => $q->whereNotIn('platform_video_id', $seen))
+                ->delete();
+
+            return count($seen);
+        });
     }
 
     /**

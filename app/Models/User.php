@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Support\FileUploader;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -34,6 +35,38 @@ class User extends Authenticatable implements MustVerifyEmail
             'two_factor_confirmed_at' => 'datetime',
             'last_active_at' => 'datetime',
         ];
+    }
+
+    /** @var list<string> */
+    protected $appends = ['avatar_url'];
+
+    /**
+     * The picture to render for this user.
+     *
+     * An avatar uploaded here always wins; otherwise the profile picture from a
+     * connected platform is used. Resolving the fallback at read time rather
+     * than copying it into `users.avatar` means a platform sync can never
+     * overwrite a picture the user deliberately uploaded, so no "source" flag
+     * is needed to tell the two apart.
+     *
+     * Falls back to the stored value alone when `socialAccounts` isn't loaded,
+     * so this never fires a query per row in a list.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (is_string($this->avatar) && $this->avatar !== '') {
+            return str_starts_with($this->avatar, 'http')
+                ? $this->avatar
+                : FileUploader::url($this->avatar);
+        }
+
+        if (! $this->relationLoaded('socialAccounts')) {
+            return null;
+        }
+
+        return $this->socialAccounts
+            ->pluck('avatar_url')
+            ->first(fn (?string $url) => is_string($url) && $url !== '');
     }
 
     /**

@@ -6,8 +6,10 @@ namespace App\Services\Social\Providers;
 
 use App\Models\SocialAccount;
 use App\Services\Social\DataObjects\ConnectedAccount;
+use App\Services\Social\DataObjects\PlatformVideo;
 use App\Services\Social\DataObjects\TokenSet;
 use App\Services\Social\Exceptions\PlatformConnectionException;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Http;
 
 final class YouTubeProvider extends AbstractOAuthProvider
@@ -15,6 +17,8 @@ final class YouTubeProvider extends AbstractOAuthProvider
     private const CHANNELS_URL = 'https://www.googleapis.com/youtube/v3/channels';
 
     private const VIDEOS_URL = 'https://www.googleapis.com/youtube/v3/videos';
+
+    private const PLAYLIST_ITEMS_URL = 'https://www.googleapis.com/youtube/v3/playlistItems';
 
     public function platformSlug(): string
     {
@@ -57,6 +61,7 @@ final class YouTubeProvider extends AbstractOAuthProvider
                 postCount: 215,
                 engagementRate: 2.9,
                 verified: true,
+                avatarUrl: 'https://placehold.co/200x200/FF0000/FFFFFF/png?text=YT',
             );
         }
 
@@ -89,7 +94,99 @@ final class YouTubeProvider extends AbstractOAuthProvider
             postCount: (int) ($stats['videoCount'] ?? 0),
             engagementRate: 0.0,
             verified: true,
+            avatarUrl: $snippet['thumbnails']['high']['url']
+                ?? $snippet['thumbnails']['default']['url']
+                ?? null,
         );
+    }
+
+    /**
+     * Two hops: the channel's uploads playlist for the newest video ids, then a
+     * single batched videos call for their stats and durations.
+     *
+     * @return PlatformVideo[]
+     */
+    public function fetchRecentVideos(SocialAccount $account, int $limit = 12): array
+    {
+        if ($this->stubMode()) {
+            return $this->stubVideos($limit, 'youtube');
+        }
+
+        $channel = Http::withToken($account->oauth_token)
+            ->get(self::CHANNELS_URL, ['part' => 'contentDetails', 'mine' => 'true']);
+
+        if ($channel->failed()) {
+            return [];
+        }
+
+        $uploadsPlaylist = $channel->json('items.0.contentDetails.relatedPlaylists.uploads');
+
+        if (! is_string($uploadsPlaylist) || $uploadsPlaylist === '') {
+            return [];
+        }
+
+        $playlist = Http::withToken($account->oauth_token)
+            ->get(self::PLAYLIST_ITEMS_URL, [
+                'part' => 'contentDetails',
+                'playlistId' => $uploadsPlaylist,
+                'maxResults' => min($limit, 50),
+            ]);
+
+        if ($playlist->failed()) {
+            return [];
+        }
+
+        $videoIds = array_values(array_filter(array_map(
+            fn (array $item) => $item['contentDetails']['videoId'] ?? null,
+            $playlist->json('items', []),
+        )));
+
+        if ($videoIds === []) {
+            return [];
+        }
+
+        $videos = Http::withToken($account->oauth_token)
+            ->get(self::VIDEOS_URL, [
+                'part' => 'snippet,statistics,contentDetails',
+                'id' => implode(',', $videoIds),
+            ]);
+
+        if ($videos->failed()) {
+            return [];
+        }
+
+        return array_map(function (array $v): PlatformVideo {
+            $snippet = $v['snippet'] ?? [];
+            $stats = $v['statistics'] ?? [];
+
+            return new PlatformVideo(
+                platformVideoId: (string) ($v['id'] ?? ''),
+                title: $snippet['title'] ?? null,
+                thumbnailUrl: $snippet['thumbnails']['high']['url']
+                    ?? $snippet['thumbnails']['default']['url']
+                    ?? null,
+                shareUrl: isset($v['id']) ? 'https://www.youtube.com/watch?v='.$v['id'] : null,
+                viewCount: (int) ($stats['viewCount'] ?? 0),
+                likeCount: (int) ($stats['likeCount'] ?? 0),
+                commentCount: (int) ($stats['commentCount'] ?? 0),
+                durationSec: $this->parseIsoDuration($v['contentDetails']['duration'] ?? null),
+                postedAt: isset($snippet['publishedAt'])
+                    ? CarbonImmutable::parse($snippet['publishedAt'])
+                    : null,
+            );
+        }, $videos->json('items', []));
+    }
+
+    /**
+     * YouTube reports duration as an ISO-8601 period (e.g. PT1M35S).
+     */
+    private function parseIsoDuration(?string $duration): ?int
+    {
+        if ($duration === null || ! preg_match('/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/', $duration, $m)) {
+            return null;
+        }
+
+        return ((int) ($m[1] ?? 0)) * 3600 + ((int) ($m[2] ?? 0)) * 60 + ((int) ($m[3] ?? 0));
     }
 
     public function fetchViewCount(SocialAccount $account, string $postedUrl): int

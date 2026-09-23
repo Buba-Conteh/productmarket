@@ -34,7 +34,7 @@ final class SyncSocialAccountStatsJob implements ShouldQueue
             $account = SocialAccount::find($this->socialAccountId);
 
             if ($account !== null) {
-                $service->syncStats($account);
+                $this->sync($service, $account);
             }
 
             return;
@@ -44,8 +44,18 @@ final class SyncSocialAccountStatsJob implements ShouldQueue
             ->with('platform')
             ->chunkById(100, function ($accounts) use ($service): void {
                 foreach ($accounts as $account) {
-                    $service->syncStats($account);
+                    $this->sync($service, $account);
                 }
             });
+    }
+
+    /**
+     * Stats and the video showcase are refreshed together — both read the same
+     * token, and a failure in one must not skip the other.
+     */
+    private function sync(SocialAccountService $service, SocialAccount $account): void
+    {
+        $service->syncStats($account);
+        $service->syncVideos($account);
     }
 }

@@ -6,6 +6,7 @@ namespace App\Services\Social\Providers;
 
 use App\Models\SocialAccount;
 use App\Services\Social\Contracts\PlatformProvider;
+use App\Services\Social\DataObjects\PlatformVideo;
 use App\Services\Social\DataObjects\TokenSet;
 use App\Services\Social\Exceptions\PlatformConnectionException;
 use Carbon\CarbonImmutable;
@@ -213,6 +214,37 @@ abstract class AbstractOAuthProvider implements PlatformProvider
             refreshToken: 'stub_refresh_token_'.$this->platformSlug(),
             expiresAt: CarbonImmutable::now()->addHours(2),
         );
+    }
+
+    /**
+     * Deterministic fixture videos for local development, where no real token
+     * exists. Seeded off the platform slug so each platform's rail differs.
+     *
+     * @return PlatformVideo[]
+     */
+    protected function stubVideos(int $limit, string $slug): array
+    {
+        $seed = crc32($slug);
+        $videos = [];
+
+        for ($i = 0; $i < min($limit, 8); $i++) {
+            $n = $seed + $i;
+
+            $videos[] = new PlatformVideo(
+                platformVideoId: "{$slug}_stub_video_{$i}",
+                title: ucfirst($slug).' sample video #'.($i + 1),
+                thumbnailUrl: 'https://placehold.co/320x568/1f2937/FFFFFF/png?text='
+                    .strtoupper(substr($slug, 0, 2)).'+'.($i + 1),
+                shareUrl: "https://example.test/{$slug}/video/{$i}",
+                viewCount: 5_000 + ($n % 250_000),
+                likeCount: 200 + ($n % 18_000),
+                commentCount: 10 + ($n % 900),
+                durationSec: 15 + ($n % 45),
+                postedAt: CarbonImmutable::now()->subDays($i * 3 + 1),
+            );
+        }
+
+        return $videos;
     }
 
     /**

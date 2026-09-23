@@ -17,6 +17,7 @@ final class CreatorProfileController
             'user:id,name,avatar,country',
             'niches:id,name,slug',
             'user.socialAccounts.platform:id,name,slug',
+            'user.socialAccounts.videos' => fn ($q) => $q->orderByDesc('posted_at')->limit(12),
         ]);
 
         $liveEntries = $creatorProfile->entries()
@@ -72,6 +73,54 @@ final class CreatorProfileController
             ])
             ->values();
 
+        // One rail per connected platform, newest first. Accounts with nothing
+        // synced yet are dropped so the profile doesn't show an empty rail.
+        $videoRails = $creatorProfile->user->socialAccounts
+            ->map(fn ($account) => [
+                'platform' => [
+                    'name' => $account->platform->name,
+                    'slug' => $account->platform->slug,
+                ],
+                'handle' => $account->handle,
+                'videos' => $account->videos
+                    ->sortByDesc('posted_at')
+                    ->map(fn ($video) => [
+                        'id' => $video->id,
+                        'title' => $video->title,
+                        'thumbnail_url' => $video->thumbnail_url,
+                        'share_url' => $video->share_url,
+                        'view_count' => $video->view_count,
+                        'like_count' => $video->like_count,
+                        'comment_count' => $video->comment_count,
+                        'duration_sec' => $video->duration_sec,
+                        'posted_at' => $video->posted_at?->toDateString(),
+                    ])
+                    ->values(),
+            ])
+            ->filter(fn (array $rail) => $rail['videos']->isNotEmpty())
+            ->values();
+
+        // Videos produced through ProductMarket itself — entry uploads that
+        // live in our own bucket, so they play inline rather than linking out.
+        $platformVideos = $creatorProfile->entries()
+            ->whereIn('status', ['live', 'won', 'approved'])
+            ->whereNotNull('video_url')
+            ->with(['campaign:id,title,type', 'platforms:id,name,slug'])
+            ->latest('live_at')
+            ->take(12)
+            ->get()
+            ->map(fn ($entry) => [
+                'id' => $entry->id,
+                'campaign_title' => $entry->campaign?->title,
+                'campaign_type' => $entry->campaign?->type,
+                'caption' => $entry->caption,
+                'video_url' => $entry->video_full_url,
+                'duration_sec' => $entry->video_duration_sec,
+                'view_count' => (int) $entry->platforms->sum(fn ($p) => $p->pivot->verified_view_count),
+                'posted_at' => $entry->live_at?->toDateString(),
+            ])
+            ->values();
+
         return Inertia::render('profiles/creator/show', [
             'creator' => [
                 'id' => $creatorProfile->id,
@@ -80,7 +129,7 @@ final class CreatorProfileController
                 'total_earned' => $creatorProfile->total_earned,
                 'user' => [
                     'name' => $creatorProfile->user->name,
-                    'avatar' => $creatorProfile->user->avatar,
+                    'avatar' => $creatorProfile->user->avatar_url,
                     'country' => $creatorProfile->user->country,
                 ],
                 'niches' => $creatorProfile->niches->map(fn ($n) => [
@@ -93,6 +142,8 @@ final class CreatorProfileController
                 'total_views' => (int) $totalViews,
             ],
             'entries' => $liveEntries,
+            'videoRails' => $videoRails,
+            'platformVideos' => $platformVideos,
         ]);
     }
 

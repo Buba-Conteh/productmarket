@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 final class SocialAccount extends Model
 {
@@ -16,6 +17,7 @@ final class SocialAccount extends Model
         'user_id',
         'platform_id',
         'handle',
+        'avatar_url',
         'platform_user_id',
         'oauth_token',
         'oauth_refresh_token',
@@ -56,5 +58,10 @@ final class SocialAccount extends Model
     public function platform(): BelongsTo
     {
         return $this->belongsTo(Platform::class);
+    }
+
+    public function videos(): HasMany
+    {
+        return $this->hasMany(CreatorVideo::class);
     }
 }

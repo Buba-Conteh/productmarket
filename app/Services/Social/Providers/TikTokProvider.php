@@ -6,8 +6,10 @@ namespace App\Services\Social\Providers;
 
 use App\Models\SocialAccount;
 use App\Services\Social\DataObjects\ConnectedAccount;
+use App\Services\Social\DataObjects\PlatformVideo;
 use App\Services\Social\DataObjects\TokenSet;
 use App\Services\Social\Exceptions\PlatformConnectionException;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Http;
 
 final class TikTokProvider extends AbstractOAuthProvider
@@ -55,12 +57,15 @@ final class TikTokProvider extends AbstractOAuthProvider
                 postCount: 142,
                 engagementRate: 4.2,
                 verified: true,
+                avatarUrl: 'https://placehold.co/200x200/111827/FFFFFF/png?text=TT',
             );
         }
 
+        // avatar_url comes from user.info.basic; the counts from user.info.stats.
+        // Both scopes are already requested at connect time.
         $response = Http::withToken($tokens->accessToken)
             ->get(self::USER_INFO_URL, [
-                'fields' => 'open_id,union_id,display_name,follower_count,likes_count,video_count',
+                'fields' => 'open_id,union_id,display_name,avatar_large_url,avatar_url,follower_count,likes_count,video_count',
             ]);
 
         if ($response->failed()) {
@@ -78,6 +83,44 @@ final class TikTokProvider extends AbstractOAuthProvider
             postCount: (int) ($data['video_count'] ?? 0),
             engagementRate: 0.0,
             verified: true,
+            avatarUrl: $data['avatar_large_url'] ?? $data['avatar_url'] ?? null,
+        );
+    }
+
+    /**
+     * @return PlatformVideo[]
+     */
+    public function fetchRecentVideos(SocialAccount $account, int $limit = 12): array
+    {
+        if ($this->stubMode()) {
+            return $this->stubVideos($limit, 'tiktok');
+        }
+
+        $response = Http::withToken($account->oauth_token)
+            ->post(
+                self::VIDEO_LIST_URL.'?fields=id,title,video_description,cover_image_url,share_url,view_count,like_count,comment_count,create_time,duration',
+                ['max_count' => min($limit, 20)],
+            );
+
+        if ($response->failed()) {
+            return [];
+        }
+
+        return array_map(
+            fn (array $v) => new PlatformVideo(
+                platformVideoId: (string) ($v['id'] ?? ''),
+                title: $v['title'] ?: ($v['video_description'] ?? null),
+                thumbnailUrl: $v['cover_image_url'] ?? null,
+                shareUrl: $v['share_url'] ?? null,
+                viewCount: (int) ($v['view_count'] ?? 0),
+                likeCount: (int) ($v['like_count'] ?? 0),
+                commentCount: (int) ($v['comment_count'] ?? 0),
+                durationSec: isset($v['duration']) ? (int) $v['duration'] : null,
+                postedAt: isset($v['create_time'])
+                    ? CarbonImmutable::createFromTimestamp((int) $v['create_time'])
+                    : null,
+            ),
+            $response->json('data.videos', []),
         );
     }
 

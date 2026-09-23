@@ -191,7 +191,7 @@ final class CreatorSearchController
             'total_earned' => $creator->total_earned,
             'user' => [
                 'name' => $creator->user->name,
-                'avatar' => $creator->user->avatar,
+                'avatar' => $creator->user->avatar_url,
                 'country' => $creator->user->country,
             ],
             'niches' => $creator->niches->map(fn ($n) => ['id' => $n->id, 'name' => $n->name])->values(),

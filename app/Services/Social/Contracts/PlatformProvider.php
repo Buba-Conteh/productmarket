@@ -6,6 +6,7 @@ namespace App\Services\Social\Contracts;
 
 use App\Models\SocialAccount;
 use App\Services\Social\DataObjects\ConnectedAccount;
+use App\Services\Social\DataObjects\PlatformVideo;
 use App\Services\Social\DataObjects\TokenSet;
 
 interface PlatformProvider
@@ -23,4 +24,11 @@ interface PlatformProvider
     public function fetchViewCount(SocialAccount $account, string $postedUrl): int;
 
     public function fetchFollowerCount(SocialAccount $account): int;
+
+    /**
+     * The account's most recent videos, newest first.
+     *
+     * @return PlatformVideo[]
+     */
+    public function fetchRecentVideos(SocialAccount $account, int $limit = 12): array;
 }

@@ -62,7 +62,7 @@ final class BrandProfileController
                 'description' => $brandProfile->description,
                 'industry' => $brandProfile->industry?->name,
                 'user' => [
-                    'avatar' => $brandProfile->user->avatar,
+                    'avatar' => $brandProfile->user->avatar_url,
                 ],
             ],
             'active_campaigns' => $activeCampaigns,

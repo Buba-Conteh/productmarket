@@ -39,6 +39,12 @@ class HandleInertiaRequests extends Middleware
         $billing = null;
 
         if ($user) {
+            // `avatar_url` falls back to a connected platform's profile picture
+            // when nothing has been uploaded, and returns null unless the
+            // relation is loaded — so load it once here for the nav avatar
+            // rather than letting every page resolve it separately.
+            $user->loadMissing('socialAccounts:id,user_id,avatar_url');
+
             $role = $user->hasRole('brand') ? 'brand' : ($user->hasRole('creator') ? 'creator' : null);
 
             if ($role) {

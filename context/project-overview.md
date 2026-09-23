@@ -235,7 +235,7 @@ Phases 1–6 are the MVP. Phases 7–10 ship post-launch.
 
 | # | Feature | Status | Notes |
 |---|---|---|---|
-| 7.1 | Creator public profile | 🟢 Complete | Bio, niches, verified social stats, entry portfolio — CreatorProfileController + profiles/creator/show.tsx |
+| 7.1 | Creator public profile | 🟢 Complete | Bio, niches, verified social stats, entry portfolio, plus a horizontally scrolling video showcase (one rail per connected platform, synced into `creator_videos`) and a rail of videos made on ProductMarket. Profile photos pulled from TikTok/Instagram/YouTube or uploaded in-app. CreatorProfileController + profiles/creator/show.tsx. See `context/features/ui-6-creator-avatars-video-showcase.md` |
 | 7.2 | Creator media kit | 🟢 Complete | Auto-generated shareable page — CreatorProfileController::mediaKit() + profiles/creator/media-kit.tsx |
 | 7.3 | Brand public profile | 🟢 Complete | Active/past campaigns, aggregate stats — BrandProfileController + profiles/brand/show.tsx |
 | 7.4 | Creator search — brand side | 🟢 Complete | Full directory: aggregate followers/likes/comments across all connected platforms + per-platform breakdown, sort options, follower filters matched on combined audience. Brands can invite a creator to a live campaign (`campaign_invitations`). CreatorSearchController + CampaignInvitationController + brand/creators/index.tsx. See `context/features/ui-5-entries-ux-creator-directory.md` |

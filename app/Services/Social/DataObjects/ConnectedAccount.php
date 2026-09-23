@@ -15,5 +15,6 @@ final readonly class ConnectedAccount
         public ?int $postCount = null,
         public ?float $engagementRate = null,
         public bool $verified = false,
+        public ?string $avatarUrl = null,
     ) {}
 }
