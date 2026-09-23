@@ -24,13 +24,18 @@ export default function MessagesIndex({ threads }: Props) {
         <>
             <Head title="Messages" />
             <div className="space-y-6 px-4 py-6">
-                <Heading title="Messages" description="Your conversations with brands and creators." />
+                <Heading
+                    title="Messages"
+                    description="Your conversations with brands and creators."
+                />
 
                 {threads.length === 0 ? (
                     <Card>
                         <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                            <MessageSquare className="text-muted-foreground mb-4 h-12 w-12" />
-                            <p className="text-muted-foreground text-sm">No messages yet.</p>
+                            <MessageSquare className="mb-4 h-12 w-12 text-muted-foreground" />
+                            <p className="text-sm text-muted-foreground">
+                                No messages yet.
+                            </p>
                         </CardContent>
                     </Card>
                 ) : (
@@ -43,31 +48,41 @@ export default function MessagesIndex({ threads }: Props) {
                             >
                                 <Card className="transition-colors hover:bg-accent/50">
                                     <CardContent className="flex items-center gap-4 py-4">
-                                        <div className="bg-primary/10 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
-                                            <MessageSquare className="text-primary h-5 w-5" />
+                                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
+                                            <MessageSquare className="h-5 w-5 text-primary" />
                                         </div>
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-center justify-between gap-2">
-                                                <p className="truncate font-medium">{thread.other_party.name}</p>
+                                                <p className="truncate font-medium">
+                                                    {thread.other_party.name}
+                                                </p>
                                                 {thread.last_message_at && (
-                                                    <span className="text-muted-foreground flex-shrink-0 text-xs">
-                                                        {formatDistanceToNow(new Date(thread.last_message_at), {
-                                                            addSuffix: true,
-                                                        })}
+                                                    <span className="flex-shrink-0 text-xs text-muted-foreground">
+                                                        {formatDistanceToNow(
+                                                            new Date(
+                                                                thread.last_message_at,
+                                                            ),
+                                                            {
+                                                                addSuffix: true,
+                                                            },
+                                                        )}
                                                     </span>
                                                 )}
                                             </div>
-                                            <p className="text-muted-foreground truncate text-sm">
+                                            <p className="truncate text-sm text-muted-foreground">
                                                 {thread.campaign_title}
                                             </p>
                                             {thread.last_message && (
-                                                <p className="text-muted-foreground mt-0.5 truncate text-xs">
+                                                <p className="mt-0.5 truncate text-xs text-muted-foreground">
                                                     {thread.last_message}
                                                 </p>
                                             )}
                                         </div>
                                         {thread.unread_count > 0 && (
-                                            <Badge variant="default" className="flex-shrink-0 rounded-full">
+                                            <Badge
+                                                variant="default"
+                                                className="flex-shrink-0 rounded-full"
+                                            >
                                                 {thread.unread_count}
                                             </Badge>
                                         )}

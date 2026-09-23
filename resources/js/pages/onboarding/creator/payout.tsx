@@ -42,8 +42,8 @@ type Props = {
 
 function formatPrice(cents: number): string {
     if (cents === 0) {
-return 'Free';
-}
+        return 'Free';
+    }
 
     return `$${(cents / 100).toFixed(0)}`;
 }
@@ -53,8 +53,7 @@ function StripeConnectSection({ profile }: { profile: Profile }) {
 
     const isActive = profile.stripe_connect_status === 'active';
     const isPending =
-        profile.stripe_connect_id &&
-        profile.stripe_connect_status !== 'active';
+        profile.stripe_connect_id && profile.stripe_connect_status !== 'active';
 
     function connect() {
         setLoading(true);
@@ -134,7 +133,9 @@ function StripeConnectSection({ profile }: { profile: Profile }) {
                 ) : (
                     <ExternalLink className="size-3.5" />
                 )}
-                {loading ? 'Redirecting to Stripe…' : 'Set up payouts with Stripe'}
+                {loading
+                    ? 'Redirecting to Stripe…'
+                    : 'Set up payouts with Stripe'}
             </Button>
             <p className="text-center text-xs text-muted-foreground">
                 You can also do this later from Settings.
@@ -240,9 +241,7 @@ export default function CreatorPayout({ profile, plans }: Props) {
                             {freePlan && (
                                 <div className="rounded-lg border p-3">
                                     <p className="font-semibold">Free</p>
-                                    <p className="mt-1 text-xl font-bold">
-                                        $0
-                                    </p>
+                                    <p className="mt-1 text-xl font-bold">$0</p>
                                     <ul className="mt-3 space-y-1.5">
                                         {freePlan.features.map((f) => (
                                             <li

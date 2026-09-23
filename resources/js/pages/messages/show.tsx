@@ -30,7 +30,11 @@ interface Props {
     auth_user_id: string;
 }
 
-export default function MessagesShow({ thread, messages: initialMessages, auth_user_id }: Props) {
+export default function MessagesShow({
+    thread,
+    messages: initialMessages,
+    auth_user_id,
+}: Props) {
     const [messages, setMessages] = useState<Message[]>(initialMessages);
     const bottomRef = useRef<HTMLDivElement>(null);
     const { data, setData, post, processing, reset } = useForm({ body: '' });
@@ -45,8 +49,8 @@ export default function MessagesShow({ thread, messages: initialMessages, auth_u
         const echo = (window as any).Echo;
 
         if (!echo) {
-return;
-}
+            return;
+        }
 
         const channel = echo.private(`thread.${thread.id}`);
         channel.listen('.message.sent', (event: Message) => {
@@ -64,8 +68,8 @@ return;
         e.preventDefault();
 
         if (!data.body.trim()) {
-return;
-}
+            return;
+        }
 
         const optimistic: Message = {
             id: `temp-${Date.now()}`,
@@ -84,7 +88,9 @@ return;
         post(`/messages/${thread.id}`, {
             preserveScroll: true,
             onError: () => {
-                setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
+                setMessages((prev) =>
+                    prev.filter((m) => m.id !== optimistic.id),
+                );
             },
         });
     };
@@ -103,12 +109,19 @@ return;
                 {/* Header */}
                 <div className="border-b px-4 py-3">
                     <div className="flex items-center gap-3">
-                        <Link href="/messages" className="text-muted-foreground hover:text-foreground">
+                        <Link
+                            href="/messages"
+                            className="text-muted-foreground hover:text-foreground"
+                        >
                             <ArrowLeft className="h-5 w-5" />
                         </Link>
                         <div>
-                            <p className="font-semibold">{thread.other_party.name}</p>
-                            <p className="text-muted-foreground text-xs">{thread.campaign_title}</p>
+                            <p className="font-semibold">
+                                {thread.other_party.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                {thread.campaign_title}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -116,31 +129,43 @@ return;
                 {/* Messages */}
                 <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
                     {messages.length === 0 && (
-                        <p className="text-muted-foreground py-8 text-center text-sm">
+                        <p className="py-8 text-center text-sm text-muted-foreground">
                             No messages yet. Start the conversation.
                         </p>
                     )}
                     {messages.map((message) => (
                         <div
                             key={message.id}
-                            className={cn('flex gap-2', message.is_mine ? 'flex-row-reverse' : 'flex-row')}
+                            className={cn(
+                                'flex gap-2',
+                                message.is_mine
+                                    ? 'flex-row-reverse'
+                                    : 'flex-row',
+                            )}
                         >
                             <div
                                 className={cn(
                                     'max-w-[75%] rounded-2xl px-4 py-2.5 text-sm',
                                     message.is_mine
-                                        ? 'bg-primary text-primary-foreground rounded-br-sm'
-                                        : 'bg-muted rounded-bl-sm',
+                                        ? 'rounded-br-sm bg-primary text-primary-foreground'
+                                        : 'rounded-bl-sm bg-muted',
                                 )}
                             >
-                                <p className="whitespace-pre-wrap">{message.body}</p>
+                                <p className="whitespace-pre-wrap">
+                                    {message.body}
+                                </p>
                                 <p
                                     className={cn(
                                         'mt-1 text-right text-[10px]',
-                                        message.is_mine ? 'text-primary-foreground/60' : 'text-muted-foreground',
+                                        message.is_mine
+                                            ? 'text-primary-foreground/60'
+                                            : 'text-muted-foreground',
                                     )}
                                 >
-                                    {format(new Date(message.created_at), 'h:mm a')}
+                                    {format(
+                                        new Date(message.created_at),
+                                        'h:mm a',
+                                    )}
                                 </p>
                             </div>
                         </div>
@@ -160,7 +185,11 @@ return;
                             className="flex-1 resize-none"
                             disabled={processing}
                         />
-                        <Button type="submit" size="icon" disabled={processing || !data.body.trim()}>
+                        <Button
+                            type="submit"
+                            size="icon"
+                            disabled={processing || !data.body.trim()}
+                        >
                             <Send className="h-4 w-4" />
                         </Button>
                     </form>

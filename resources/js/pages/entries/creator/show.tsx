@@ -190,7 +190,10 @@ function TikTokPostingCard({
             <Card className="border-blue-200 bg-blue-50/50">
                 <CardHeader className="pb-2">
                     <CardTitle className="flex items-center gap-2 text-base">
-                        <svg viewBox="0 0 24 24" className="size-4 fill-current">
+                        <svg
+                            viewBox="0 0 24 24"
+                            className="size-4 fill-current"
+                        >
                             <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.89a8.16 8.16 0 0 0 4.77 1.52V7a4.85 4.85 0 0 1-1-.31z" />
                         </svg>
                         Post to TikTok
@@ -359,9 +362,7 @@ function TikTokPostingCard({
                     <Checkbox
                         id="tiktok-disable-comment"
                         checked={disableComment}
-                        onCheckedChange={(v) =>
-                            setDisableComment(v === true)
-                        }
+                        onCheckedChange={(v) => setDisableComment(v === true)}
                     />
                     <Label htmlFor="tiktok-disable-comment">
                         Disable comments
@@ -410,8 +411,7 @@ export default function CreatorEntryShow({ entry }: Props) {
     );
     const hasTikTokPostingScope =
         tiktokAccount?.scopes?.includes('video.publish') ?? false;
-    const showTikTokCard =
-        canMarkLive && tiktokPlatform !== undefined;
+    const showTikTokCard = canMarkLive && tiktokPlatform !== undefined;
     const nonTiktokPlatforms = entry.platforms?.filter(
         (p) => p.slug !== 'tiktok',
     );
@@ -577,7 +577,7 @@ export default function CreatorEntryShow({ entry }: Props) {
                                     <video
                                         src={entry.video_full_url}
                                         controls
-                                        className="w-full rounded-lg aspect-video bg-black"
+                                        className="aspect-video w-full rounded-lg bg-black"
                                     />
                                 )}
                                 {entry.caption && (

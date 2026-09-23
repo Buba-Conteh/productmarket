@@ -14,7 +14,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import type { Campaign, CampaignApplication, Entry, EntryStatus, PaginatedData } from '@/types';
+import type {
+    Campaign,
+    CampaignApplication,
+    Entry,
+    EntryStatus,
+    PaginatedData,
+} from '@/types';
 
 type Props = {
     campaign: Campaign;
@@ -154,7 +160,13 @@ export default function BrandEntryReview({
                             <CardTitle className="text-base">
                                 Applications
                                 <span className="ml-2 text-sm font-normal text-muted-foreground">
-                                    ({applications.filter((a) => a.status === 'pending').length} pending)
+                                    (
+                                    {
+                                        applications.filter(
+                                            (a) => a.status === 'pending',
+                                        ).length
+                                    }{' '}
+                                    pending)
                                 </span>
                             </CardTitle>
                         </CardHeader>
@@ -171,33 +183,50 @@ export default function BrandEntryReview({
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <span className="text-sm font-medium">
-                                                    {app.creator?.display_name ?? app.creator?.user?.name ?? 'Creator'}
+                                                    {app.creator
+                                                        ?.display_name ??
+                                                        app.creator?.user
+                                                            ?.name ??
+                                                        'Creator'}
                                                 </span>
                                                 <span
                                                     className={cn(
                                                         'rounded-full px-2 py-0.5 text-xs font-medium capitalize',
-                                                        APPLICATION_STATUS_STYLES[app.status] ?? '',
+                                                        APPLICATION_STATUS_STYLES[
+                                                            app.status
+                                                        ] ?? '',
                                                     )}
                                                 >
                                                     {app.status}
                                                 </span>
                                             </div>
-                                            {app.creator?.niches && app.creator.niches.length > 0 && (
-                                                <div className="mt-1 flex flex-wrap gap-1">
-                                                    {app.creator.niches.slice(0, 3).map((n) => (
-                                                        <Badge key={n.id} variant="secondary" className="text-xs">
-                                                            {n.name}
-                                                        </Badge>
-                                                    ))}
-                                                </div>
-                                            )}
+                                            {app.creator?.niches &&
+                                                app.creator.niches.length >
+                                                    0 && (
+                                                    <div className="mt-1 flex flex-wrap gap-1">
+                                                        {app.creator.niches
+                                                            .slice(0, 3)
+                                                            .map((n) => (
+                                                                <Badge
+                                                                    key={n.id}
+                                                                    variant="secondary"
+                                                                    className="text-xs"
+                                                                >
+                                                                    {n.name}
+                                                                </Badge>
+                                                            ))}
+                                                    </div>
+                                                )}
                                             {app.pitch && (
-                                                <p className="mt-1.5 text-xs text-muted-foreground line-clamp-2">
+                                                <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">
                                                     {app.pitch}
                                                 </p>
                                             )}
                                             <p className="mt-1 text-xs text-muted-foreground">
-                                                Applied {new Date(app.created_at).toLocaleDateString()}
+                                                Applied{' '}
+                                                {new Date(
+                                                    app.created_at,
+                                                ).toLocaleDateString()}
                                             </p>
                                         </div>
                                     </div>
@@ -205,7 +234,9 @@ export default function BrandEntryReview({
                                         <div className="flex shrink-0 gap-2">
                                             <Button
                                                 size="sm"
-                                                onClick={() => approveApplication(app.id)}
+                                                onClick={() =>
+                                                    approveApplication(app.id)
+                                                }
                                                 className="gap-1"
                                             >
                                                 <Check className="size-3.5" />
@@ -214,7 +245,9 @@ export default function BrandEntryReview({
                                             <Button
                                                 size="sm"
                                                 variant="outline"
-                                                onClick={() => rejectApplication(app.id)}
+                                                onClick={() =>
+                                                    rejectApplication(app.id)
+                                                }
                                                 className="gap-1"
                                             >
                                                 <X className="size-3.5" />

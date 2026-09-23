@@ -14,7 +14,9 @@ const echo =
                   wsHost: import.meta.env.VITE_REVERB_HOST ?? 'localhost',
                   wsPort: Number(import.meta.env.VITE_REVERB_PORT ?? 8080),
                   wssPort: Number(import.meta.env.VITE_REVERB_PORT ?? 8080),
-                  forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'http') === 'https',
+                  forceTLS:
+                      (import.meta.env.VITE_REVERB_SCHEME ?? 'http') ===
+                      'https',
                   enabledTransports: ['ws', 'wss'],
               });
           })()

@@ -72,12 +72,12 @@ function getYoutubeThumbnail(url: string): string | null {
 
 function formatFileSize(bytes: number): string {
     if (bytes < 1024) {
-return `${bytes} B`;
-}
+        return `${bytes} B`;
+    }
 
     if (bytes < 1024 * 1024) {
-return `${(bytes / 1024).toFixed(1)} KB`;
-}
+        return `${(bytes / 1024).toFixed(1)} KB`;
+    }
 
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
@@ -173,14 +173,14 @@ export default function EditCampaign({
         const trimmed = value.trim();
 
         if (!trimmed) {
-return;
-}
+            return;
+        }
 
         const current = form[key] as string[];
 
         if (!current.includes(trimmed)) {
-update(key, [...current, trimmed]);
-}
+            update(key, [...current, trimmed]);
+        }
 
         setter('');
     }
@@ -215,8 +215,8 @@ update(key, [...current, trimmed]);
         setRemoveThumbnail(true);
 
         if (thumbnailInputRef.current) {
-thumbnailInputRef.current.value = '';
-}
+            thumbnailInputRef.current.value = '';
+        }
     }
 
     function handleResourceChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -228,8 +228,8 @@ thumbnailInputRef.current.value = '';
         });
 
         if (resourceInputRef.current) {
-resourceInputRef.current.value = '';
-}
+            resourceInputRef.current.value = '';
+        }
     }
 
     function removeExistingResource(id: string) {
@@ -298,12 +298,12 @@ resourceInputRef.current.value = '';
         );
 
         if (removeThumbnail) {
-data.append('remove_thumbnail', '1');
-}
+            data.append('remove_thumbnail', '1');
+        }
 
         if (thumbnailFile) {
-data.append('thumbnail', thumbnailFile);
-}
+            data.append('thumbnail', thumbnailFile);
+        }
 
         removedResourceIds.forEach((id) =>
             data.append('remove_resource_ids[]', id),
@@ -321,8 +321,8 @@ data.append('thumbnail', thumbnailFile);
 
     function publish() {
         if (!confirm('Publish this campaign? It will go live immediately.')) {
-return;
-}
+            return;
+        }
 
         router.post(`/campaigns/${campaign.id}/publish`);
     }
@@ -465,7 +465,7 @@ return;
                                     <button
                                         type="button"
                                         onClick={handleRemoveThumbnail}
-                                        className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-background/80 text-muted-foreground shadow hover:text-destructive"
+                                        className="absolute top-2 right-2 flex size-6 items-center justify-center rounded-full bg-background/80 text-muted-foreground shadow hover:text-destructive"
                                     >
                                         <X className="size-3" />
                                     </button>
@@ -888,9 +888,7 @@ return;
                             <div className="flex gap-2">
                                 <Input
                                     value={newLink}
-                                    onChange={(e) =>
-                                        setNewLink(e.target.value)
-                                    }
+                                    onChange={(e) => setNewLink(e.target.value)}
                                     placeholder="https://..."
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {

@@ -35,7 +35,9 @@ export default function CoBrands({ campaign, co_brands }: Props) {
 
     const submit = (e: React.SyntheticEvent) => {
         e.preventDefault();
-        post(`/campaigns/${campaign.id}/co-brands`, { onSuccess: () => reset() });
+        post(`/campaigns/${campaign.id}/co-brands`, {
+            onSuccess: () => reset(),
+        });
     };
 
     return (
@@ -48,57 +50,93 @@ export default function CoBrands({ campaign, co_brands }: Props) {
                 />
 
                 <Card>
-                    <CardHeader><CardTitle>Invite a Co-Sponsor</CardTitle></CardHeader>
+                    <CardHeader>
+                        <CardTitle>Invite a Co-Sponsor</CardTitle>
+                    </CardHeader>
                     <CardContent>
                         <form onSubmit={submit} className="space-y-4">
                             <div className="space-y-1.5">
-                                <Label htmlFor="brand_email">Brand email address</Label>
+                                <Label htmlFor="brand_email">
+                                    Brand email address
+                                </Label>
                                 <Input
                                     id="brand_email"
                                     type="email"
                                     value={data.brand_email}
-                                    onChange={(e) => setData('brand_email', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('brand_email', e.target.value)
+                                    }
                                     placeholder="brand@company.com"
                                 />
                                 <InputError message={errors.brand_email} />
                             </div>
                             <div className="space-y-1.5">
-                                <Label htmlFor="contribution_amount">Contribution amount ($)</Label>
+                                <Label htmlFor="contribution_amount">
+                                    Contribution amount ($)
+                                </Label>
                                 <Input
                                     id="contribution_amount"
                                     type="number"
                                     min="1"
                                     step="0.01"
                                     value={data.contribution_amount}
-                                    onChange={(e) => setData('contribution_amount', e.target.value)}
+                                    onChange={(e) =>
+                                        setData(
+                                            'contribution_amount',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="500"
                                 />
-                                <InputError message={errors.contribution_amount} />
+                                <InputError
+                                    message={errors.contribution_amount}
+                                />
                             </div>
-                            <Button type="submit" disabled={processing}>Send Invitation</Button>
+                            <Button type="submit" disabled={processing}>
+                                Send Invitation
+                            </Button>
                         </form>
                     </CardContent>
                 </Card>
 
                 <Card>
-                    <CardHeader><CardTitle>Co-Sponsors</CardTitle></CardHeader>
+                    <CardHeader>
+                        <CardTitle>Co-Sponsors</CardTitle>
+                    </CardHeader>
                     <CardContent>
                         {co_brands.length === 0 ? (
                             <div className="flex flex-col items-center gap-2 py-10 text-center">
                                 <Users className="h-10 w-10 text-muted-foreground" />
-                                <p className="text-sm text-muted-foreground">No co-sponsors yet.</p>
+                                <p className="text-sm text-muted-foreground">
+                                    No co-sponsors yet.
+                                </p>
                             </div>
                         ) : (
                             <div className="space-y-3">
                                 {co_brands.map((cb) => (
-                                    <div key={cb.id} className="flex items-center justify-between rounded-lg border p-3">
+                                    <div
+                                        key={cb.id}
+                                        className="flex items-center justify-between rounded-lg border p-3"
+                                    >
                                         <div>
-                                            <p className="font-medium">{cb.brand_name}</p>
+                                            <p className="font-medium">
+                                                {cb.brand_name}
+                                            </p>
                                             <p className="text-sm text-muted-foreground">
-                                                ${Number(cb.contribution_amount).toLocaleString()} ({cb.contribution_pct}%)
+                                                $
+                                                {Number(
+                                                    cb.contribution_amount,
+                                                ).toLocaleString()}{' '}
+                                                ({cb.contribution_pct}%)
                                             </p>
                                         </div>
-                                        <Badge variant={STATUS_VARIANTS[cb.status] ?? 'outline'} className="capitalize">
+                                        <Badge
+                                            variant={
+                                                STATUS_VARIANTS[cb.status] ??
+                                                'outline'
+                                            }
+                                            className="capitalize"
+                                        >
                                             {cb.status}
                                         </Badge>
                                     </div>

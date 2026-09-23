@@ -106,8 +106,8 @@ export default function Privacy() {
                         </p>
                         <p className="mt-4 leading-relaxed text-gray-600 dark:text-gray-300">
                             Your privacy matters to us. This policy explains
-                            exactly what data Trendko collects, why we
-                            collect it, and how you can control it.
+                            exactly what data Trendko collects, why we collect
+                            it, and how you can control it.
                         </p>
                     </div>
 
@@ -129,8 +129,8 @@ export default function Privacy() {
                 <footer className="mt-16 border-t border-gray-200 py-10 dark:border-gray-800">
                     <div className="mx-auto flex max-w-4xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6">
                         <p className="text-xs text-gray-500">
-                            © {new Date().getFullYear()} Trendko. All
-                            rights reserved.
+                            © {new Date().getFullYear()} Trendko. All rights
+                            reserved.
                         </p>
                         <div className="flex gap-6 text-xs text-gray-500">
                             <Link

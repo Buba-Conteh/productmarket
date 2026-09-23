@@ -32,9 +32,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 interface Props {
     gmv_by_month: { month: string; gmv: number; revenue: number }[];
     commission_by_type: { type: string; commission: number; gmv: number }[];
-    top_campaigns: { id: string; title: string; type: string; total_views: number }[];
+    top_campaigns: {
+        id: string;
+        title: string;
+        type: string;
+        total_views: number;
+    }[];
     user_growth: { month: string; users: number }[];
-    subscription_breakdown: { plan: string; role: string; count: number; mrr_cents: number }[];
+    subscription_breakdown: {
+        plan: string;
+        role: string;
+        count: number;
+        mrr_cents: number;
+    }[];
     subscription_growth: { month: string; subscriptions: number }[];
     summary: {
         total_gmv: number;
@@ -83,7 +93,9 @@ export default function AdminAnalytics({
     summary,
 }: Props) {
     const brandPlans = subscription_breakdown.filter((p) => p.role === 'brand');
-    const creatorPlans = subscription_breakdown.filter((p) => p.role === 'creator');
+    const creatorPlans = subscription_breakdown.filter(
+        (p) => p.role === 'creator',
+    );
 
     return (
         <>
@@ -96,7 +108,7 @@ export default function AdminAnalytics({
 
                 {/* ── Revenue KPIs ── */}
                 <section className="space-y-3">
-                    <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                    <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
                         Revenue
                     </h2>
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -127,7 +139,7 @@ export default function AdminAnalytics({
 
                 {/* ── Subscription KPIs ── */}
                 <section className="space-y-3">
-                    <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                    <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
                         Subscriptions
                     </h2>
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -151,7 +163,7 @@ export default function AdminAnalytics({
 
                 {/* ── Users & Registrations ── */}
                 <section className="space-y-3">
-                    <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                    <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
                         Users
                     </h2>
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -190,14 +202,45 @@ export default function AdminAnalytics({
                             </p>
                         ) : (
                             <ResponsiveContainer width="100%" height={260}>
-                                <BarChart data={gmv_by_month} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                                    <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                                    <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-                                    <Tooltip formatter={(v) => fmt(Number(v))} />
+                                <BarChart
+                                    data={gmv_by_month}
+                                    margin={{
+                                        top: 4,
+                                        right: 16,
+                                        left: 0,
+                                        bottom: 0,
+                                    }}
+                                >
+                                    <CartesianGrid
+                                        strokeDasharray="3 3"
+                                        className="stroke-border"
+                                    />
+                                    <XAxis
+                                        dataKey="month"
+                                        tick={{ fontSize: 11 }}
+                                    />
+                                    <YAxis
+                                        tick={{ fontSize: 11 }}
+                                        tickFormatter={(v) =>
+                                            `$${(v / 1000).toFixed(0)}k`
+                                        }
+                                    />
+                                    <Tooltip
+                                        formatter={(v) => fmt(Number(v))}
+                                    />
                                     <Legend />
-                                    <Bar dataKey="gmv" name="GMV" fill="#6366f1" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="revenue" name="Commission" fill="#a78bfa" radius={[4, 4, 0, 0]} />
+                                    <Bar
+                                        dataKey="gmv"
+                                        name="GMV"
+                                        fill="#6366f1"
+                                        radius={[4, 4, 0, 0]}
+                                    />
+                                    <Bar
+                                        dataKey="revenue"
+                                        name="Commission"
+                                        fill="#a78bfa"
+                                        radius={[4, 4, 0, 0]}
+                                    />
                                 </BarChart>
                             </ResponsiveContainer>
                         )}
@@ -217,7 +260,10 @@ export default function AdminAnalytics({
                                 </p>
                             ) : (
                                 <div className="flex items-center gap-6">
-                                    <ResponsiveContainer width="50%" height={200}>
+                                    <ResponsiveContainer
+                                        width="50%"
+                                        height={200}
+                                    >
                                         <PieChart>
                                             <Pie
                                                 data={commission_by_type}
@@ -231,28 +277,50 @@ export default function AdminAnalytics({
                                                 }
                                                 labelLine={false}
                                             >
-                                                {commission_by_type.map((entry) => (
-                                                    <Cell
-                                                        key={entry.type}
-                                                        fill={TYPE_COLORS[entry.type] ?? '#6366f1'}
-                                                    />
-                                                ))}
+                                                {commission_by_type.map(
+                                                    (entry) => (
+                                                        <Cell
+                                                            key={entry.type}
+                                                            fill={
+                                                                TYPE_COLORS[
+                                                                    entry.type
+                                                                ] ?? '#6366f1'
+                                                            }
+                                                        />
+                                                    ),
+                                                )}
                                             </Pie>
-                                            <Tooltip formatter={(v) => fmt(Number(v))} />
+                                            <Tooltip
+                                                formatter={(v) =>
+                                                    fmt(Number(v))
+                                                }
+                                            />
                                         </PieChart>
                                     </ResponsiveContainer>
                                     <div className="flex-1 space-y-3">
                                         {commission_by_type.map((row) => (
-                                            <div key={row.type} className="flex items-center justify-between gap-2">
+                                            <div
+                                                key={row.type}
+                                                className="flex items-center justify-between gap-2"
+                                            >
                                                 <div className="flex items-center gap-2">
                                                     <span
                                                         className="h-2.5 w-2.5 rounded-full"
-                                                        style={{ background: TYPE_COLORS[row.type] ?? '#6366f1' }}
+                                                        style={{
+                                                            background:
+                                                                TYPE_COLORS[
+                                                                    row.type
+                                                                ] ?? '#6366f1',
+                                                        }}
                                                     />
-                                                    <span className="text-sm">{row.type}</span>
+                                                    <span className="text-sm">
+                                                        {row.type}
+                                                    </span>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-sm font-medium">{fmt(row.commission)}</p>
+                                                    <p className="text-sm font-medium">
+                                                        {fmt(row.commission)}
+                                                    </p>
                                                     <p className="text-xs text-muted-foreground">
                                                         GMV {fmt(row.gmv)}
                                                     </p>
@@ -267,7 +335,9 @@ export default function AdminAnalytics({
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>New Subscriptions — Last 6 Months</CardTitle>
+                            <CardTitle>
+                                New Subscriptions — Last 6 Months
+                            </CardTitle>
                         </CardHeader>
                         <CardContent>
                             {subscription_growth.length === 0 ? (
@@ -278,10 +348,21 @@ export default function AdminAnalytics({
                                 <ResponsiveContainer width="100%" height={220}>
                                     <LineChart
                                         data={subscription_growth}
-                                        margin={{ top: 4, right: 16, left: 0, bottom: 0 }}
+                                        margin={{
+                                            top: 4,
+                                            right: 16,
+                                            left: 0,
+                                            bottom: 0,
+                                        }}
                                     >
-                                        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                                        <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                                        <CartesianGrid
+                                            strokeDasharray="3 3"
+                                            className="stroke-border"
+                                        />
+                                        <XAxis
+                                            dataKey="month"
+                                            tick={{ fontSize: 11 }}
+                                        />
                                         <YAxis tick={{ fontSize: 11 }} />
                                         <Tooltip />
                                         <Line
@@ -312,10 +393,14 @@ export default function AdminAnalytics({
                                 </p>
                             ) : (
                                 <div className="space-y-1">
-                                    <div className="mb-3 grid grid-cols-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    <div className="mb-3 grid grid-cols-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                         <span>Plan</span>
-                                        <span className="text-center">Subscribers</span>
-                                        <span className="text-right">Est. MRR</span>
+                                        <span className="text-center">
+                                            Subscribers
+                                        </span>
+                                        <span className="text-right">
+                                            Est. MRR
+                                        </span>
                                     </div>
                                     {brandPlans.map((p, i) => (
                                         <div
@@ -325,13 +410,22 @@ export default function AdminAnalytics({
                                             <div className="flex items-center gap-2">
                                                 <span
                                                     className="h-2.5 w-2.5 rounded-full"
-                                                    style={{ background: PIE_COLORS[i % PIE_COLORS.length] }}
+                                                    style={{
+                                                        background:
+                                                            PIE_COLORS[
+                                                                i %
+                                                                    PIE_COLORS.length
+                                                            ],
+                                                    }}
                                                 />
                                                 <span className="text-sm font-medium">
-                                                    {PLAN_LABELS[p.plan] ?? p.plan}
+                                                    {PLAN_LABELS[p.plan] ??
+                                                        p.plan}
                                                 </span>
                                             </div>
-                                            <span className="text-center text-sm">{p.count.toLocaleString()}</span>
+                                            <span className="text-center text-sm">
+                                                {p.count.toLocaleString()}
+                                            </span>
                                             <span className="text-right text-sm font-medium">
                                                 {fmt(p.mrr_cents / 100)}
                                             </span>
@@ -353,10 +447,14 @@ export default function AdminAnalytics({
                                 </p>
                             ) : (
                                 <div className="space-y-1">
-                                    <div className="mb-3 grid grid-cols-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    <div className="mb-3 grid grid-cols-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                         <span>Plan</span>
-                                        <span className="text-center">Subscribers</span>
-                                        <span className="text-right">Est. MRR</span>
+                                        <span className="text-center">
+                                            Subscribers
+                                        </span>
+                                        <span className="text-right">
+                                            Est. MRR
+                                        </span>
                                     </div>
                                     {creatorPlans.map((p, i) => (
                                         <div
@@ -366,13 +464,22 @@ export default function AdminAnalytics({
                                             <div className="flex items-center gap-2">
                                                 <span
                                                     className="h-2.5 w-2.5 rounded-full"
-                                                    style={{ background: PIE_COLORS[i % PIE_COLORS.length] }}
+                                                    style={{
+                                                        background:
+                                                            PIE_COLORS[
+                                                                i %
+                                                                    PIE_COLORS.length
+                                                            ],
+                                                    }}
                                                 />
                                                 <span className="text-sm font-medium">
-                                                    {PLAN_LABELS[p.plan] ?? p.plan}
+                                                    {PLAN_LABELS[p.plan] ??
+                                                        p.plan}
                                                 </span>
                                             </div>
-                                            <span className="text-center text-sm">{p.count.toLocaleString()}</span>
+                                            <span className="text-center text-sm">
+                                                {p.count.toLocaleString()}
+                                            </span>
                                             <span className="text-right text-sm font-medium">
                                                 {fmt(p.mrr_cents / 100)}
                                             </span>
@@ -388,16 +495,34 @@ export default function AdminAnalytics({
                 <div className="grid gap-4 lg:grid-cols-2">
                     <Card>
                         <CardHeader>
-                            <CardTitle>User Registrations — Last 6 Months</CardTitle>
+                            <CardTitle>
+                                User Registrations — Last 6 Months
+                            </CardTitle>
                         </CardHeader>
                         <CardContent>
                             {user_growth.length === 0 ? (
-                                <p className="py-8 text-center text-sm text-muted-foreground">No data yet.</p>
+                                <p className="py-8 text-center text-sm text-muted-foreground">
+                                    No data yet.
+                                </p>
                             ) : (
                                 <ResponsiveContainer width="100%" height={220}>
-                                    <LineChart data={user_growth} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                                        <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                                    <LineChart
+                                        data={user_growth}
+                                        margin={{
+                                            top: 4,
+                                            right: 16,
+                                            left: 0,
+                                            bottom: 0,
+                                        }}
+                                    >
+                                        <CartesianGrid
+                                            strokeDasharray="3 3"
+                                            className="stroke-border"
+                                        />
+                                        <XAxis
+                                            dataKey="month"
+                                            tick={{ fontSize: 11 }}
+                                        />
                                         <YAxis tick={{ fontSize: 11 }} />
                                         <Tooltip />
                                         <Line
@@ -426,21 +551,28 @@ export default function AdminAnalytics({
                             ) : (
                                 <div className="space-y-3">
                                     {top_campaigns.map((c, i) => (
-                                        <div key={c.id} className="flex items-center justify-between gap-2">
+                                        <div
+                                            key={c.id}
+                                            className="flex items-center justify-between gap-2"
+                                        >
                                             <div className="flex min-w-0 items-center gap-2">
                                                 <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
                                                     {i + 1}
                                                 </span>
-                                                <span className="truncate text-sm">{c.title}</span>
+                                                <span className="truncate text-sm">
+                                                    {c.title}
+                                                </span>
                                                 <Badge
                                                     variant="outline"
-                                                    className="flex-shrink-0 capitalize text-xs"
+                                                    className="flex-shrink-0 text-xs capitalize"
                                                 >
                                                     {c.type}
                                                 </Badge>
                                             </div>
                                             <span className="flex-shrink-0 text-sm font-medium">
-                                                {Number(c.total_views).toLocaleString()}
+                                                {Number(
+                                                    c.total_views,
+                                                ).toLocaleString()}
                                             </span>
                                         </div>
                                     ))}
@@ -458,26 +590,39 @@ export default function AdminAnalytics({
                     <CardContent>
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                             <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
-                                <p className="text-xs text-muted-foreground">Total Users</p>
+                                <p className="text-xs text-muted-foreground">
+                                    Total Users
+                                </p>
                                 <p className="mt-1 text-2xl font-semibold">
-                                    {(summary.total_brands + summary.total_creators).toLocaleString()}
+                                    {(
+                                        summary.total_brands +
+                                        summary.total_creators
+                                    ).toLocaleString()}
                                 </p>
                             </div>
                             <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
-                                <p className="text-xs text-muted-foreground">Entries Submitted</p>
+                                <p className="text-xs text-muted-foreground">
+                                    Entries Submitted
+                                </p>
                                 <p className="mt-1 text-2xl font-semibold">
                                     {summary.total_entries.toLocaleString()}
                                 </p>
                             </div>
                             <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
-                                <p className="text-xs text-muted-foreground">New Users Today</p>
+                                <p className="text-xs text-muted-foreground">
+                                    New Users Today
+                                </p>
                                 <p className="mt-1 text-2xl font-semibold">
                                     {summary.new_users_today.toLocaleString()}
                                 </p>
                             </div>
                             <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
-                                <p className="text-xs text-muted-foreground">Commission Take Rate</p>
-                                <p className="mt-1 text-2xl font-semibold">{summary.take_rate_pct}%</p>
+                                <p className="text-xs text-muted-foreground">
+                                    Commission Take Rate
+                                </p>
+                                <p className="mt-1 text-2xl font-semibold">
+                                    {summary.take_rate_pct}%
+                                </p>
                             </div>
                         </div>
                     </CardContent>

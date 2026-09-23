@@ -156,28 +156,40 @@ export default function BrandCampaignIndex({
                                             <div
                                                 className={cn(
                                                     'flex h-full w-full items-center justify-center bg-gradient-to-br',
-                                                    TYPE_GRADIENTS[campaign.type] ?? 'from-gray-400 to-gray-600',
+                                                    TYPE_GRADIENTS[
+                                                        campaign.type
+                                                    ] ??
+                                                        'from-gray-400 to-gray-600',
                                                 )}
                                             >
                                                 <span className="text-2xl font-bold text-white/20">
-                                                    {campaign.title.charAt(0).toUpperCase()}
+                                                    {campaign.title
+                                                        .charAt(0)
+                                                        .toUpperCase()}
                                                 </span>
                                             </div>
                                         )}
-                                        <div className="absolute top-2 left-2 right-2 flex items-start justify-between">
+                                        <div className="absolute top-2 right-2 left-2 flex items-start justify-between">
                                             <Badge
                                                 variant="secondary"
-                                                className="bg-black/50 text-white backdrop-blur-sm hover:bg-black/50 capitalize border-0 text-xs"
+                                                className="border-0 bg-black/50 text-xs text-white capitalize backdrop-blur-sm hover:bg-black/50"
                                             >
-                                                {TYPE_LABELS[campaign.type] ?? campaign.type}
+                                                {TYPE_LABELS[campaign.type] ??
+                                                    campaign.type}
                                             </Badge>
                                             <span
                                                 className={cn(
                                                     'rounded-full px-2 py-0.5 text-xs font-medium',
-                                                    STATUS_STYLES[campaign.status] ?? 'bg-muted text-muted-foreground',
+                                                    STATUS_STYLES[
+                                                        campaign.status
+                                                    ] ??
+                                                        'bg-muted text-muted-foreground',
                                                 )}
                                             >
-                                                {campaign.status.replace('_', ' ')}
+                                                {campaign.status.replace(
+                                                    '_',
+                                                    ' ',
+                                                )}
                                             </span>
                                         </div>
                                     </div>

@@ -65,7 +65,8 @@ const CAMPAIGN_TYPES: {
     {
         key: 'pitch',
         name: 'Pitch',
-        description: 'List your product — creators pitch themselves with a bid.',
+        description:
+            'List your product — creators pitch themselves with a bid.',
         icon: Megaphone,
     },
 ];
@@ -132,12 +133,12 @@ function getYoutubeThumbnail(url: string): string | null {
 
 function formatFileSize(bytes: number): string {
     if (bytes < 1024) {
-return `${bytes} B`;
-}
+        return `${bytes} B`;
+    }
 
     if (bytes < 1024 * 1024) {
-return `${(bytes / 1024).toFixed(1)} KB`;
-}
+        return `${(bytes / 1024).toFixed(1)} KB`;
+    }
 
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
@@ -194,8 +195,8 @@ export default function CreateCampaign({ platforms, contentTypes }: Props) {
         const trimmed = value.trim();
 
         if (!trimmed) {
-return;
-}
+            return;
+        }
 
         const current = form[key] as string[];
 
@@ -260,46 +261,46 @@ return;
 
         if (step === 1) {
             if (!form.title.trim()) {
-errs.title = 'Title is required.';
-}
+                errs.title = 'Title is required.';
+            }
 
             if (form.type === 'contest') {
                 if (!form.prize_amount || Number(form.prize_amount) <= 0) {
-errs.prize_amount = 'Prize amount is required.';
-}
+                    errs.prize_amount = 'Prize amount is required.';
+                }
             }
 
             if (form.type === 'ripple') {
                 if (!form.initial_fee && form.initial_fee !== '0') {
-errs.initial_fee = 'Initial fee is required.';
-}
+                    errs.initial_fee = 'Initial fee is required.';
+                }
 
                 if (!form.rpm_rate || Number(form.rpm_rate) <= 0) {
-errs.rpm_rate = 'RPM rate is required.';
-}
+                    errs.rpm_rate = 'RPM rate is required.';
+                }
 
                 if (!form.total_budget || Number(form.total_budget) <= 0) {
-errs.total_budget = 'Total budget is required.';
-}
+                    errs.total_budget = 'Total budget is required.';
+                }
             }
 
             if (form.type === 'pitch') {
                 if (!form.product_name.trim()) {
-errs.product_name = 'Product name is required.';
-}
+                    errs.product_name = 'Product name is required.';
+                }
             }
         }
 
         if (step === 2) {
             if (!form.brief.trim()) {
-errs.brief = 'Brief is required.';
-}
+                errs.brief = 'Brief is required.';
+            }
         }
 
         if (step === 3) {
             if (form.platform_ids.length === 0) {
-errs.platform_ids = 'Select at least one platform.';
-}
+                errs.platform_ids = 'Select at least one platform.';
+            }
         }
 
         setErrors(errs);
@@ -309,8 +310,8 @@ errs.platform_ids = 'Select at least one platform.';
 
     function next() {
         if (validateStep()) {
-setStep((s) => Math.min(s + 1, STEPS.length - 1));
-}
+            setStep((s) => Math.min(s + 1, STEPS.length - 1));
+        }
     }
 
     function back() {
@@ -319,8 +320,8 @@ setStep((s) => Math.min(s + 1, STEPS.length - 1));
 
     function submit() {
         if (!validateStep()) {
-return;
-}
+            return;
+        }
 
         setSubmitting(true);
 
@@ -376,8 +377,8 @@ return;
 
         // Files
         if (thumbnailFile) {
-data.append('thumbnail', thumbnailFile);
-}
+            data.append('thumbnail', thumbnailFile);
+        }
 
         resourceFiles.forEach((f) => data.append('resources[]', f));
 
@@ -407,8 +408,8 @@ data.append('thumbnail', thumbnailFile);
                             <button
                                 onClick={() => {
                                     if (i < step) {
-setStep(i);
-}
+                                        setStep(i);
+                                    }
                                 }}
                                 className={cn(
                                     'flex size-8 items-center justify-center rounded-full text-xs font-medium transition-colors',
@@ -831,7 +832,7 @@ setStep(i);
                                     <button
                                         type="button"
                                         onClick={removeThumbnail}
-                                        className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-background/80 text-muted-foreground shadow hover:text-destructive"
+                                        className="absolute top-2 right-2 flex size-6 items-center justify-center rounded-full bg-background/80 text-muted-foreground shadow hover:text-destructive"
                                     >
                                         <X className="size-3" />
                                     </button>
@@ -1005,9 +1006,7 @@ setStep(i);
                             <div className="flex gap-2">
                                 <Input
                                     value={newLink}
-                                    onChange={(e) =>
-                                        setNewLink(e.target.value)
-                                    }
+                                    onChange={(e) => setNewLink(e.target.value)}
                                     placeholder="https://..."
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
@@ -1092,8 +1091,8 @@ setStep(i);
                             <Label>Brand resources</Label>
                             <p className="text-xs text-muted-foreground">
                                 Upload assets creators can use — brand
-                                guidelines, logos, product shots, scripts.
-                                Up to 10 files, 20 MB each.
+                                guidelines, logos, product shots, scripts. Up to
+                                10 files, 20 MB each.
                             </p>
                             <button
                                 type="button"

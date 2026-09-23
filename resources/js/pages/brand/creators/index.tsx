@@ -5,12 +5,7 @@ import Heading from '@/components/heading';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
     Select,
@@ -32,12 +27,12 @@ type Props = {
 
 function formatCount(n: number): string {
     if (n >= 1_000_000) {
-return `${(n / 1_000_000).toFixed(1)}M`;
-}
+        return `${(n / 1_000_000).toFixed(1)}M`;
+    }
 
     if (n >= 1_000) {
-return `${(n / 1_000).toFixed(1)}K`;
-}
+        return `${(n / 1_000).toFixed(1)}K`;
+    }
 
     return String(n);
 }
@@ -54,8 +49,8 @@ export default function BrandCreatorSearch({
         const updated = { ...filters, [key]: value || undefined };
 
         if (!value) {
-delete updated[key];
-}
+            delete updated[key];
+        }
 
         router.get('/creators', updated, { preserveState: true });
     }
@@ -98,7 +93,10 @@ delete updated[key];
                         <Select
                             value={filters.niche_id ?? 'all'}
                             onValueChange={(v) =>
-                                applyFilter('niche_id', v === 'all' ? undefined : v)
+                                applyFilter(
+                                    'niche_id',
+                                    v === 'all' ? undefined : v,
+                                )
                             }
                         >
                             <SelectTrigger className="w-[160px]">
@@ -117,14 +115,19 @@ delete updated[key];
                         <Select
                             value={filters.platform_id ?? 'all'}
                             onValueChange={(v) =>
-                                applyFilter('platform_id', v === 'all' ? undefined : v)
+                                applyFilter(
+                                    'platform_id',
+                                    v === 'all' ? undefined : v,
+                                )
                             }
                         >
                             <SelectTrigger className="w-[160px]">
                                 <SelectValue placeholder="All platforms" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All platforms</SelectItem>
+                                <SelectItem value="all">
+                                    All platforms
+                                </SelectItem>
                                 {platforms.map((p) => (
                                     <SelectItem key={p.id} value={p.id}>
                                         {p.name}
@@ -188,9 +191,7 @@ delete updated[key];
                         <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
                             <Users className="size-10 text-muted-foreground" />
                             <div>
-                                <p className="font-medium">
-                                    No creators found
-                                </p>
+                                <p className="font-medium">No creators found</p>
                                 <p className="mt-1 text-sm text-muted-foreground">
                                     Try adjusting your filters.
                                 </p>
@@ -237,7 +238,10 @@ delete updated[key];
                                                     </CardTitle>
                                                     {creator.user.country && (
                                                         <p className="text-xs text-muted-foreground">
-                                                            {creator.user.country}
+                                                            {
+                                                                creator.user
+                                                                    .country
+                                                            }
                                                         </p>
                                                     )}
                                                 </div>
@@ -266,34 +270,50 @@ delete updated[key];
                                                 </div>
                                             )}
 
-                                            {creator.social_accounts.length > 0 && (
+                                            {creator.social_accounts.length >
+                                                0 && (
                                                 <div className="space-y-1.5">
-                                                    {creator.social_accounts.map((account) => (
-                                                        <div
-                                                            key={account.platform.slug}
-                                                            className="flex items-center justify-between rounded-md border px-2 py-1.5 text-xs"
-                                                        >
-                                                            <span className="font-medium text-muted-foreground">
-                                                                {account.platform.name}
-                                                            </span>
-                                                            <div className="flex items-center gap-3">
-                                                                <span className="flex items-center gap-1">
-                                                                    <Users className="size-3 text-muted-foreground" />
-                                                                    <span className="font-semibold">
-                                                                        {formatCount(account.follower_count)}
-                                                                    </span>
+                                                    {creator.social_accounts.map(
+                                                        (account) => (
+                                                            <div
+                                                                key={
+                                                                    account
+                                                                        .platform
+                                                                        .slug
+                                                                }
+                                                                className="flex items-center justify-between rounded-md border px-2 py-1.5 text-xs"
+                                                            >
+                                                                <span className="font-medium text-muted-foreground">
+                                                                    {
+                                                                        account
+                                                                            .platform
+                                                                            .name
+                                                                    }
                                                                 </span>
-                                                                {account.avg_views != null && (
+                                                                <div className="flex items-center gap-3">
                                                                     <span className="flex items-center gap-1">
-                                                                        <Eye className="size-3 text-muted-foreground" />
+                                                                        <Users className="size-3 text-muted-foreground" />
                                                                         <span className="font-semibold">
-                                                                            {formatCount(account.avg_views)}
+                                                                            {formatCount(
+                                                                                account.follower_count,
+                                                                            )}
                                                                         </span>
                                                                     </span>
-                                                                )}
+                                                                    {account.avg_views !=
+                                                                        null && (
+                                                                        <span className="flex items-center gap-1">
+                                                                            <Eye className="size-3 text-muted-foreground" />
+                                                                            <span className="font-semibold">
+                                                                                {formatCount(
+                                                                                    account.avg_views,
+                                                                                )}
+                                                                            </span>
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    ))}
+                                                        ),
+                                                    )}
                                                 </div>
                                             )}
                                         </CardContent>

@@ -101,7 +101,9 @@ export default function SubmitEntry({
     const [videoFile, setVideoFile] = useState<File | null>(null);
     const [videoPreview, setVideoPreview] = useState<string | null>(null);
     // Kept so a failed submit does not re-upload a file the bucket already has.
-    const [uploadedRef, setUploadedRef] = useState<UploadedFileRef | null>(null);
+    const [uploadedRef, setUploadedRef] = useState<UploadedFileRef | null>(
+        null,
+    );
     const videoInputRef = useRef<HTMLInputElement>(null);
     const directUpload = useDirectUpload();
     const maxVideoMb = Math.round(upload.maxBytes / (1024 * 1024));

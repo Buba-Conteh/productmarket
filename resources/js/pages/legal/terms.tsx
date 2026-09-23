@@ -106,9 +106,9 @@ export default function Terms() {
                         </p>
                         <p className="mt-4 leading-relaxed text-gray-600 dark:text-gray-300">
                             Please read these Terms of Service carefully before
-                            using Trendko. By creating an account or using
-                            any part of the Platform you agree to be bound by
-                            these Terms.
+                            using Trendko. By creating an account or using any
+                            part of the Platform you agree to be bound by these
+                            Terms.
                         </p>
                     </div>
 
@@ -130,8 +130,8 @@ export default function Terms() {
                 <footer className="mt-16 border-t border-gray-200 py-10 dark:border-gray-800">
                     <div className="mx-auto flex max-w-4xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6">
                         <p className="text-xs text-gray-500">
-                            © {new Date().getFullYear()} Trendko. All
-                            rights reserved.
+                            © {new Date().getFullYear()} Trendko. All rights
+                            reserved.
                         </p>
                         <div className="flex gap-6 text-xs text-gray-500">
                             <Link

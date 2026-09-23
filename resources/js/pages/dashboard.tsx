@@ -76,7 +76,10 @@ interface PageProps extends Record<string, unknown> {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-const eventIconMap: Record<EventType, { icon: LucideIcon; tone: ActivityItem['tone'] }> = {
+const eventIconMap: Record<
+    EventType,
+    { icon: LucideIcon; tone: ActivityItem['tone'] }
+> = {
     entry_submitted: { icon: FileVideo, tone: 'primary' },
     entry_approved: { icon: CheckCircle2, tone: 'success' },
     entry_live: { icon: Eye, tone: 'success' },
@@ -89,12 +92,17 @@ const eventIconMap: Record<EventType, { icon: LucideIcon; tone: ActivityItem['to
 
 function mapActivity(raw: RawActivity[]): ActivityItem[] {
     return raw.map((r) => {
-        const config = eventIconMap[r.event_type] ?? { icon: Compass, tone: 'neutral' as const };
+        const config = eventIconMap[r.event_type] ?? {
+            icon: Compass,
+            tone: 'neutral' as const,
+        };
         return {
             id: r.id,
             title: r.title,
             description: r.description,
-            meta: formatDistanceToNow(new Date(r.created_at), { addSuffix: true }),
+            meta: formatDistanceToNow(new Date(r.created_at), {
+                addSuffix: true,
+            }),
             icon: config.icon,
             tone: config.tone,
         };
@@ -133,7 +141,10 @@ function BrandDashboard({
                 eyebrow="Brand workspace"
                 greeting={`Welcome back, ${name}`}
                 description="Launch a campaign, review fresh entries, and track how your creators are performing — all in one place."
-                primaryCta={{ label: 'Create campaign', href: '/campaigns/create' }}
+                primaryCta={{
+                    label: 'Create campaign',
+                    href: '/campaigns/create',
+                }}
                 secondaryCta={{ label: 'Browse creators', href: '/creators' }}
             />
 
@@ -141,7 +152,10 @@ function BrandDashboard({
                 <div className="flex items-center justify-between gap-3 rounded-xl border border-yellow-200 bg-yellow-50 px-5 py-3.5 text-sm dark:border-yellow-900/50 dark:bg-yellow-950/30">
                     <div className="flex items-center gap-2.5 text-yellow-800 dark:text-yellow-300">
                         <CreditCard className="size-4 shrink-0" />
-                        <span>No active subscription — campaign creation is disabled until you pick a plan.</span>
+                        <span>
+                            No active subscription — campaign creation is
+                            disabled until you pick a plan.
+                        </span>
                     </div>
                     <Link
                         href="/settings/billing/brand"
@@ -172,7 +186,11 @@ function BrandDashboard({
                 <StatCard
                     label="Entries this week"
                     value={s ? String(s.entries_this_week) : '—'}
-                    delta={s && s.entries_this_week > 0 ? `+${s.entries_this_week}` : undefined}
+                    delta={
+                        s && s.entries_this_week > 0
+                            ? `+${s.entries_this_week}`
+                            : undefined
+                    }
                     trend={s && s.entries_this_week > 0 ? 'up' : 'flat'}
                     icon={Users}
                 />
@@ -184,7 +202,11 @@ function BrandDashboard({
                         title="Campaign entries"
                         subtitle="Entries submitted per month"
                         currentValue={s ? String(s.total_entries) : '0'}
-                        currentDelta={s && s.entries_this_week > 0 ? `+${s.entries_this_week} this week` : undefined}
+                        currentDelta={
+                            s && s.entries_this_week > 0
+                                ? `+${s.entries_this_week} this week`
+                                : undefined
+                        }
                         data={chart?.data ?? emptyChart}
                         labels={chart?.labels}
                     />
@@ -199,7 +221,8 @@ function BrandDashboard({
                                       {
                                           id: 'empty',
                                           title: 'No recent activity',
-                                          description: 'Entry actions will appear here',
+                                          description:
+                                              'Entry actions will appear here',
                                           meta: '',
                                           icon: Compass,
                                           tone: 'neutral',
@@ -253,7 +276,9 @@ function CreatorDashboard({
                         href="/onboarding/creator/payout"
                         className="shrink-0 font-medium text-yellow-900 underline-offset-2 hover:underline dark:text-yellow-200"
                     >
-                        {s.stripe_connect_status === 'restricted' ? 'Fix account →' : 'Set up payouts →'}
+                        {s.stripe_connect_status === 'restricted'
+                            ? 'Fix account →'
+                            : 'Set up payouts →'}
                     </Link>
                 </div>
             )}
@@ -268,7 +293,11 @@ function CreatorDashboard({
                 <StatCard
                     label="Pending earnings"
                     value={s ? formatCurrency(s.pending_earnings) : '—'}
-                    delta={s && s.pending_payouts_count > 0 ? `${s.pending_payouts_count} payout${s.pending_payouts_count !== 1 ? 's' : ''}` : undefined}
+                    delta={
+                        s && s.pending_payouts_count > 0
+                            ? `${s.pending_payouts_count} payout${s.pending_payouts_count !== 1 ? 's' : ''}`
+                            : undefined
+                    }
                     trend="flat"
                     icon={Clock}
                 />
@@ -289,7 +318,9 @@ function CreatorDashboard({
                     <PerformanceChart
                         title="Monthly earnings"
                         subtitle="Net earnings paid out"
-                        currentValue={s ? formatCurrency(s.total_earned) : '$0.00'}
+                        currentValue={
+                            s ? formatCurrency(s.total_earned) : '$0.00'
+                        }
                         currentDelta={
                             s && Number(s.pending_earnings) > 0
                                 ? `${formatCurrency(s.pending_earnings)} pending`
@@ -309,7 +340,8 @@ function CreatorDashboard({
                                       {
                                           id: 'empty',
                                           title: 'No recent activity',
-                                          description: 'Entry and payout events will appear here',
+                                          description:
+                                              'Entry and payout events will appear here',
                                           meta: '',
                                           icon: Compass,
                                           tone: 'neutral',
@@ -325,7 +357,10 @@ function CreatorDashboard({
                     <span className="text-muted-foreground">
                         Full payout history and Stripe status
                     </span>
-                    <Link href="/wallet" className="text-primary font-medium hover:underline">
+                    <Link
+                        href="/wallet"
+                        className="font-medium text-primary hover:underline"
+                    >
                         View wallet →
                     </Link>
                 </div>
@@ -379,7 +414,9 @@ export default function Dashboard() {
                         activity={activity}
                     />
                 )}
-                {!isBrand && !isCreator && <FallbackDashboard name={firstName} />}
+                {!isBrand && !isCreator && (
+                    <FallbackDashboard name={firstName} />
+                )}
             </div>
         </>
     );

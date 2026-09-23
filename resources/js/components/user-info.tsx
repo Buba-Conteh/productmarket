@@ -39,7 +39,7 @@ export function UserInfo({
                     {planLabel && (
                         <span
                             className={cn(
-                                'inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none',
+                                'inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[10px] leading-none font-semibold',
                                 billing?.plan === 'pro' &&
                                     'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300',
                                 billing?.plan === 'starter' &&

@@ -56,8 +56,8 @@ type Props = {
 
 function formatPrice(cents: number): string {
     if (cents === 0) {
-return '$0';
-}
+        return '$0';
+    }
 
     return `$${(cents / 100).toFixed(0)}`;
 }
@@ -112,8 +112,8 @@ export default function CreatorBillingSettings({
                 'Cancel your Creator Pro subscription at the end of this billing period?',
             )
         ) {
-return;
-}
+            return;
+        }
 
         router.post('/billing/creator/cancel');
     }

@@ -103,9 +103,7 @@ export function EntryCard({ entry, href }: Props) {
                 <CardContent className="space-y-3">
                     {entry.pitch_details && (
                         <div className="flex items-center gap-1.5 text-sm">
-                            <span className="text-muted-foreground">
-                                Bid:
-                            </span>
+                            <span className="text-muted-foreground">Bid:</span>
                             <span className="font-semibold text-green-600">
                                 $
                                 {Number(

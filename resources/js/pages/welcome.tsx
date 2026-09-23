@@ -901,7 +901,9 @@ export default function Welcome({
                                 >
                                     Privacy
                                 </Link>
-                                <span>© {new Date().getFullYear()} Trendko</span>
+                                <span>
+                                    © {new Date().getFullYear()} Trendko
+                                </span>
                             </div>
                         </div>
                     </div>

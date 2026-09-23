@@ -56,15 +56,13 @@ export function CampaignThumbnail({
             )}
 
             {topOverlay && (
-                <div className="absolute top-2 left-2 right-2 flex items-start justify-between">
+                <div className="absolute top-2 right-2 left-2 flex items-start justify-between">
                     {topOverlay}
                 </div>
             )}
 
             {bottomOverlay && (
-                <div className="absolute bottom-3 right-3">
-                    {bottomOverlay}
-                </div>
+                <div className="absolute right-3 bottom-3">{bottomOverlay}</div>
             )}
         </div>
     );

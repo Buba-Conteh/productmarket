@@ -29,7 +29,11 @@ interface Props {
     brand: { id: string; company_name: string; is_agency: boolean };
 }
 
-const ROLE_LABELS: Record<string, string> = { owner: 'Owner', manager: 'Manager', viewer: 'Viewer' };
+const ROLE_LABELS: Record<string, string> = {
+    owner: 'Owner',
+    manager: 'Manager',
+    viewer: 'Viewer',
+};
 
 export default function Agency({ members, brand }: Props) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -60,7 +64,9 @@ export default function Agency({ members, brand }: Props) {
                 />
 
                 <Card>
-                    <CardHeader><CardTitle>Invite Team Member</CardTitle></CardHeader>
+                    <CardHeader>
+                        <CardTitle>Invite Team Member</CardTitle>
+                    </CardHeader>
                     <CardContent>
                         <form onSubmit={submit} className="space-y-4">
                             <div className="grid gap-4 sm:grid-cols-2">
@@ -70,25 +76,40 @@ export default function Agency({ members, brand }: Props) {
                                         id="email"
                                         type="email"
                                         value={data.email}
-                                        onChange={(e) => setData('email', e.target.value)}
+                                        onChange={(e) =>
+                                            setData('email', e.target.value)
+                                        }
                                         placeholder="team@company.com"
                                     />
                                     <InputError message={errors.email} />
                                 </div>
                                 <div className="space-y-1.5">
                                     <Label>Role</Label>
-                                    <Select value={data.role} onValueChange={(v) => setData('role', v)}>
+                                    <Select
+                                        value={data.role}
+                                        onValueChange={(v) =>
+                                            setData('role', v)
+                                        }
+                                    >
                                         <SelectTrigger>
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="manager">Manager</SelectItem>
-                                            <SelectItem value="viewer">Viewer</SelectItem>
+                                            <SelectItem value="manager">
+                                                Manager
+                                            </SelectItem>
+                                            <SelectItem value="viewer">
+                                                Viewer
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
                             </div>
-                            <Button type="submit" disabled={processing} className="gap-2">
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                                className="gap-2"
+                            >
                                 <UserPlus className="h-4 w-4" />
                                 Send Invitation
                             </Button>
@@ -97,25 +118,46 @@ export default function Agency({ members, brand }: Props) {
                 </Card>
 
                 <Card>
-                    <CardHeader><CardTitle>Team Members</CardTitle></CardHeader>
+                    <CardHeader>
+                        <CardTitle>Team Members</CardTitle>
+                    </CardHeader>
                     <CardContent>
                         {members.length === 0 ? (
                             <div className="flex flex-col items-center gap-2 py-10 text-center">
                                 <Users className="h-10 w-10 text-muted-foreground" />
-                                <p className="text-sm text-muted-foreground">No team members yet.</p>
+                                <p className="text-sm text-muted-foreground">
+                                    No team members yet.
+                                </p>
                             </div>
                         ) : (
                             <div className="space-y-3">
                                 {members.map((m) => (
-                                    <div key={m.id} className="flex items-center justify-between rounded-lg border p-3">
+                                    <div
+                                        key={m.id}
+                                        className="flex items-center justify-between rounded-lg border p-3"
+                                    >
                                         <div>
-                                            <p className="font-medium">{m.name}</p>
-                                            <p className="text-sm text-muted-foreground">{m.email}</p>
+                                            <p className="font-medium">
+                                                {m.name}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {m.email}
+                                            </p>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Badge variant="outline">{ROLE_LABELS[m.role] ?? m.role}</Badge>
-                                            <Badge variant={m.accepted_at ? 'default' : 'secondary'}>
-                                                {m.accepted_at ? 'Active' : 'Pending'}
+                                            <Badge variant="outline">
+                                                {ROLE_LABELS[m.role] ?? m.role}
+                                            </Badge>
+                                            <Badge
+                                                variant={
+                                                    m.accepted_at
+                                                        ? 'default'
+                                                        : 'secondary'
+                                                }
+                                            >
+                                                {m.accepted_at
+                                                    ? 'Active'
+                                                    : 'Pending'}
                                             </Badge>
                                             <Button
                                                 variant="ghost"

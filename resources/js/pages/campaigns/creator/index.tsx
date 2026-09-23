@@ -103,14 +103,19 @@ export default function CreatorCampaignDiscovery({
                         <Select
                             value={filters.platform_id ?? 'all'}
                             onValueChange={(v) =>
-                                applyFilter('platform_id', v === 'all' ? undefined : v)
+                                applyFilter(
+                                    'platform_id',
+                                    v === 'all' ? undefined : v,
+                                )
                             }
                         >
                             <SelectTrigger className="w-[160px]">
                                 <SelectValue placeholder="All platforms" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All platforms</SelectItem>
+                                <SelectItem value="all">
+                                    All platforms
+                                </SelectItem>
                                 {platforms.map((p) => (
                                     <SelectItem key={p.id} value={p.id}>
                                         {p.name}

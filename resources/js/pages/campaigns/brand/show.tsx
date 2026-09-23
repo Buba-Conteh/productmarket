@@ -39,19 +39,19 @@ function getYoutubeThumbnail(url: string): string | null {
             parsed.hostname === 'youtube.com'
         ) {
             if (parsed.pathname === '/watch') {
-videoId = parsed.searchParams.get('v');
-} else if (parsed.pathname.startsWith('/embed/')) {
-videoId = parsed.pathname.split('/embed/')[1].split('/')[0];
-} else if (parsed.pathname.startsWith('/shorts/')) {
-videoId = parsed.pathname.split('/shorts/')[1].split('/')[0];
-}
+                videoId = parsed.searchParams.get('v');
+            } else if (parsed.pathname.startsWith('/embed/')) {
+                videoId = parsed.pathname.split('/embed/')[1].split('/')[0];
+            } else if (parsed.pathname.startsWith('/shorts/')) {
+                videoId = parsed.pathname.split('/shorts/')[1].split('/')[0];
+            }
         } else if (parsed.hostname === 'youtu.be') {
             videoId = parsed.pathname.slice(1).split('/')[0];
         }
 
         if (videoId) {
-return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-}
+            return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        }
     } catch {
         // invalid URL
     }
@@ -61,12 +61,12 @@ return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 
 function formatFileSize(bytes: number): string {
     if (bytes < 1024) {
-return `${bytes} B`;
-}
+        return `${bytes} B`;
+    }
 
     if (bytes < 1024 * 1024) {
-return `${(bytes / 1024).toFixed(1)} KB`;
-}
+        return `${(bytes / 1024).toFixed(1)} KB`;
+    }
 
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
@@ -313,7 +313,9 @@ export default function BrandCampaignShow({ campaign }: Props) {
                                 <div
                                     className="prose prose-sm dark:prose-invert max-w-none"
                                     dangerouslySetInnerHTML={{
-                                        __html: DOMPurify.sanitize(campaign.brief),
+                                        __html: DOMPurify.sanitize(
+                                            campaign.brief,
+                                        ),
                                     }}
                                 />
                             </CardContent>
@@ -784,44 +786,45 @@ export default function BrandCampaignShow({ campaign }: Props) {
                             )}
 
                         {/* Brand resources */}
-                        {campaign.resources && campaign.resources.length > 0 && (
-                            <Card>
-                                <CardHeader className="pb-3">
-                                    <CardTitle className="text-base">
-                                        Brand resources
-                                    </CardTitle>
-                                    <CardDescription className="text-xs">
-                                        Assets provided by the brand for your
-                                        content.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-1.5">
-                                    {campaign.resources.map((r) => (
-                                        <a
-                                            key={r.id}
-                                            href={r.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            download={r.original_name}
-                                            className="flex items-center justify-between rounded-md border px-3 py-2 text-sm transition-colors hover:border-primary/50 hover:bg-muted/30"
-                                        >
-                                            <div className="flex min-w-0 items-center gap-2">
-                                                <Paperclip className="size-3.5 shrink-0 text-muted-foreground" />
-                                                <span className="truncate font-medium">
-                                                    {r.original_name}
-                                                </span>
-                                            </div>
-                                            <div className="ml-2 flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
-                                                <span>
-                                                    {formatFileSize(r.size)}
-                                                </span>
-                                                <Download className="size-3.5" />
-                                            </div>
-                                        </a>
-                                    ))}
-                                </CardContent>
-                            </Card>
-                        )}
+                        {campaign.resources &&
+                            campaign.resources.length > 0 && (
+                                <Card>
+                                    <CardHeader className="pb-3">
+                                        <CardTitle className="text-base">
+                                            Brand resources
+                                        </CardTitle>
+                                        <CardDescription className="text-xs">
+                                            Assets provided by the brand for
+                                            your content.
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-1.5">
+                                        {campaign.resources.map((r) => (
+                                            <a
+                                                key={r.id}
+                                                href={r.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                download={r.original_name}
+                                                className="flex items-center justify-between rounded-md border px-3 py-2 text-sm transition-colors hover:border-primary/50 hover:bg-muted/30"
+                                            >
+                                                <div className="flex min-w-0 items-center gap-2">
+                                                    <Paperclip className="size-3.5 shrink-0 text-muted-foreground" />
+                                                    <span className="truncate font-medium">
+                                                        {r.original_name}
+                                                    </span>
+                                                </div>
+                                                <div className="ml-2 flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+                                                    <span>
+                                                        {formatFileSize(r.size)}
+                                                    </span>
+                                                    <Download className="size-3.5" />
+                                                </div>
+                                            </a>
+                                        ))}
+                                    </CardContent>
+                                </Card>
+                            )}
                     </div>
                 </div>
             </div>

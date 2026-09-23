@@ -37,15 +37,11 @@ const brandSections: NavSection[] = [
     },
     {
         label: 'Communication',
-        items: [
-            { title: 'Messages', href: '/messages', icon: MessageSquare },
-        ],
+        items: [{ title: 'Messages', href: '/messages', icon: MessageSquare }],
     },
     {
         label: 'Insights',
-        items: [
-            { title: 'Analytics', href: '/analytics', icon: BarChart3 },
-        ],
+        items: [{ title: 'Analytics', href: '/analytics', icon: BarChart3 }],
     },
     {
         label: 'Growth',
@@ -64,15 +60,11 @@ const creatorSections: NavSection[] = [
     },
     {
         label: 'Earnings',
-        items: [
-            { title: 'Wallet', href: '/wallet', icon: Wallet },
-        ],
+        items: [{ title: 'Wallet', href: '/wallet', icon: Wallet }],
     },
     {
         label: 'Communication',
-        items: [
-            { title: 'Messages', href: '/messages', icon: MessageSquare },
-        ],
+        items: [{ title: 'Messages', href: '/messages', icon: MessageSquare }],
     },
     {
         label: 'Insights',

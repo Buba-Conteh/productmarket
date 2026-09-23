@@ -114,8 +114,8 @@ export default function BrandBilling({ plans, subscribed }: Props) {
                         const plan = plans[key];
 
                         if (!plan) {
-return null;
-}
+                            return null;
+                        }
 
                         const price =
                             interval === 'monthly'

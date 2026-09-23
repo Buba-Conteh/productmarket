@@ -409,7 +409,7 @@ export default function BrandEntryShow({ campaign, entry }: Props) {
                                     <video
                                         src={entry.video_full_url}
                                         controls
-                                        className="w-full rounded-lg aspect-video bg-black"
+                                        className="aspect-video w-full rounded-lg bg-black"
                                     />
                                 )}
                                 {entry.video_duration_sec && (
@@ -744,7 +744,9 @@ export default function BrandEntryShow({ campaign, entry }: Props) {
                                                 </span>
                                                 {p.pivot?.posted_url && (
                                                     <a
-                                                        href={p.pivot.posted_url}
+                                                        href={
+                                                            p.pivot.posted_url
+                                                        }
                                                         target="_blank"
                                                         rel="noreferrer"
                                                         className="flex items-center gap-1 text-xs text-primary hover:underline"
@@ -757,7 +759,8 @@ export default function BrandEntryShow({ campaign, entry }: Props) {
                                             <div className="flex gap-4 text-sm">
                                                 <span className="flex items-center gap-1 text-muted-foreground">
                                                     <Eye className="size-3.5" />
-                                                    {p.pivot?.verified_view_count
+                                                    {p.pivot
+                                                        ?.verified_view_count
                                                         ? Number(
                                                               p.pivot
                                                                   .verified_view_count,

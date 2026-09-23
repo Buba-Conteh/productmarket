@@ -41,19 +41,45 @@ interface Props {
     };
 }
 
-export default function BrandAnalytics({ views_over_time, campaigns, platform_breakdown, top_creators, summary }: Props) {
+export default function BrandAnalytics({
+    views_over_time,
+    campaigns,
+    platform_breakdown,
+    top_creators,
+    summary,
+}: Props) {
     return (
         <>
             <Head title="Analytics" />
             <div className="space-y-6 px-4 py-6">
-                <Heading title="Analytics" description="Performance across all your campaigns." />
+                <Heading
+                    title="Analytics"
+                    description="Performance across all your campaigns."
+                />
 
                 {/* Summary stats */}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <StatCard label="Total Views" value={summary.total_views.toLocaleString()} icon={Eye} accent="primary" />
-                    <StatCard label="Total Paid Out" value={`$${summary.total_paid_out.toLocaleString()}`} icon={DollarSign} />
-                    <StatCard label="CPM" value={`$${summary.cost_per_thousand_views}`} icon={BarChart3} />
-                    <StatCard label="Active Campaigns" value={String(summary.active_campaigns)} icon={Megaphone} />
+                    <StatCard
+                        label="Total Views"
+                        value={summary.total_views.toLocaleString()}
+                        icon={Eye}
+                        accent="primary"
+                    />
+                    <StatCard
+                        label="Total Paid Out"
+                        value={`$${summary.total_paid_out.toLocaleString()}`}
+                        icon={DollarSign}
+                    />
+                    <StatCard
+                        label="CPM"
+                        value={`$${summary.cost_per_thousand_views}`}
+                        icon={BarChart3}
+                    />
+                    <StatCard
+                        label="Active Campaigns"
+                        value={String(summary.active_campaigns)}
+                        icon={Megaphone}
+                    />
                 </div>
 
                 {/* Views + spend over time */}
@@ -63,18 +89,53 @@ export default function BrandAnalytics({ views_over_time, campaigns, platform_br
                     </CardHeader>
                     <CardContent>
                         {views_over_time.length === 0 ? (
-                            <p className="py-8 text-center text-sm text-muted-foreground">No data yet. Run campaigns to see analytics.</p>
+                            <p className="py-8 text-center text-sm text-muted-foreground">
+                                No data yet. Run campaigns to see analytics.
+                            </p>
                         ) : (
                             <ResponsiveContainer width="100%" height={260}>
-                                <BarChart data={views_over_time} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                                    <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                                    <YAxis yAxisId="left" tick={{ fontSize: 11 }} />
-                                    <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} />
+                                <BarChart
+                                    data={views_over_time}
+                                    margin={{
+                                        top: 4,
+                                        right: 16,
+                                        left: 0,
+                                        bottom: 0,
+                                    }}
+                                >
+                                    <CartesianGrid
+                                        strokeDasharray="3 3"
+                                        className="stroke-border"
+                                    />
+                                    <XAxis
+                                        dataKey="date"
+                                        tick={{ fontSize: 11 }}
+                                    />
+                                    <YAxis
+                                        yAxisId="left"
+                                        tick={{ fontSize: 11 }}
+                                    />
+                                    <YAxis
+                                        yAxisId="right"
+                                        orientation="right"
+                                        tick={{ fontSize: 11 }}
+                                    />
                                     <Tooltip />
                                     <Legend />
-                                    <Bar yAxisId="left" dataKey="views" name="Views" fill="#6366f1" radius={[4, 4, 0, 0]} />
-                                    <Bar yAxisId="right" dataKey="paid_out" name="Paid Out ($)" fill="#a78bfa" radius={[4, 4, 0, 0]} />
+                                    <Bar
+                                        yAxisId="left"
+                                        dataKey="views"
+                                        name="Views"
+                                        fill="#6366f1"
+                                        radius={[4, 4, 0, 0]}
+                                    />
+                                    <Bar
+                                        yAxisId="right"
+                                        dataKey="paid_out"
+                                        name="Paid Out ($)"
+                                        fill="#a78bfa"
+                                        radius={[4, 4, 0, 0]}
+                                    />
                                 </BarChart>
                             </ResponsiveContainer>
                         )}
@@ -84,19 +145,42 @@ export default function BrandAnalytics({ views_over_time, campaigns, platform_br
                 <div className="grid gap-4 lg:grid-cols-2">
                     {/* Platform breakdown */}
                     <Card>
-                        <CardHeader><CardTitle>Platform Breakdown</CardTitle></CardHeader>
+                        <CardHeader>
+                            <CardTitle>Platform Breakdown</CardTitle>
+                        </CardHeader>
                         <CardContent>
                             {platform_breakdown.length === 0 ? (
-                                <p className="py-8 text-center text-sm text-muted-foreground">No live entries yet.</p>
+                                <p className="py-8 text-center text-sm text-muted-foreground">
+                                    No live entries yet.
+                                </p>
                             ) : (
                                 <ResponsiveContainer width="100%" height={220}>
                                     <PieChart>
-                                        <Pie data={platform_breakdown} dataKey="total_views" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name }) => name}>
+                                        <Pie
+                                            data={platform_breakdown}
+                                            dataKey="total_views"
+                                            nameKey="name"
+                                            cx="50%"
+                                            cy="50%"
+                                            outerRadius={80}
+                                            label={({ name }) => name}
+                                        >
                                             {platform_breakdown.map((_, i) => (
-                                                <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                                                <Cell
+                                                    key={i}
+                                                    fill={
+                                                        COLORS[
+                                                            i % COLORS.length
+                                                        ]
+                                                    }
+                                                />
                                             ))}
                                         </Pie>
-                                        <Tooltip formatter={(v) => Number(v).toLocaleString()} />
+                                        <Tooltip
+                                            formatter={(v) =>
+                                                Number(v).toLocaleString()
+                                            }
+                                        />
                                     </PieChart>
                                 </ResponsiveContainer>
                             )}
@@ -105,19 +189,35 @@ export default function BrandAnalytics({ views_over_time, campaigns, platform_br
 
                     {/* Top creators */}
                     <Card>
-                        <CardHeader><CardTitle>Top Creators by Views</CardTitle></CardHeader>
+                        <CardHeader>
+                            <CardTitle>Top Creators by Views</CardTitle>
+                        </CardHeader>
                         <CardContent>
                             {top_creators.length === 0 ? (
-                                <p className="py-8 text-center text-sm text-muted-foreground">No creator data yet.</p>
+                                <p className="py-8 text-center text-sm text-muted-foreground">
+                                    No creator data yet.
+                                </p>
                             ) : (
                                 <div className="space-y-3">
                                     {top_creators.map((c, i) => (
-                                        <div key={c.id} className="flex items-center justify-between">
+                                        <div
+                                            key={c.id}
+                                            className="flex items-center justify-between"
+                                        >
                                             <div className="flex items-center gap-2">
-                                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-medium">{i + 1}</span>
-                                                <span className="text-sm">{c.display_name}</span>
+                                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                                                    {i + 1}
+                                                </span>
+                                                <span className="text-sm">
+                                                    {c.display_name}
+                                                </span>
                                             </div>
-                                            <span className="text-sm font-medium">{Number(c.total_views).toLocaleString()} views</span>
+                                            <span className="text-sm font-medium">
+                                                {Number(
+                                                    c.total_views,
+                                                ).toLocaleString()}{' '}
+                                                views
+                                            </span>
                                         </div>
                                     ))}
                                 </div>
@@ -128,33 +228,74 @@ export default function BrandAnalytics({ views_over_time, campaigns, platform_br
 
                 {/* Campaign table */}
                 <Card>
-                    <CardHeader><CardTitle>Campaign Performance</CardTitle></CardHeader>
+                    <CardHeader>
+                        <CardTitle>Campaign Performance</CardTitle>
+                    </CardHeader>
                     <CardContent>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="border-b text-left text-muted-foreground">
-                                        <th className="pb-2 font-medium">Campaign</th>
-                                        <th className="pb-2 font-medium">Type</th>
-                                        <th className="pb-2 font-medium">Status</th>
-                                        <th className="pb-2 text-right font-medium">Entries</th>
-                                        <th className="pb-2 text-right font-medium">Live</th>
-                                        <th className="pb-2 text-right font-medium">Paid Out</th>
+                                        <th className="pb-2 font-medium">
+                                            Campaign
+                                        </th>
+                                        <th className="pb-2 font-medium">
+                                            Type
+                                        </th>
+                                        <th className="pb-2 font-medium">
+                                            Status
+                                        </th>
+                                        <th className="pb-2 text-right font-medium">
+                                            Entries
+                                        </th>
+                                        <th className="pb-2 text-right font-medium">
+                                            Live
+                                        </th>
+                                        <th className="pb-2 text-right font-medium">
+                                            Paid Out
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y">
                                     {campaigns.map((c) => (
                                         <tr key={c.id}>
-                                            <td className="py-2.5 font-medium">{c.title}</td>
-                                            <td className="py-2.5 capitalize">{c.type}</td>
-                                            <td className="py-2.5"><Badge variant="outline" className="capitalize">{c.status}</Badge></td>
-                                            <td className="py-2.5 text-right">{c.total_entries}</td>
-                                            <td className="py-2.5 text-right">{c.live_count}</td>
-                                            <td className="py-2.5 text-right">${Number(c.total_paid_out).toLocaleString()}</td>
+                                            <td className="py-2.5 font-medium">
+                                                {c.title}
+                                            </td>
+                                            <td className="py-2.5 capitalize">
+                                                {c.type}
+                                            </td>
+                                            <td className="py-2.5">
+                                                <Badge
+                                                    variant="outline"
+                                                    className="capitalize"
+                                                >
+                                                    {c.status}
+                                                </Badge>
+                                            </td>
+                                            <td className="py-2.5 text-right">
+                                                {c.total_entries}
+                                            </td>
+                                            <td className="py-2.5 text-right">
+                                                {c.live_count}
+                                            </td>
+                                            <td className="py-2.5 text-right">
+                                                $
+                                                {Number(
+                                                    c.total_paid_out,
+                                                ).toLocaleString()}
+                                            </td>
                                         </tr>
                                     ))}
                                     {campaigns.length === 0 && (
-                                        <tr><td colSpan={6} className="py-8 text-center text-muted-foreground">No campaigns yet.</td></tr>
+                                        <tr>
+                                            <td
+                                                colSpan={6}
+                                                className="py-8 text-center text-muted-foreground"
+                                            >
+                                                No campaigns yet.
+                                            </td>
+                                        </tr>
                                     )}
                                 </tbody>
                             </table>

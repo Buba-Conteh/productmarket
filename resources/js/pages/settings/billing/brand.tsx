@@ -105,8 +105,8 @@ export default function BrandBillingSettings({
                 'Cancel your subscription at the end of this billing period?',
             )
         ) {
-return;
-}
+            return;
+        }
 
         router.post('/billing/brand/cancel');
     }
@@ -246,8 +246,8 @@ return;
                             const plan = plans[key];
 
                             if (!plan) {
-return null;
-}
+                                return null;
+                            }
 
                             const price =
                                 interval === 'monthly'
