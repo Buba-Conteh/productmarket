@@ -35,7 +35,15 @@
       "Bash(powershell -Command \"Set-Location 'c:\\\\Users\\\\lenovo\\\\Herd\\\\tritech\\\\productmarket'; php artisan cashier:publish 2>&1\")",
       "Bash(powershell -Command \"Get-Content 'c:\\\\Users\\\\lenovo\\\\Herd\\\\tritech\\\\productmarket\\\\resources\\\\js\\\\components\\\\heading.tsx'\")",
       "Bash(find /c/Users/lenovo/Herd/tritech/productmarket/routes -type f -name \"*.php\" -exec grep -l \"campaign\" {} \\\\;)",
-      "Bash(npx prettier *)"
+      "Bash(npx prettier *)",
+      "PowerShell(php artisan route:list --path=early-access)",
+      "Bash(curl -sS -o /dev/null -w \"%{http_code}\\\\n\" http://productmarket.test/early-access)",
+      "PowerShell(php artisan route:list --path=admin/early-access)",
+      "PowerShell(./vendor/bin/pint --test app/Http/Controllers/Admin/AdminEarlyAccessController.php routes/admin.php)",
+      "PowerShell(./vendor/bin/pint --test app/Http/Controllers/Admin/AdminEarlyAccessController.php)",
+      "Bash(php artisan *)",
+      "Bash(git commit *)",
+      "Bash(git merge *)"
     ]
   }
 }
