@@ -61,7 +61,7 @@ const sections = [
     },
     {
         title: '15. Contact',
-        body: `Questions about these Terms? Email us at info@trendnko.com or write to: Trendko Legal, 400 Cane Garden Dr Raleigh, NC US.`,
+        body: `Questions about these Terms? Email us at info@trendnko.com or write to: Trendnko, 4009 Cane Garden Dr, Raleigh, NC US.`,
     },
 ];
 
