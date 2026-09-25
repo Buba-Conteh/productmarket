@@ -5,7 +5,7 @@ const LAST_UPDATED = 'April 29, 2026';
 const sections = [
     {
         title: '1. Who We Are',
-        body: `Trendko ("we", "our", "us") operates the Trendko platform, a viral content marketing service connecting brands and creators. This Privacy Policy explains how we collect, use, and protect personal data when you use our website and services. If you have questions, contact us at privacy@trendko.com.`,
+        body: `Trendko ("we", "our", "us") operates the Trendko platform, a viral content marketing service connecting brands and creators. This Privacy Policy explains how we collect, use, and protect personal data when you use our website and services. If you have questions, contact us at info@trendnko.com.`,
     },
     {
         title: '2. Information We Collect',
@@ -61,7 +61,7 @@ const sections = [
     },
     {
         title: '15. Contact Us',
-        body: `For any privacy-related questions or to exercise your rights, contact our Data Protection team at privacy@trendko.com or write to: Trendko Privacy, [Company Address]. If you are in the EEA and are not satisfied with our response, you have the right to lodge a complaint with your local data protection authority.`,
+        body: `For any privacy-related questions or to exercise your rights, contact our Data Protection team at info@trendnko.com or write to: Trendko Privacy, 400 Cane Garden Dr Raleigh, NC US. If you are in the EEA and are not satisfied with our response, you have the right to lodge a complaint with your local data protection authority.`,
     },
 ];
 
