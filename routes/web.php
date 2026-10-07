@@ -5,16 +5,22 @@ use App\Http\Controllers\Auth\RoleSelectionController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EarlyAccessController;
+use App\Http\Controllers\LegalController;
+use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\WelcomeController;
 use App\Http\Middleware\EnsureOnboardingComplete;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
-Route::inertia('/', 'welcome', [
-    'canRegister' => Features::enabled(Features::registration()),
-])->name('home');
+// SEO Routes
+Route::get('/sitemap.xml', [SitemapController::class, 'xml'])->name('sitemap.xml');
 
-Route::inertia('/terms', 'legal/terms')->name('terms');
-Route::inertia('/privacy', 'legal/privacy')->name('privacy');
+// Welcome page with SEO
+Route::get('/', [WelcomeController::class, 'show'])->name('home');
+
+// Legal pages with SEO
+Route::get('/terms', [LegalController::class, 'terms'])->name('terms');
+Route::get('/privacy', [LegalController::class, 'privacy'])->name('privacy');
 
 // Temporary public lead-capture route for creators/brands — see
 // context/features/early-access-signup.md.

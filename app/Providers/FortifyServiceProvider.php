@@ -51,26 +51,41 @@ class FortifyServiceProvider extends ServiceProvider
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
             'canRegister' => Features::enabled(Features::registration()),
             'status' => $request->session()->get('status'),
+            'metaDescription' => 'Log in to Trendko — your verified creator marketing platform. Access your campaigns, submissions, and earnings dashboard.',
+            'ogTitle' => 'Trendko Login',
+            'ogDescription' => 'Log in to access your Trendko account and manage campaigns or submissions.',
         ]));
 
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [
             'email' => $request->email,
             'token' => $request->route('token'),
+            'metaDescription' => 'Reset your Trendko password.',
         ]));
 
         Fortify::requestPasswordResetLinkView(fn (Request $request) => Inertia::render('auth/forgot-password', [
             'status' => $request->session()->get('status'),
+            'metaDescription' => 'Forgot your Trendko password? Enter your email to reset it.',
         ]));
 
         Fortify::verifyEmailView(fn (Request $request) => Inertia::render('auth/verify-email', [
             'status' => $request->session()->get('status'),
+            'metaDescription' => 'Verify your email address to activate your Trendko account.',
         ]));
 
-        Fortify::registerView(fn () => Inertia::render('auth/register'));
+        Fortify::registerView(fn () => Inertia::render('auth/register', [
+            'canRegister' => Features::enabled(Features::registration()),
+            'metaDescription' => 'Sign up for Trendko as a brand or creator. Free account setup with verified creator payments and campaign management.',
+            'ogTitle' => 'Join Trendko — Verified Creator Marketing',
+            'ogDescription' => 'Create your account now. Join thousands of brands and creators already running verified campaigns on Trendko.',
+        ]));
 
-        Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/two-factor-challenge'));
+        Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/two-factor-challenge', [
+            'metaDescription' => 'Enter your two-factor authentication code.',
+        ]));
 
-        Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirm-password'));
+        Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirm-password', [
+            'metaDescription' => 'Confirm your password for security.',
+        ]));
     }
 
     /**
