@@ -1,2 +1,36 @@
+# Trendko SEO Robots Configuration
+# Last updated: 2026-10-07
+
+# Allow all crawlers by default
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /settings/
+Disallow: /.env
+Disallow: /config/
+Disallow: /storage/
+Disallow: /vendor/
+Disallow: /node_modules/
+Crawl-delay: 1
+Request-rate: 30/60
+
+# Google - Priority access
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+# Bing - Standard access
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://trendko.com/sitemap.xml
+
+# Block known bad bots
+User-agent: AhrefsBot
+User-agent: SemrushBot
+User-agent: DotBot
+User-agent: MJ12bot
+Disallow: /
