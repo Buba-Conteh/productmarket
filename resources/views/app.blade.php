@@ -4,6 +4,38 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
+        {{-- SEO Meta Tags --}}
+        <meta name="description" content="{{ $metaDescription ?? 'Connect brands with creators through verified viral campaigns. Contest, Ripple, and Pitch campaigns with real, verified view counts.' }}">
+        <meta name="keywords" content="creator marketing, influencer campaigns, verified views, brand collaborations, TikTok campaigns">
+        <meta name="author" content="Trendko">
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+
+        {{-- Open Graph (Facebook, LinkedIn) --}}
+        <meta property="og:type" content="{{ $ogType ?? 'website' }}">
+        <meta property="og:title" content="{{ $ogTitle ?? config('app.name') . ' — Viral Content Marketing' }}">
+        <meta property="og:description" content="{{ $ogDescription ?? 'Connect brands with creators through verified viral campaigns.' }}">
+        <meta property="og:url" content="{{ url()->current() }}">
+        <meta property="og:site_name" content="{{ config('app.name') }}">
+        <meta property="og:image" content="{{ $ogImage ?? 'https://trendko.com/og-default.png' }}">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:locale" content="en_US">
+
+        {{-- Twitter/X Card --}}
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ $twitterTitle ?? config('app.name') . ' — Viral Content Marketing' }}">
+        <meta name="twitter:description" content="{{ $twitterDescription ?? 'Connect brands with creators through verified viral campaigns.' }}">
+        <meta name="twitter:image" content="{{ $twitterImage ?? 'https://trendko.com/og-default.png' }}">
+        <meta name="twitter:site" content="@trendko">
+        <meta name="twitter:creator" content="@trendko">
+
+        {{-- Canonical URL --}}
+        <link rel="canonical" href="{{ url()->current() }}">
+
+        {{-- Additional SEO --}}
+        <meta name="theme-color" content="#f97316">
+        <link rel="sitemap" type="application/xml" href="{{ route('sitemap.xml') }}">
+
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
             (function() {

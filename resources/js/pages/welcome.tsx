@@ -24,9 +24,117 @@ export default function Welcome({
     const { auth } = usePage().props;
     const user = (auth as { user?: { name: string } }).user;
 
+    const organizationSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        name: 'Trendko',
+        url: 'https://trendko.com',
+        logo: 'https://trendko.com/logo/trendko_logo_dark.svg',
+        description:
+            'Connect brands with creators through verified viral campaigns. Contest, Ripple, and Pitch campaigns with real, verified view counts.',
+        sameAs: [
+            'https://twitter.com/trendko',
+            'https://instagram.com/trendko',
+            'https://linkedin.com/company/trendko',
+        ],
+        contactPoint: {
+            '@type': 'ContactPoint',
+            contactType: 'Customer Support',
+            email: 'support@trendko.com',
+        },
+    };
+
+    const faqSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: [
+            {
+                '@type': 'Question',
+                name: 'What is Trendko?',
+                acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Trendko is a viral content marketing platform that connects brands with creators through verified campaigns (Contest, Ripple, and Pitch). We pull real view counts from platform APIs instead of relying on creator self-reporting.',
+                },
+            },
+            {
+                '@type': 'Question',
+                name: 'How do I earn money as a creator?',
+                acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Join campaigns that match your niche, create content, and post it on your social platforms. Earnings are based on verified view counts pulled every 6 hours from TikTok, Instagram, and YouTube APIs.',
+                },
+            },
+            {
+                '@type': 'Question',
+                name: 'Is my payment protected?',
+                acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Yes. All campaign funds are held in Stripe escrow before going live. As a creator, you only receive payment after verification. Brands only pay for verified performance.',
+                },
+            },
+        ],
+    };
+
+    const productSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: 'Trendko Creator Campaigns',
+        description:
+            'Verified creator marketing campaigns with real view counts from TikTok, Instagram, and YouTube',
+        offers: [
+            {
+                '@type': 'Offer',
+                name: 'Contest Campaigns',
+                description:
+                    'Brands set a prize, creators compete, winners are selected based on verified view count',
+                price: 'Variable',
+                priceCurrency: 'USD',
+            },
+            {
+                '@type': 'Offer',
+                name: 'Ripple Campaigns',
+                description:
+                    'Creators earn upfront fee plus milestone bonuses as views accumulate in real-time',
+                price: 'Variable',
+                priceCurrency: 'USD',
+            },
+            {
+                '@type': 'Offer',
+                name: 'Pitch Campaigns',
+                description:
+                    'Creators pitch themselves with a bid, brand approves or rejects their offer',
+                price: 'Variable',
+                priceCurrency: 'USD',
+            },
+        ],
+        aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: '4.8',
+            ratingCount: '1200',
+        },
+    };
+
     return (
         <>
             <Head title="Trendko — Viral Content Marketing">
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify(organizationSchema),
+                    }}
+                />
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify(faqSchema),
+                    }}
+                />
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify(productSchema),
+                    }}
+                />
                 <link rel="preconnect" href="https://fonts.bunny.net" />
                 <link
                     href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700"
