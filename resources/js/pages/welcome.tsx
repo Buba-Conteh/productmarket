@@ -270,7 +270,7 @@ export default function Welcome({
                         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
                             {canRegister && (
                                 <Link
-                                    href={`${register()}?role=brand`}
+                                    href={register.url({ query: { role: 'brand' } })}
                                     className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-orange-500/30 transition-all hover:bg-orange-600 hover:shadow-orange-500/40"
                                 >
                                     Launch a campaign
@@ -279,7 +279,7 @@ export default function Welcome({
                             )}
                             {canRegister && (
                                 <Link
-                                    href={`${register()}?role=creator`}
+                                    href={register.url({ query: { role: 'creator' } })}
                                     className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-7 py-3.5 text-base font-semibold text-white backdrop-blur transition-all hover:border-white/30 hover:bg-white/10"
                                 >
                                     Join as creator
@@ -934,14 +934,14 @@ export default function Welcome({
                         {canRegister && (
                             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
                                 <Link
-                                    href={`${register()}?role=brand`}
+                                    href={register.url({ query: { role: 'brand' } })}
                                     className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-8 py-3.5 text-base font-semibold text-white transition-colors hover:bg-orange-600"
                                 >
                                     I'm a brand
                                     <ArrowRight className="size-4" />
                                 </Link>
                                 <Link
-                                    href={`${register()}?role=creator`}
+                                    href={register.url({ query: { role: 'creator' } })}
                                     className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-8 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/5"
                                 >
                                     I'm a creator
