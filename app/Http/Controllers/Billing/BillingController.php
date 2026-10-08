@@ -98,6 +98,7 @@ final class BillingController extends Controller
             ->checkout([
                 'success_url' => route('billing.brand.success').'?session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => route('billing.brand.index'),
+                'allow_promotion_codes' => true,
             ]);
 
         return Inertia::location($checkout->url);
@@ -132,6 +133,7 @@ final class BillingController extends Controller
             ->checkout([
                 'success_url' => route('billing.creator.success').'?session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => route('billing.creator.index'),
+                'allow_promotion_codes' => true,
             ]);
 
         return Inertia::location($checkout->url);
@@ -292,6 +294,7 @@ final class BillingController extends Controller
             ->checkout([
                 'success_url' => route('billing.onboarding.brand.success').'?session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => route('onboarding.brand.billing'),
+                'allow_promotion_codes' => true,
             ]);
 
         return Inertia::location($checkout->url);
