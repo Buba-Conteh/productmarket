@@ -286,13 +286,15 @@ final class CampaignService
         abort_unless($brandUser?->hasStripeId(), 422, 'Brand user missing Stripe ID.');
 
         $subscription = $brandUser->subscription('brand');
-        $paymentMethod = $subscription?->defaultPaymentMethod() ?? $brandUser->defaultPaymentMethod();
+        $hasSubscription = $subscription && $subscription->active();
 
         abort_unless(
-            $paymentMethod,
+            $brandUser->hasDefaultPaymentMethod() || $hasSubscription,
             422,
             'Add a billing payment method before publishing this campaign.',
         );
+
+        $paymentMethod = $brandUser->defaultPaymentMethod();
 
         try {
             // Off-session charge using subscription payment method (if subscribed) or default payment method.
