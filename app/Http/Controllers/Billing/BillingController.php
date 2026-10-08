@@ -142,11 +142,13 @@ final class BillingController extends Controller
     /**
      * Open Stripe Billing Portal for the authenticated user.
      */
-    public function portal(Request $request): RedirectResponse
+    public function portal(Request $request): SymfonyResponse
     {
-        return $request->user()->redirectToBillingPortal(
+        $url = $request->user()->redirectToBillingPortal(
             route($request->user()->hasRole('brand') ? 'billing.brand.index' : 'billing.creator.index')
-        );
+        )->getTargetUrl();
+
+        return Inertia::location($url);
     }
 
     /**
