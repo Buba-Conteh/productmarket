@@ -288,15 +288,14 @@ final class CampaignService
         $subscription = $brandUser->subscription('brand');
         $paymentMethod = $brandUser->defaultPaymentMethod();
 
-        // Allow charge if: user has default payment method OR has active subscription
+        // Use default payment method, or subscription's payment method
+        $paymentMethodId = $paymentMethod?->id ?? ($subscription && $subscription->active() ? $subscription->stripe_payment_method : null);
+
         abort_unless(
-            $paymentMethod || ($subscription && $subscription->active()),
+            $paymentMethodId,
             422,
             'Add a billing payment method before publishing this campaign.',
         );
-
-        // Use default payment method, or fall back to subscription (Stripe will use its stored payment method)
-        $paymentMethodId = $paymentMethod?->id ?? $subscription?->stripe_payment_method;
 
         try {
             // Off-session charge using subscription payment method (if subscribed) or default payment method.
