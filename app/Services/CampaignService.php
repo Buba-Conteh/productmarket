@@ -288,8 +288,21 @@ final class CampaignService
         $subscription = $brandUser->subscription('brand');
         $paymentMethod = $brandUser->defaultPaymentMethod();
 
-        // Use default payment method, or subscription's payment method
-        $paymentMethodId = $paymentMethod?->id ?? ($subscription && $subscription->active() ? $subscription->stripe_payment_method : null);
+        // Use default payment method, or fetch subscription's payment method from Stripe
+        $paymentMethodId = $paymentMethod?->id;
+
+        if (! $paymentMethodId && $subscription?->active()) {
+            try {
+                $secret = config('cashier.secret');
+                if ($secret && str_starts_with($secret, 'sk_')) {
+                    $stripe = new StripeClient($secret);
+                    $stripeSub = $stripe->subscriptions->retrieve($subscription->stripe_id);
+                    $paymentMethodId = $stripeSub->default_payment_method;
+                }
+            } catch (ApiErrorException) {
+                // Fall through to error below
+            }
+        }
 
         abort_unless(
             $paymentMethodId,
