@@ -283,13 +283,8 @@ final class CampaignService
 
         $brandUser = $campaign->brand?->user;
 
-        abort_unless($brandUser?->hasStripeId(), 422, 'Brand user missing Stripe ID.');
-
-        $subscription = $brandUser->subscription('brand');
-        $hasSubscription = $subscription && $subscription->active();
-
         abort_unless(
-            $brandUser->hasDefaultPaymentMethod() || $hasSubscription,
+            $brandUser?->hasStripeId() && $brandUser->hasDefaultPaymentMethod(),
             422,
             'Add a billing payment method before publishing this campaign.',
         );
