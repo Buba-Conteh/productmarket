@@ -312,4 +312,32 @@ final readonly class BillingService
 
         return false;
     }
+
+    /**
+     * Get a payment method ID for the user — either their default or subscription's.
+     * Returns null if neither exists.
+     */
+    public function getPaymentMethodId(User $user, string $subscriptionType = 'brand'): ?string
+    {
+        // Try default payment method first
+        $paymentMethod = $user->defaultPaymentMethod();
+        if ($paymentMethod) {
+            return $paymentMethod->id;
+        }
+
+        // Fall back to subscription's payment method from Stripe
+        $subscription = $user->subscription($subscriptionType);
+        if (! ($subscription && $subscription->active())) {
+            return null;
+        }
+
+        try {
+            $stripe = Cashier::stripe();
+            $stripeSub = $stripe->subscriptions->retrieve($subscription->stripe_id);
+
+            return $stripeSub->default_payment_method;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
 }

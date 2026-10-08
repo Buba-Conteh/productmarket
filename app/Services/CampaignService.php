@@ -285,24 +285,8 @@ final class CampaignService
 
         abort_unless($brandUser?->hasStripeId(), 422, 'Brand user missing Stripe ID.');
 
-        $subscription = $brandUser->subscription('brand');
-        $paymentMethod = $brandUser->defaultPaymentMethod();
-
-        // Use default payment method, or fetch subscription's payment method from Stripe
-        $paymentMethodId = $paymentMethod?->id;
-
-        if (! $paymentMethodId && $subscription?->active()) {
-            try {
-                $secret = config('cashier.secret');
-                if ($secret && str_starts_with($secret, 'sk_')) {
-                    $stripe = new StripeClient($secret);
-                    $stripeSub = $stripe->subscriptions->retrieve($subscription->stripe_id);
-                    $paymentMethodId = $stripeSub->default_payment_method;
-                }
-            } catch (ApiErrorException) {
-                // Fall through to error below
-            }
-        }
+        $billingService = app(BillingService::class);
+        $paymentMethodId = $billingService->getPaymentMethodId($brandUser, 'brand');
 
         abort_unless(
             $paymentMethodId,
