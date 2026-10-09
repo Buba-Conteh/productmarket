@@ -78,12 +78,14 @@ final class ResetFalselyPostedEntries extends Command
                 'live_at' => null,
             ]);
 
-            // Clear fake TikTok posting data
-            $entry->platforms()->update([
-                'posted_url' => null,
-                'publish_status' => null,
-                'tiktok_publish_id' => null,
-            ]);
+            // Clear fake TikTok posting data from pivot table
+            DB::table('entry_platforms')
+                ->where('entry_id', $entry->id)
+                ->update([
+                    'posted_url' => null,
+                    'publish_status' => null,
+                    'tiktok_publish_id' => null,
+                ]);
 
             // Payment is kept — creator is paid but now must actually post the content
             $payoutCount = Payout::where('entry_id', $entry->id)->count();
