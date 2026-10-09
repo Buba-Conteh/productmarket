@@ -71,36 +71,25 @@ final class ResetFalselyPostedEntries extends Command
         DB::transaction(function () use ($entry) {
             $originalStatus = $entry->status;
 
-            // 1. Reverse any payouts if they were released (Pitch entries)
-            if ($entry->type === 'pitch') {
-                $payoutsToReverse = Payout::where('entry_id', $entry->id)
-                    ->where('payout_type', 'pitch_payment')
-                    ->where('status', '!=', 'failed')
-                    ->get();
-
-                foreach ($payoutsToReverse as $payout) {
-                    $payout->update([
-                        'status' => 'failed',
-                        'failure_reason' => 'Reversed due to falsely marked as posted (stub mode)',
-                    ]);
-
-                    $this->line("  ↳ Reversed payout {$payout->id}");
-                }
-            }
-
-            // 2. Reset entry status back to approved/won
+            // Reset entry status back to approved/won so creator can actually post
             $newStatus = $entry->status === 'live' ? 'approved' : $entry->status;
             $entry->update([
                 'status' => $newStatus,
                 'live_at' => null,
             ]);
 
-            // 3. Clear fake TikTok posting data
+            // Clear fake TikTok posting data
             $entry->platforms()->update([
                 'posted_url' => null,
                 'publish_status' => null,
                 'tiktok_publish_id' => null,
             ]);
+
+            // Payment is kept — creator is paid but now must actually post the content
+            $payoutCount = Payout::where('entry_id', $entry->id)->count();
+            if ($payoutCount > 0) {
+                $this->line("  ↳ Payment kept ({$payoutCount} payout)");
+            }
 
             $this->line("✓ Entry {$entry->id}: {$originalStatus} → {$newStatus}");
         });
