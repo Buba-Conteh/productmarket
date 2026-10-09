@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 final class ResetFalselyPostedEntries extends Command
 {
-    protected $signature = 'entries:reset-falsely-posted {--all : Reset all entries marked as live with stub URLs}';
+    protected $signature = 'entries:reset-falsely-posted {--all : Reset all entries marked as live with stub URLs} {--force : Skip confirmation prompt}';
 
     protected $description = 'Reset entries that were falsely marked as posted due to stub mode';
 
@@ -53,7 +53,7 @@ final class ResetFalselyPostedEntries extends Command
             $this->line('');
         }
 
-        if (!$this->confirm("Reset all {$entries->count()} entries?")) {
+        if (!$this->option('force') && !$this->confirm("Reset all {$entries->count()} entries?")) {
             $this->info('Cancelled.');
             return 0;
         }
