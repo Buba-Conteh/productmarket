@@ -1,6 +1,7 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
+import { CountrySelect } from '@/components/shared/country-select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -77,22 +78,15 @@ export default function CreatorProfileStep({ profile }: Props) {
 
                 <div className="grid gap-2">
                     <Label htmlFor="country">
-                        Country code{' '}
+                        Country{' '}
                         <span className="text-muted-foreground">
                             (optional)
                         </span>
                     </Label>
-                    <Input
+                    <CountrySelect
                         id="country"
                         value={data.country}
-                        onChange={(e) =>
-                            setData(
-                                'country',
-                                e.target.value.toUpperCase().slice(0, 2),
-                            )
-                        }
-                        placeholder="US, GB, NG..."
-                        maxLength={2}
+                        onChange={(code) => setData('country', code)}
                     />
                     <InputError message={errors.country} />
                 </div>
