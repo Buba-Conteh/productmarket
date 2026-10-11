@@ -1,56 +1,37 @@
-# Current Feature — Creator avatars + platform video showcase
+# Current Feature — Creator directory quick view + video browser
 
-**Status:** 🟢 Complete — see context/features/ui-6-creator-avatars-video-showcase.md
-**Branch:** `feature/creator-avatars-video-showcase`
+**Status:** 🟡 Implemented — awaiting browser verification (see context/features/ui-7-creator-quick-view-video-browser.md)
+**Branch:** `feature/creator-quick-view`
 
 ## Goals
 
-1. Creator profile images — pulled from the connected platform (TikTok /
-   Instagram / YouTube) **and** uploadable in the platform.
-2. A horizontally scrollable video showcase on the creator profile, covering all
-   three platforms.
-3. Include videos made **on** ProductMarket (entry videos uploaded to the bucket).
+Let a brand evaluate creators from the directory without bouncing between the
+list and each profile page.
 
-## What's actually broken today
+1. **Richer directory card** — compact stats row (followers, likes, engagement,
+   campaign views, niches) plus a strip of the creator's featured videos.
+2. **Quick-view modal** — clicking a card opens a popup with the creator's
+   stats, niches, connected platforms and featured creative. Left/right arrows
+   (and the keyboard arrows) step to the previous/next creator in the results.
+3. **Video browser** — clicking any video opens a full-screen player. Up/down
+   (scroll, wheel or arrow keys) moves through that creator's videos;
+   left/right jumps to the previous/next creator.
 
-- **`users.avatar` is read in 6 places and written in none.** The column exists,
-  every profile/card/message renders it, and nothing anywhere sets it. So every
-  avatar in the app is a fallback initial. There is no upload UI and social
-  connect never captures the platform's picture.
-- The creator profile lists live entries as **text rows with outbound links** —
-  no thumbnails, no player, nothing to actually look at.
+## Data
 
-## API availability (checked against current scopes — no scope changes needed)
+`featured_videos` is added to each directory result (max 10 per creator):
 
-| | Avatar | Recent videos |
-|---|---|---|
-| TikTok | `user/info` → `avatar_url` (`user.info.basic`, already requested) | `video/list` → cover/share/stats (`video.list`, already requested) |
-| Instagram | `/me` → `profile_picture_url` (`instagram_business_basic`) | `/me/media` → thumbnail/permalink |
-| YouTube | `channels?part=snippet` → `thumbnails.high.url` (snippet already fetched) | uploads playlist → `playlistItems` + `videos` stats |
+- ProductMarket entry videos first (live / won / approved, file in our bucket —
+  plays inline in a `<video>`).
+- Then the creator's synced platform videos (`creator_videos`) by view count.
+  These play through the platform's official embed iframe (TikTok
+  `embed/v2/{id}`, YouTube `embed/{id}`, Instagram `{permalink}embed`).
+  Stub-mode videos have no embed and fall back to the thumbnail + outbound link.
 
-## Plan
-
-### Backend
-- Migration: `social_accounts.avatar_url`; new `creator_videos` table
-  (unique on `(social_account_id, platform_video_id)`).
-- `PlatformVideo` DTO; `avatarUrl` added to `ConnectedAccount`.
-- `PlatformProvider::fetchRecentVideos()` implemented by all three providers,
-  with stub-mode fixtures.
-- `SocialAccountService::syncVideos()`; `SyncSocialAccountStatsJob` runs it
-  alongside the stats sweep.
-- `User::avatar_url` accessor: uploaded avatar wins, else the first connected
-  account's platform picture. Resolving at read time means a platform sync can
-  never clobber a deliberate upload, so no source flag is needed.
-- Avatar upload/remove endpoints on settings/profile.
-- `CreatorProfileController` passes platform videos + in-platform entry videos.
-
-### Frontend
-- `VideoRail` — horizontal snap-scrolling rail with arrow controls.
-- `VideoCard` — platform-tinted tile: thumbnail, duration, views/likes/comments.
-- `AvatarUploader` in settings/profile.
-- Creator profile renders a rail per platform plus a "Made on ProductMarket" rail
-  of entry videos, which play inline.
+Loaded in two batched queries per page (no N+1) by `FeaturedVideoService`.
 
 ## Out of scope
-- Backfilling avatars for existing users (the sync picks them up on next run).
-- Video sync for brands.
+
+- Favourites / star (no spec for it).
+- "Online" presence indicator.
+- Navigating past the current results page from inside the popup.

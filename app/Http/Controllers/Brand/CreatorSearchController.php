@@ -10,6 +10,7 @@ use App\Models\CreatorProfile;
 use App\Models\Niche;
 use App\Models\Platform;
 use App\Models\SocialAccount;
+use App\Services\Creators\FeaturedVideoService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,7 @@ final class CreatorSearchController
 {
     private const SORTS = ['followers', 'earnings', 'views', 'engagement', 'newest'];
 
-    public function index(Request $request): Response
+    public function index(Request $request, FeaturedVideoService $featuredVideos): Response
     {
         $filters = array_filter(
             $request->only(['search', 'niche_id', 'platform_id', 'country', 'min_followers', 'max_followers', 'sort']),
@@ -62,7 +63,9 @@ final class CreatorSearchController
             collect($creators->items())->pluck('id')->all()
         );
 
-        $creators->through(fn (CreatorProfile $creator) => $this->present($creator, $engagement));
+        $videos = $featuredVideos->forCreators($creators->items());
+
+        $creators->through(fn (CreatorProfile $creator) => $this->present($creator, $engagement, $videos[$creator->id] ?? []));
 
         return Inertia::render('brand/creators/index', [
             'creators' => $creators,
@@ -173,9 +176,10 @@ final class CreatorSearchController
 
     /**
      * @param  array<string, array{views: int, comments: int, live_entries: int}>  $engagement
+     * @param  list<array<string, mixed>>  $featuredVideos
      * @return array<string, mixed>
      */
-    private function present(CreatorProfile $creator, array $engagement): array
+    private function present(CreatorProfile $creator, array $engagement, array $featuredVideos): array
     {
         $totals = $engagement[$creator->id] ?? ['views' => 0, 'comments' => 0, 'live_entries' => 0];
         $accounts = $creator->user->socialAccounts;
@@ -220,6 +224,7 @@ final class CreatorSearchController
                 ])
                 ->sortByDesc('follower_count')
                 ->values(),
+            'featured_videos' => $featuredVideos,
             'invited_campaign_ids' => $creator->invitations
                 ->where('status', CampaignInvitation::STATUS_PENDING)
                 ->pluck('campaign_id')

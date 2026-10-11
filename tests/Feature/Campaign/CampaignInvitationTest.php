@@ -6,9 +6,13 @@ use App\Models\BrandProfile;
 use App\Models\Campaign;
 use App\Models\CampaignInvitation;
 use App\Models\CreatorProfile;
+use App\Models\CreatorVideo;
 use App\Models\Industry;
+use App\Models\Platform;
+use App\Models\SocialAccount;
 use App\Models\User;
 use App\Notifications\CampaignInvitationSent;
+use App\Services\Creators\FeaturedVideoService;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -205,4 +209,80 @@ it('lists the brand\'s live campaigns as invitable', function () {
     $this->actingAs($brand)
         ->get('/creators')
         ->assertInertia(fn ($page) => $page->has('invitableCampaigns', 1));
+});
+
+function directoryVideo(CreatorProfile $creator, string $slug, string $videoId, int $views): void
+{
+    $platform = Platform::firstOrCreate(
+        ['slug' => $slug],
+        ['name' => ucfirst($slug), 'is_active' => true, 'sort_order' => 1],
+    );
+
+    $account = SocialAccount::firstOrCreate(
+        ['user_id' => $creator->user_id, 'platform_id' => $platform->id],
+        [
+            'handle' => "{$slug}_handle",
+            'platform_user_id' => "{$slug}_1",
+            'oauth_token' => 'token',
+            'follower_count' => 1000,
+            'verified' => true,
+        ],
+    );
+
+    CreatorVideo::create([
+        'social_account_id' => $account->id,
+        'platform_id' => $platform->id,
+        'platform_video_id' => $videoId,
+        'title' => "Video {$videoId}",
+        'thumbnail_url' => "https://cdn.test/{$videoId}.jpg",
+        'share_url' => "https://www.{$slug}.com/p/{$videoId}/",
+        'view_count' => $views,
+    ]);
+}
+
+it('includes featured videos on directory results, most viewed first, with embed urls', function () {
+    $brand = invitingBrand();
+    $creator = invitedCreator();
+    directoryVideo($creator, 'tiktok', '111', views: 50);
+    directoryVideo($creator, 'youtube', 'abc', views: 900);
+    directoryVideo($creator, 'instagram', 'C1x', views: 300);
+
+    $this->actingAs($brand)
+        ->get('/creators')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('creators.data.0.featured_videos', 3)
+            ->where('creators.data.0.featured_videos.0.embed_url', 'https://www.youtube.com/embed/abc')
+            ->where('creators.data.0.featured_videos.1.embed_url', 'https://www.instagram.com/p/C1x/embed')
+            ->where('creators.data.0.featured_videos.2.embed_url', 'https://www.tiktok.com/embed/v2/111')
+            ->where('creators.data.0.featured_videos.0.source', 'platform')
+        );
+});
+
+it('caps featured videos per creator and leaves stub videos unembedded', function () {
+    $brand = invitingBrand();
+    $creator = invitedCreator();
+
+    foreach (range(1, 12) as $i) {
+        directoryVideo($creator, 'tiktok', "tiktok_stub_video_{$i}", views: $i);
+    }
+
+    $this->actingAs($brand)
+        ->get('/creators')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('creators.data.0.featured_videos', FeaturedVideoService::PER_CREATOR)
+            ->where('creators.data.0.featured_videos.0.embed_url', null)
+            ->where('creators.data.0.featured_videos.0.view_count', 12)
+        );
+});
+
+it('returns an empty featured reel for creators with no videos', function () {
+    $brand = invitingBrand();
+    invitedCreator();
+
+    $this->actingAs($brand)
+        ->get('/creators')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->has('creators.data.0.featured_videos', 0));
 });

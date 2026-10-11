@@ -11,7 +11,7 @@ const PLATFORM_TONES: Record<string, string> = {
     youtube: 'bg-red-500/15 text-red-700 dark:text-red-400',
 };
 
-function platformTone(slug: string): string {
+export function platformTone(slug: string): string {
     return PLATFORM_TONES[slug] ?? 'bg-muted text-muted-foreground';
 }
 
