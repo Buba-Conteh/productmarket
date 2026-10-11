@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { CreatorDirectoryCard } from '@/components/creators/creator-directory-card';
 import { InviteCreatorDialog } from '@/components/creators/invite-creator-dialog';
 import Heading from '@/components/heading';
+import { CountrySelect } from '@/components/shared/country-select';
 import { EmptyState } from '@/components/shared/empty-state';
 import { FlashAlert } from '@/components/shared/flash-alert';
 import { PaginationNav } from '@/components/shared/pagination-nav';
@@ -234,12 +235,12 @@ export default function BrandCreatorSearch({
                             <Label className="text-xs" htmlFor="country">
                                 Country
                             </Label>
-                            <Input
+                            <CountrySelect
                                 id="country"
-                                placeholder="e.g. US"
-                                defaultValue={filters.country ?? ''}
-                                onBlur={(e) =>
-                                    applyFilter('country', e.target.value)
+                                placeholder="Any country"
+                                value={filters.country ?? ''}
+                                onChange={(code) =>
+                                    applyFilter('country', code)
                                 }
                             />
                         </div>
