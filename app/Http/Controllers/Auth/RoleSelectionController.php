@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\ReferralService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -30,13 +31,16 @@ final class RoleSelectionController extends Controller
             // Phone signups arrive without an email; collect one here so the
             // Brand billing (Stripe) and email notifications have an address.
             'needsEmail' => $user->email === null,
+            // Set by email signups that came in from a "For brands" /
+            // "For creators" call to action.
+            'preselectedRole' => $request->session()->get('preferred_role'),
         ]);
     }
 
     /**
      * Assign the chosen role, then hand off to onboarding via the dashboard.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ReferralService $referrals): RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
@@ -62,6 +66,15 @@ final class RoleSelectionController extends Controller
         }
 
         $user->assignRole($validated['role']);
+
+        // Email signups hold their referral code until the role is known.
+        $referralCode = $request->session()->pull('pending_referral_code');
+
+        if ($referralCode) {
+            $referrals->attachReferral($user, $referralCode, $validated['role']);
+        }
+
+        $request->session()->forget('preferred_role');
 
         return redirect()->route('dashboard');
     }
