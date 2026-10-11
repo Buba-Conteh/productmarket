@@ -51,7 +51,10 @@ export function CreatorQuickViewDialog({
 
     return (
         <Dialog open onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="gap-0 overflow-visible rounded-2xl bg-muted/40 p-0 sm:max-w-3xl">
+            <DialogContent
+                overlayClassName="bg-black/30 backdrop-blur-[2px]"
+                className="gap-0 overflow-visible rounded-2xl border-0 bg-background p-0 shadow-2xl sm:max-w-3xl dark:ring-1 dark:ring-white/10"
+            >
                 <NavArrow
                     side="left"
                     onClick={onPrevious}
@@ -61,7 +64,7 @@ export function CreatorQuickViewDialog({
 
                 <div className="max-h-[85vh] space-y-3 overflow-y-auto p-3 sm:p-4">
                     {/* Profile */}
-                    <section className="space-y-4 rounded-xl border bg-background p-4 pr-10">
+                    <section className="space-y-4 rounded-xl bg-background p-4 pr-10 shadow-[0_2px_12px_rgba(0,0,0,0.08)] dark:bg-card dark:shadow-none">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                             <div>
                                 <DialogTitle className="sr-only">
@@ -132,7 +135,7 @@ export function CreatorQuickViewDialog({
                     </section>
 
                     {/* Featured creative */}
-                    <section className="space-y-3 rounded-xl border bg-background p-4">
+                    <section className="space-y-3 rounded-xl bg-background p-4 shadow-[0_2px_12px_rgba(0,0,0,0.08)] dark:bg-card dark:shadow-none">
                         <h3 className="flex items-center gap-2 text-sm font-semibold">
                             <PlaySquare className="size-4" />
                             Featured creative
@@ -182,7 +185,7 @@ function NavArrow({
             disabled={!onClick}
             aria-label={label}
             className={
-                'absolute top-1/2 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border bg-background shadow-lg transition hover:bg-accent disabled:pointer-events-none disabled:opacity-0 ' +
+                'absolute top-1/2 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-background shadow-lg transition hover:bg-accent disabled:pointer-events-none disabled:opacity-0 ' +
                 (side === 'left'
                     ? 'left-1 sm:-left-14'
                     : 'right-1 sm:-right-14')

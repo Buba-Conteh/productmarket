@@ -64,7 +64,7 @@ export function CreatorVideoViewer({
     return (
         <DialogPrimitive.Root open onOpenChange={(open) => !open && onClose()}>
             <DialogPrimitive.Portal>
-                <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/95 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
+                <DialogPrimitive.Overlay className="backdrop-blur-mddata-[state=open]:animate-in fixed inset-0 z-50 bg-black/75 data-[state=open]:fade-in-0" />
                 <DialogPrimitive.Content className="fixed inset-0 z-50 flex items-center justify-center text-white outline-none">
                     <DialogPrimitive.Title className="sr-only">
                         {creator.display_name} — videos
