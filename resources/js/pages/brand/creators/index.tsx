@@ -2,6 +2,8 @@ import { Head, router } from '@inertiajs/react';
 import { Search, SlidersHorizontal, Users, X } from 'lucide-react';
 import { useState } from 'react';
 import { CreatorDirectoryCard } from '@/components/creators/creator-directory-card';
+import { CreatorQuickViewDialog } from '@/components/creators/creator-quick-view-dialog';
+import { CreatorVideoViewer } from '@/components/creators/creator-video-viewer';
 import { InviteCreatorDialog } from '@/components/creators/invite-creator-dialog';
 import Heading from '@/components/heading';
 import { CountrySelect } from '@/components/shared/country-select';
@@ -18,6 +20,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useCreatorBrowser } from '@/hooks/use-creator-browser';
 import type { PaginatedData, Platform } from '@/types';
 import type { CreatorSearchResult, InvitableCampaign } from '@/types/profile';
 
@@ -49,6 +52,31 @@ export default function BrandCreatorSearch({
     const [search, setSearch] = useState(filters.search ?? '');
     const [showFilters, setShowFilters] = useState(false);
     const [inviting, setInviting] = useState<CreatorSearchResult | null>(null);
+    const browser = useCreatorBrowser(creators.data.length);
+
+    const browsing =
+        browser.creatorIndex !== null
+            ? creators.data[browser.creatorIndex]
+            : null;
+    const position = {
+        index: browser.creatorIndex ?? 0,
+        total: creators.data.length,
+    };
+
+    function inviteHandler(creator: CreatorSearchResult) {
+        return invitableCampaigns.length > 0
+            ? () => setInviting(creator)
+            : undefined;
+    }
+
+    function isFullyInvited(creator: CreatorSearchResult): boolean {
+        return (
+            invitableCampaigns.length > 0 &&
+            invitableCampaigns.every((c) =>
+                creator.invited_campaign_ids.includes(c.id),
+            )
+        );
+    }
 
     function applyFilter(key: string, value: string | undefined) {
         const updated = { ...filters, [key]: value || undefined };
@@ -292,23 +320,16 @@ export default function BrandCreatorSearch({
                     />
                 ) : (
                     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                        {creators.data.map((creator) => (
+                        {creators.data.map((creator, index) => (
                             <CreatorDirectoryCard
                                 key={creator.id}
                                 creator={creator}
-                                onInvite={
-                                    invitableCampaigns.length > 0
-                                        ? () => setInviting(creator)
-                                        : undefined
+                                onOpen={() => browser.openQuickView(index)}
+                                onPlayVideo={(videoIndex) =>
+                                    browser.openVideo(index, videoIndex)
                                 }
-                                fullyInvited={
-                                    invitableCampaigns.length > 0 &&
-                                    invitableCampaigns.every((c) =>
-                                        creator.invited_campaign_ids.includes(
-                                            c.id,
-                                        ),
-                                    )
-                                }
+                                onInvite={inviteHandler(creator)}
+                                fullyInvited={isFullyInvited(creator)}
                             />
                         ))}
                     </div>
@@ -316,6 +337,40 @@ export default function BrandCreatorSearch({
 
                 <PaginationNav meta={creators} />
             </div>
+
+            {browsing && browser.quickViewOpen && (
+                <CreatorQuickViewDialog
+                    creator={browsing}
+                    position={position}
+                    onClose={browser.close}
+                    onPrevious={
+                        browser.hasPrevious ? browser.previous : undefined
+                    }
+                    onNext={browser.hasNext ? browser.next : undefined}
+                    onPlayVideo={(videoIndex) =>
+                        browser.openVideo(browser.creatorIndex ?? 0, videoIndex)
+                    }
+                    onInvite={inviteHandler(browsing)}
+                    fullyInvited={isFullyInvited(browsing)}
+                    keyboardPaused={inviting !== null}
+                />
+            )}
+
+            {browsing && browser.videoIndex !== null && (
+                <CreatorVideoViewer
+                    creator={browsing}
+                    position={position}
+                    initialVideoIndex={browser.videoIndex}
+                    onClose={browser.closeVideo}
+                    onPrevious={
+                        browser.hasPrevious ? browser.previous : undefined
+                    }
+                    onNext={browser.hasNext ? browser.next : undefined}
+                    onInvite={inviteHandler(browsing)}
+                    fullyInvited={isFullyInvited(browsing)}
+                    keyboardPaused={inviting !== null}
+                />
+            )}
 
             {inviting && (
                 <InviteCreatorDialog
