@@ -23,3 +23,9 @@ Used in:
 - No backend, database or migration changes. The stored value is still the 2-letter code, and the `country` filter and `size:2` validation work as before.
 - Existing saved codes show as country names. An unknown legacy value is shown as-is.
 - The `target_regions` campaign field has no UI yet and is untouched.
+
+## Country required in creator onboarding
+
+- `CreatorOnboardingController::storeProfile()` now validates `country` as required (2 letters) together with the other profile fields, so all errors show at once.
+- The onboarding page drops the "(optional)" label and the clear button (`CountrySelect clearable={false}`), and Continue stays disabled until a country is chosen.
+- Backward compatible: only creators still in onboarding are affected. Existing creators with no country are not forced to set one, and no data is changed. The brand-side directory filter stays optional.

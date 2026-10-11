@@ -192,3 +192,15 @@ test('onboarded creator is redirected from onboarding to dashboard', function ()
         ->get(route('onboarding.creator.profile'))
         ->assertRedirect(route('dashboard'));
 });
+
+test('creator profile requires a country', function () {
+    $user = createCreatorUser();
+
+    $this->actingAs($user)
+        ->post(route('onboarding.creator.profile.store'), [
+            'display_name' => 'Cool Creator',
+        ])
+        ->assertSessionHasErrors(['country']);
+
+    $this->assertDatabaseMissing('creator_profiles', ['user_id' => $user->id]);
+});
