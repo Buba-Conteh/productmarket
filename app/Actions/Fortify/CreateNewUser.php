@@ -38,6 +38,21 @@ class CreateNewUser implements CreatesNewUsers
             'referral_code' => $this->referralService->generateCode(new User),
         ]);
 
+        // Backward compatibility: older clients (e.g. a signup page loaded
+        // before the role dropdown was removed) still send a `role`. Honor it
+        // so those users aren't asked to choose twice.
+        $legacyRole = $input['role'] ?? null;
+
+        if (in_array($legacyRole, ['brand', 'creator'], true)) {
+            $user->assignRole($legacyRole);
+
+            if (! empty($input['ref'])) {
+                $this->referralService->attachReferral($user, $input['ref'], $legacyRole);
+            }
+
+            return $user;
+        }
+
         // The role isn't known yet, so hold on to what the role-select step
         // needs: a preselected card (from the landing page CTAs) and any
         // referral code, which is attached once the role is chosen.
