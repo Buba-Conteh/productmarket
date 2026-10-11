@@ -14,7 +14,8 @@ import {
     Users,
     Zap,
 } from 'lucide-react';
-import { dashboard, login, register } from '@/routes';
+import { WelcomeNavbar } from '@/components/welcome/welcome-navbar';
+import { login, register } from '@/routes';
 
 export default function Welcome({
     canRegister = true,
@@ -147,88 +148,10 @@ export default function Welcome({
                 style={{ fontFamily: "'Instrument Sans', sans-serif" }}
             >
                 {/* ── Navbar ── */}
-                <header className="fixed inset-x-0 top-0 z-50 border-b border-gray-200/60 bg-white/80 backdrop-blur-md dark:border-gray-800/60 dark:bg-gray-950/80">
-                    <div className="mx-auto flex h-16 max-w-7xl items-center justify-between overflow-hidden px-4 sm:px-6 lg:px-8">
-                        {/* Logo */}
-                        <div className="flex items-center gap-2">
-                            <img
-                                src="/logo/trendko_logo_light.svg"
-                                alt="Trendko"
-                                width={220}
-                                height={96}
-                                className="w-auto dark:hidden"
-                                style={{ height: '96px' }}
-                            />
-                            <img
-                                src="/logo/trendko_logo_dark.svg"
-                                alt="Trendko"
-                                width={220}
-                                height={96}
-                                className="hidden w-auto dark:block"
-                                style={{ height: '96px' }}
-                            />
-                        </div>
-
-                        {/* Desktop nav */}
-                        <nav className="hidden items-center gap-8 text-sm font-medium text-gray-600 md:flex dark:text-gray-400">
-                            <a
-                                href="#how-it-works"
-                                className="transition-colors hover:text-gray-900 dark:hover:text-gray-50"
-                            >
-                                How it works
-                            </a>
-                            <a
-                                href="#for-brands"
-                                className="transition-colors hover:text-gray-900 dark:hover:text-gray-50"
-                            >
-                                For brands
-                            </a>
-                            <a
-                                href="#for-creators"
-                                className="transition-colors hover:text-gray-900 dark:hover:text-gray-50"
-                            >
-                                For creators
-                            </a>
-                            <a
-                                href="#pricing"
-                                className="transition-colors hover:text-gray-900 dark:hover:text-gray-50"
-                            >
-                                Pricing
-                            </a>
-                        </nav>
-
-                        {/* CTA buttons */}
-                        <div className="flex items-center gap-3">
-                            {user ? (
-                                <Link
-                                    href={dashboard()}
-                                    className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600"
-                                >
-                                    Dashboard
-                                    <ArrowRight className="size-3.5" />
-                                </Link>
-                            ) : (
-                                <>
-                                    <Link
-                                        href={login()}
-                                        className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50"
-                                    >
-                                        Log in
-                                    </Link>
-                                    {canRegister && (
-                                        <Link
-                                            href={register()}
-                                            className="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-white"
-                                        >
-                                            Get started
-                                            <ArrowRight className="size-3.5" />
-                                        </Link>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </header>
+                <WelcomeNavbar
+                    isAuthenticated={Boolean(user)}
+                    canRegister={canRegister}
+                />
 
                 {/* ── Hero ── */}
                 <section className="relative overflow-hidden bg-gray-950 pt-32 pb-24 text-white">
