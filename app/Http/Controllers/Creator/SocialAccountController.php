@@ -24,6 +24,10 @@ final class SocialAccountController extends Controller
     {
         $this->validatePlatform($platform);
 
+        if (! $this->factory->isEnabled($platform)) {
+            return $this->unavailable($request, $platform);
+        }
+
         $state = Str::random(40);
         $request->session()->put($this->stateKey($platform), $state);
         $request->session()->put($this->originKey($platform), $this->resolveOrigin($request));
@@ -36,6 +40,10 @@ final class SocialAccountController extends Controller
     public function callback(Request $request, string $platform): RedirectResponse
     {
         $this->validatePlatform($platform);
+
+        if (! $this->factory->isEnabled($platform)) {
+            return $this->unavailable($request, $platform);
+        }
 
         $expectedState = $request->session()->pull($this->stateKey($platform));
         $origin = $request->session()->pull($this->originKey($platform)) ?? $this->defaultOrigin($request);
@@ -105,6 +113,16 @@ final class SocialAccountController extends Controller
             in_array($platform, $this->factory->supportedPlatforms(), true),
             404,
         );
+    }
+
+    /**
+     * New connections are limited to SOCIAL_ENABLED_PLATFORMS. Refreshing or
+     * disconnecting an account that is already connected is always allowed.
+     */
+    private function unavailable(Request $request, string $platform): RedirectResponse
+    {
+        return redirect()->to($this->defaultOrigin($request))
+            ->withErrors(['platform' => ucfirst($platform).' isn\'t available yet. It\'s coming soon.']);
     }
 
     private function stateKey(string $platform): string

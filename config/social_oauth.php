@@ -3,6 +3,17 @@
 declare(strict_types=1);
 
 return [
+    /*
+    | Platforms creators may connect right now (comma-separated slugs).
+    | Disabled platforms are shown as "coming soon" and can't be newly
+    | connected; accounts already connected keep working. Example:
+    | SOCIAL_ENABLED_PLATFORMS=tiktok,instagram,youtube
+    */
+    'enabled_platforms' => array_values(array_filter(array_map(
+        static fn (string $slug): string => strtolower(trim($slug)),
+        explode(',', (string) env('SOCIAL_ENABLED_PLATFORMS', 'tiktok')),
+    ))),
+
     'tiktok' => [
         'client_key' => env('TIKTOK_CLIENT_KEY'),
         'client_secret' => env('TIKTOK_CLIENT_SECRET'),

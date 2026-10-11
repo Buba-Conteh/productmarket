@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import Heading from '@/components/heading';
+import { PlatformAvailability } from '@/components/social/platform-availability';
 import { SocialStatChips } from '@/components/social/social-stat-chips';
 import { Button } from '@/components/ui/button';
 import { connect, disconnect, refresh } from '@/routes/creator/social';
@@ -34,6 +35,8 @@ type SocialAccount = {
 type Props = {
     socialAccounts: SocialAccount[];
     supportedPlatforms: string[];
+    /** Platforms that can currently be connected (SOCIAL_ENABLED_PLATFORMS). */
+    enabledPlatforms?: string[];
 };
 
 const PLATFORM_META: Record<
@@ -60,6 +63,7 @@ const PLATFORM_META: Record<
 export default function SocialAccounts({
     socialAccounts,
     supportedPlatforms,
+    enabledPlatforms = supportedPlatforms,
 }: Props) {
     const { errors } = usePage().props as { errors: Record<string, string> };
     const [refreshing, setRefreshing] = useState<string | null>(null);
@@ -119,94 +123,101 @@ export default function SocialAccounts({
                         const isConnected = Boolean(account);
 
                         return (
-                            <div
+                            <PlatformAvailability
                                 key={slug}
-                                className="flex items-center gap-4 rounded-xl border p-4"
+                                disabled={
+                                    !enabledPlatforms.includes(slug) &&
+                                    !isConnected
+                                }
                             >
-                                {/* Platform icon */}
-                                <div
-                                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${meta.iconClass}`}
-                                >
-                                    {meta.name[0]}
-                                </div>
+                                <div className="flex items-center gap-4 rounded-xl border p-4">
+                                    {/* Platform icon */}
+                                    <div
+                                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${meta.iconClass}`}
+                                    >
+                                        {meta.name[0]}
+                                    </div>
 
-                                {/* Info */}
-                                <div className="min-w-0 flex-1">
-                                    <div className="flex items-center gap-2">
-                                        <p className="text-sm font-medium">
-                                            {meta.name}
-                                        </p>
-                                        {isConnected && (
-                                            <span className="flex items-center gap-1 text-xs text-emerald-600">
-                                                <CheckCircle2 className="size-3" />
-                                                Connected
-                                            </span>
+                                    {/* Info */}
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-center gap-2">
+                                            <p className="text-sm font-medium">
+                                                {meta.name}
+                                            </p>
+                                            {isConnected && (
+                                                <span className="flex items-center gap-1 text-xs text-emerald-600">
+                                                    <CheckCircle2 className="size-3" />
+                                                    Connected
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {isConnected && account ? (
+                                            <div className="mt-0.5 space-y-0.5">
+                                                <p className="text-xs font-medium text-foreground">
+                                                    @{account.handle}
+                                                </p>
+                                                <SocialStatChips
+                                                    account={{
+                                                        ...account,
+                                                        engagement_rate: null,
+                                                    }}
+                                                    showSyncedAt
+                                                />
+                                            </div>
+                                        ) : (
+                                            <p className="mt-0.5 text-xs text-muted-foreground">
+                                                {meta.description}
+                                            </p>
                                         )}
                                     </div>
 
-                                    {isConnected && account ? (
-                                        <div className="mt-0.5 space-y-0.5">
-                                            <p className="text-xs font-medium text-foreground">
-                                                @{account.handle}
-                                            </p>
-                                            <SocialStatChips
-                                                account={{
-                                                    ...account,
-                                                    engagement_rate: null,
-                                                }}
-                                                showSyncedAt
-                                            />
+                                    {/* Action */}
+                                    {isConnected ? (
+                                        <div className="flex shrink-0 items-center gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                disabled={refreshing === slug}
+                                                onClick={() =>
+                                                    refreshPlatform(slug)
+                                                }
+                                                className="text-muted-foreground"
+                                            >
+                                                <RefreshCw
+                                                    className={`mr-1.5 size-3.5 ${refreshing === slug ? 'animate-spin' : ''}`}
+                                                />
+                                                {refreshing === slug
+                                                    ? 'Refreshing'
+                                                    : 'Refresh'}
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() =>
+                                                    disconnectPlatform(slug)
+                                                }
+                                                className="text-muted-foreground hover:text-destructive"
+                                            >
+                                                <Link2Off className="mr-1.5 size-3.5" />
+                                                Disconnect
+                                            </Button>
                                         </div>
                                     ) : (
-                                        <p className="mt-0.5 text-xs text-muted-foreground">
-                                            {meta.description}
-                                        </p>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                connectPlatform(slug)
+                                            }
+                                            className="shrink-0"
+                                        >
+                                            <ExternalLink className="mr-1.5 size-3.5" />
+                                            Connect
+                                        </Button>
                                     )}
                                 </div>
-
-                                {/* Action */}
-                                {isConnected ? (
-                                    <div className="flex shrink-0 items-center gap-1">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            disabled={refreshing === slug}
-                                            onClick={() =>
-                                                refreshPlatform(slug)
-                                            }
-                                            className="text-muted-foreground"
-                                        >
-                                            <RefreshCw
-                                                className={`mr-1.5 size-3.5 ${refreshing === slug ? 'animate-spin' : ''}`}
-                                            />
-                                            {refreshing === slug
-                                                ? 'Refreshing'
-                                                : 'Refresh'}
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() =>
-                                                disconnectPlatform(slug)
-                                            }
-                                            className="text-muted-foreground hover:text-destructive"
-                                        >
-                                            <Link2Off className="mr-1.5 size-3.5" />
-                                            Disconnect
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => connectPlatform(slug)}
-                                        className="shrink-0"
-                                    >
-                                        <ExternalLink className="mr-1.5 size-3.5" />
-                                        Connect
-                                    </Button>
-                                )}
-                            </div>
+                            </PlatformAvailability>
                         );
                     })}
                 </div>
