@@ -33,3 +33,8 @@ Flow: Register → verify email → choose Brand or Creator → onboarding → d
 `tests/Feature/Auth/RegistrationTest.php` rewritten: register without role, preferred role carried to role step, invalid preferred role ignored, role assigned on role step, referral attached after role chosen, password confirmation still required. The old tests used a password that fails the current password rules, so they now use a valid one.
 
 Known failures not caused by this change: `PasswordResetTest` (weak test password) and `DashboardTest` "users without a role can visit the dashboard" (the onboarding gate now redirects roleless users).
+
+## Backward compatibility & roles fix
+
+- `CreateNewUser` still honors a valid `role` (`brand`/`creator`) sent by older clients and assigns it at signup, attaching any referral immediately. Invalid values such as `admin` are ignored.
+- Migration `2026_10_11_100000_ensure_default_roles_exist` creates the `brand`, `creator` and `admin` roles if missing (idempotent, never deletes or alters existing roles or user-role links). Fixes `RoleDoesNotExist` on environments where `RoleSeeder` was never run (seen on staging).

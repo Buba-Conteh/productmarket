@@ -98,3 +98,24 @@ test('registration still requires a password confirmation', function () {
     $response->assertSessionHasErrors('password');
     $this->assertGuest();
 });
+
+test('an older client that still sends a role gets it assigned at signup', function () {
+    $referrer = User::factory()->create(['referral_code' => 'LEGACY12']);
+
+    $this->post(route('register.store'), registrationPayload([
+        'role' => 'brand',
+        'ref' => 'LEGACY12',
+    ]));
+
+    $user = User::where('email', 'test@example.com')->first();
+    expect($user->hasRole('brand'))->toBeTrue()
+        ->and(Referral::where('referred_user_id', $user->id)->value('referrer_user_id'))->toBe($referrer->id);
+});
+
+test('an invalid legacy role does not assign anything', function () {
+    $this->post(route('register.store'), registrationPayload(['role' => 'admin']));
+
+    $user = User::where('email', 'test@example.com')->first();
+    expect($user->hasSelectedRole())->toBeFalse()
+        ->and($user->hasRole('admin'))->toBeFalse();
+});
