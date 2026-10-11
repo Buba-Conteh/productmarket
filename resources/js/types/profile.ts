@@ -78,6 +78,8 @@ export type CreatorSearchResult = {
     niches: { id: string; name: string }[];
     totals: CreatorSocialTotals;
     social_accounts: SocialAccountSummary[];
+    /** Entry videos first, then top synced platform videos (max 10). */
+    featured_videos: FeaturedVideo[];
     /** Campaigns this creator already has a pending invitation to. */
     invited_campaign_ids: string[];
 };
@@ -119,4 +121,24 @@ export type EntryVideoItem = {
     duration_sec: number | null;
     view_count: number;
     posted_at: string | null;
+};
+
+/**
+ * One clip in a creator's featured reel. Entry videos (`source: 'entry'`) play
+ * from our bucket via `video_url`; platform videos play through `embed_url`,
+ * or fall back to their thumbnail and `share_url` when they can't be embedded.
+ */
+export type FeaturedVideo = {
+    id: string;
+    source: 'entry' | 'platform';
+    platform: string | null;
+    title: string | null;
+    thumbnail_url: string | null;
+    video_url: string | null;
+    embed_url: string | null;
+    share_url: string | null;
+    view_count: number;
+    like_count: number;
+    comment_count: number;
+    duration_sec: number | null;
 };
