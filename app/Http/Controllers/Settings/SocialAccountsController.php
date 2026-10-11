@@ -42,6 +42,7 @@ final class SocialAccountsController extends Controller
         return Inertia::render('settings/social-accounts', [
             'socialAccounts' => $socialAccounts,
             'supportedPlatforms' => $this->factory->supportedPlatforms(),
+            'enabledPlatforms' => $this->factory->enabledPlatforms(),
         ]);
     }
 }

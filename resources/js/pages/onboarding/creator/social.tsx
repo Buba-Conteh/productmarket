@@ -1,5 +1,6 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import { CheckCircle2, ExternalLink, Link2Off, Shield } from 'lucide-react';
+import { PlatformAvailability } from '@/components/social/platform-availability';
 import { SocialStatChips } from '@/components/social/social-stat-chips';
 import { Button } from '@/components/ui/button';
 import { connect, disconnect } from '@/routes/creator/social';
@@ -30,6 +31,8 @@ type SocialAccount = {
 
 type Props = {
     socialAccounts: SocialAccount[];
+    /** Platforms that can currently be connected (SOCIAL_ENABLED_PLATFORMS). */
+    enabledPlatforms?: string[];
 };
 
 const PLATFORMS: {
@@ -60,7 +63,10 @@ const PLATFORMS: {
     },
 ];
 
-export default function CreatorSocial({ socialAccounts }: Props) {
+export default function CreatorSocial({
+    socialAccounts,
+    enabledPlatforms = PLATFORMS.map((p) => p.slug),
+}: Props) {
     const { errors } = usePage().props as { errors: Record<string, string> };
 
     const connectedMap = Object.fromEntries(
@@ -98,75 +104,82 @@ export default function CreatorSocial({ socialAccounts }: Props) {
                         const isConnected = Boolean(account);
 
                         return (
-                            <div
+                            <PlatformAvailability
                                 key={platform.slug}
-                                className="flex items-center gap-4 rounded-xl border p-4 transition-colors"
+                                disabled={
+                                    !enabledPlatforms.includes(platform.slug) &&
+                                    !isConnected
+                                }
                             >
-                                {/* Platform icon placeholder */}
-                                <div
-                                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${platform.color}`}
-                                >
-                                    {platform.name[0]}
-                                </div>
+                                <div className="flex items-center gap-4 rounded-xl border p-4 transition-colors">
+                                    {/* Platform icon placeholder */}
+                                    <div
+                                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${platform.color}`}
+                                    >
+                                        {platform.name[0]}
+                                    </div>
 
-                                <div className="min-w-0 flex-1">
-                                    <div className="flex items-center gap-2">
-                                        <p className="text-sm font-medium">
-                                            {platform.name}
-                                        </p>
-                                        {isConnected && (
-                                            <span className="flex items-center gap-1 text-xs text-emerald-600">
-                                                <CheckCircle2 className="size-3" />
-                                                Connected
-                                            </span>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-center gap-2">
+                                            <p className="text-sm font-medium">
+                                                {platform.name}
+                                            </p>
+                                            {isConnected && (
+                                                <span className="flex items-center gap-1 text-xs text-emerald-600">
+                                                    <CheckCircle2 className="size-3" />
+                                                    Connected
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {isConnected && account ? (
+                                            <div className="mt-0.5 space-y-0.5">
+                                                <p className="text-xs font-medium text-foreground">
+                                                    @{account.handle}
+                                                </p>
+                                                <SocialStatChips
+                                                    account={{
+                                                        ...account,
+                                                        avg_views: null,
+                                                        engagement_rate: null,
+                                                    }}
+                                                />
+                                            </div>
+                                        ) : (
+                                            <p className="mt-0.5 text-xs text-muted-foreground">
+                                                {platform.description}
+                                            </p>
                                         )}
                                     </div>
 
-                                    {isConnected && account ? (
-                                        <div className="mt-0.5 space-y-0.5">
-                                            <p className="text-xs font-medium text-foreground">
-                                                @{account.handle}
-                                            </p>
-                                            <SocialStatChips
-                                                account={{
-                                                    ...account,
-                                                    avg_views: null,
-                                                    engagement_rate: null,
-                                                }}
-                                            />
-                                        </div>
+                                    {isConnected ? (
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                disconnectPlatform(
+                                                    platform.slug,
+                                                )
+                                            }
+                                            className="shrink-0 text-muted-foreground transition-colors hover:text-destructive"
+                                            title={`Disconnect ${platform.name}`}
+                                        >
+                                            <Link2Off className="size-4" />
+                                        </button>
                                     ) : (
-                                        <p className="mt-0.5 text-xs text-muted-foreground">
-                                            {platform.description}
-                                        </p>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() =>
+                                                connectPlatform(platform.slug)
+                                            }
+                                            className="shrink-0"
+                                        >
+                                            <ExternalLink className="mr-1.5 size-3" />
+                                            Connect
+                                        </Button>
                                     )}
                                 </div>
-
-                                {isConnected ? (
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            disconnectPlatform(platform.slug)
-                                        }
-                                        className="shrink-0 text-muted-foreground transition-colors hover:text-destructive"
-                                        title={`Disconnect ${platform.name}`}
-                                    >
-                                        <Link2Off className="size-4" />
-                                    </button>
-                                ) : (
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() =>
-                                            connectPlatform(platform.slug)
-                                        }
-                                        className="shrink-0"
-                                    >
-                                        <ExternalLink className="mr-1.5 size-3" />
-                                        Connect
-                                    </Button>
-                                )}
-                            </div>
+                            </PlatformAvailability>
                         );
                     })}
                 </div>

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Onboarding;
 
 use App\Http\Controllers\Controller;
 use App\Models\Niche;
+use App\Services\Social\PlatformProviderFactory;
 use App\Services\StripeConnectService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -93,7 +94,7 @@ final class CreatorOnboardingController extends Controller
         return redirect()->route('onboarding.creator.social');
     }
 
-    public function social(Request $request): Response|RedirectResponse
+    public function social(Request $request, PlatformProviderFactory $factory): Response|RedirectResponse
     {
         if ($this->isOnboarded($request)) {
             return redirect()->route('dashboard');
@@ -109,6 +110,7 @@ final class CreatorOnboardingController extends Controller
 
         return Inertia::render('onboarding/creator/social', [
             'socialAccounts' => $socialAccounts,
+            'enabledPlatforms' => $factory->enabledPlatforms(),
         ]);
     }
 

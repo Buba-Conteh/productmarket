@@ -27,10 +27,8 @@ final class PlatformProviderFactory
             throw new InvalidArgumentException("No OAuth provider registered for platform [{$platformSlug}].");
         }
 
-        $configKey = $platformSlug === 'youtube-shorts' ? 'youtube' : $platformSlug;
-
         /** @var array<string, mixed> $config */
-        $config = (array) config("social_oauth.{$configKey}", []);
+        $config = (array) config('social_oauth.'.$this->configKey($platformSlug), []);
 
         return new $class($config);
     }
@@ -41,5 +39,32 @@ final class PlatformProviderFactory
     public function supportedPlatforms(): array
     {
         return array_keys(self::MAP);
+    }
+
+    /**
+     * Platforms creators can currently connect (SOCIAL_ENABLED_PLATFORMS).
+     * Existing connections to other platforms keep working; they just can't
+     * be newly connected.
+     *
+     * @return list<string>
+     */
+    public function enabledPlatforms(): array
+    {
+        $enabled = (array) config('social_oauth.enabled_platforms', []);
+
+        return array_values(array_filter(
+            $this->supportedPlatforms(),
+            fn (string $slug): bool => in_array($this->configKey($slug), $enabled, true),
+        ));
+    }
+
+    public function isEnabled(string $platformSlug): bool
+    {
+        return in_array($platformSlug, $this->enabledPlatforms(), true);
+    }
+
+    private function configKey(string $platformSlug): string
+    {
+        return $platformSlug === 'youtube-shorts' ? 'youtube' : $platformSlug;
     }
 }
