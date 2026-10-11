@@ -77,21 +77,21 @@ export default function CreatorProfileStep({ profile }: Props) {
                 </div>
 
                 <div className="grid gap-2">
-                    <Label htmlFor="country">
-                        Country{' '}
-                        <span className="text-muted-foreground">
-                            (optional)
-                        </span>
-                    </Label>
+                    <Label htmlFor="country">Country</Label>
                     <CountrySelect
                         id="country"
+                        clearable={false}
                         value={data.country}
                         onChange={(code) => setData('country', code)}
                     />
                     <InputError message={errors.country} />
                 </div>
 
-                <Button type="submit" className="w-full" disabled={processing}>
+                <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={processing || !data.country}
+                >
                     {processing && <Spinner />}
                     Continue
                 </Button>

@@ -23,6 +23,8 @@ type Props = {
     id?: string;
     placeholder?: string;
     className?: string;
+    /** Show a clear (×) button. Turn off for required fields. */
+    clearable?: boolean;
 };
 
 export function CountrySelect({
@@ -31,6 +33,7 @@ export function CountrySelect({
     id,
     placeholder = 'Select a country',
     className,
+    clearable = true,
 }: Props) {
     const [open, setOpen] = useState(false);
     const selected = value.toUpperCase();
@@ -53,7 +56,7 @@ export function CountrySelect({
                         className={cn(
                             'w-full justify-between px-3 font-normal',
                             !value && 'text-muted-foreground',
-                            value && 'pr-14',
+                            value && clearable && 'pr-14',
                         )}
                     >
                         <span className="truncate">
@@ -63,7 +66,7 @@ export function CountrySelect({
                     </Button>
                 </PopoverTrigger>
 
-                {value && (
+                {value && clearable && (
                     <button
                         type="button"
                         aria-label="Clear country"
