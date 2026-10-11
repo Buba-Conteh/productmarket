@@ -34,10 +34,14 @@ const ROLES: {
 
 type Props = {
     needsEmail?: boolean;
+    preselectedRole?: Role | null;
 };
 
-export default function SelectRole({ needsEmail = false }: Props) {
-    const [selected, setSelected] = useState<Role | null>(null);
+export default function SelectRole({
+    needsEmail = false,
+    preselectedRole = null,
+}: Props) {
+    const [selected, setSelected] = useState<Role | null>(preselectedRole);
 
     return (
         <>
