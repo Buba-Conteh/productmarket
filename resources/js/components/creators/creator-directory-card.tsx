@@ -48,7 +48,7 @@ export function CreatorDirectoryCard({
                 }
             }}
             aria-label={`Quick view ${creator.display_name}`}
-            className="flex h-full cursor-pointer flex-col overflow-hidden transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            className="flex h-full cursor-pointer flex-col overflow-hidden border-0 bg-background shadow-[0_2px_12px_rgba(0,0,0,0.08)] transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none dark:bg-card dark:ring-1 dark:ring-white/10"
         >
             <CardContent className="flex flex-1 flex-col gap-4 p-5">
                 <div className="flex items-start justify-between gap-3">
@@ -100,7 +100,7 @@ export function CreatorDirectoryCard({
                     </div>
                 )}
 
-                <div className="mt-auto flex items-center justify-between gap-2 border-t pt-3">
+                <div className="mt-auto flex items-center justify-between gap-2 pt-1">
                     <div className="flex items-center gap-1">
                         {creator.social_accounts.map((account) => (
                             <PlatformChip
