@@ -6,9 +6,11 @@ namespace App\Http\Controllers\Onboarding;
 
 use App\Http\Controllers\Controller;
 use App\Models\Niche;
+use App\Services\Social\PlatformProviderFactory;
 use App\Services\StripeConnectService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -31,25 +33,21 @@ final class CreatorOnboardingController extends Controller
 
     public function storeProfile(Request $request): RedirectResponse
     {
+        // Country is required during onboarding. Creators who already
+        // finished onboarding without one are not affected.
         $validated = $request->validate([
             'display_name' => ['required', 'string', 'max:255'],
             'bio' => ['nullable', 'string', 'max:1000'],
+            'country' => ['required', 'string', 'size:2'],
         ]);
 
         $user = $request->user();
 
-        // Also update the user's country and avatar fields
-        $userFields = $request->validate([
-            'country' => ['nullable', 'string', 'size:2'],
-        ]);
-
-        if (! empty($userFields)) {
-            $user->update($userFields);
-        }
+        $user->update(['country' => $validated['country']]);
 
         $user->creatorProfile()->updateOrCreate(
             ['user_id' => $user->id],
-            $validated,
+            Arr::only($validated, ['display_name', 'bio']),
         );
 
         return redirect()->route('onboarding.creator.niches');
@@ -96,7 +94,7 @@ final class CreatorOnboardingController extends Controller
         return redirect()->route('onboarding.creator.social');
     }
 
-    public function social(Request $request): Response|RedirectResponse
+    public function social(Request $request, PlatformProviderFactory $factory): Response|RedirectResponse
     {
         if ($this->isOnboarded($request)) {
             return redirect()->route('dashboard');
@@ -112,6 +110,7 @@ final class CreatorOnboardingController extends Controller
 
         return Inertia::render('onboarding/creator/social', [
             'socialAccounts' => $socialAccounts,
+            'enabledPlatforms' => $factory->enabledPlatforms(),
         ]);
     }
 

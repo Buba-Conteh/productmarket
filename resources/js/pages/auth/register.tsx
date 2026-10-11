@@ -1,5 +1,4 @@
 import { Form, Head, usePage } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
 import GoogleIcon from '@/components/icons/google-icon';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -7,28 +6,16 @@ import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 
 export default function Register() {
     const { url } = usePage();
-    const [selectedRole, setSelectedRole] = useState<string>('');
-
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const role = params.get('role');
-        if (role === 'brand' || role === 'creator') {
-            setSelectedRole(role);
-        }
-    }, [url]);
+    const params = new URLSearchParams(url.split('?')[1] ?? '');
+    const role = params.get('role');
+    const preferredRole = role === 'brand' || role === 'creator' ? role : '';
+    const referralCode = params.get('ref') ?? '';
 
     return (
         <>
@@ -63,6 +50,18 @@ export default function Register() {
                         </div>
 
                         <div className="grid gap-6">
+                            {/* Carried to the role-select step after signup */}
+                            <input
+                                type="hidden"
+                                name="preferred_role"
+                                value={preferredRole}
+                            />
+                            <input
+                                type="hidden"
+                                name="ref"
+                                value={referralCode}
+                            />
+
                             <div className="grid gap-2">
                                 <Label htmlFor="name">Name</Label>
                                 <Input
@@ -96,29 +95,11 @@ export default function Register() {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label>I am a</Label>
-                                <Select name="role" value={selectedRole} onValueChange={setSelectedRole} required>
-                                    <SelectTrigger tabIndex={3}>
-                                        <SelectValue placeholder="Select your role" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="brand">
-                                            Brand
-                                        </SelectItem>
-                                        <SelectItem value="creator">
-                                            Creator
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <InputError message={errors.role} />
-                            </div>
-
-                            <div className="grid gap-2">
                                 <Label htmlFor="password">Password</Label>
                                 <PasswordInput
                                     id="password"
                                     required
-                                    tabIndex={4}
+                                    tabIndex={3}
                                     autoComplete="new-password"
                                     name="password"
                                     placeholder="Password"
@@ -133,7 +114,7 @@ export default function Register() {
                                 <PasswordInput
                                     id="password_confirmation"
                                     required
-                                    tabIndex={5}
+                                    tabIndex={4}
                                     autoComplete="new-password"
                                     name="password_confirmation"
                                     placeholder="Confirm password"
@@ -146,7 +127,7 @@ export default function Register() {
                             <Button
                                 type="submit"
                                 className="mt-2 w-full"
-                                tabIndex={6}
+                                tabIndex={5}
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
@@ -156,7 +137,7 @@ export default function Register() {
 
                         <div className="text-center text-sm text-muted-foreground">
                             Already have an account?{' '}
-                            <TextLink href={login()} tabIndex={7}>
+                            <TextLink href={login()} tabIndex={6}>
                                 Log in
                             </TextLink>
                         </div>
