@@ -283,17 +283,22 @@ final class CampaignService
 
         $brandUser = $campaign->brand?->user;
 
+        abort_unless($brandUser?->hasStripeId(), 422, 'Brand user missing Stripe ID.');
+
+        $billingService = app(BillingService::class);
+        $paymentMethodId = $billingService->getPaymentMethodId($brandUser, 'brand');
+
         abort_unless(
-            $brandUser?->hasStripeId() && $brandUser->hasDefaultPaymentMethod(),
+            $paymentMethodId,
             422,
             'Add a billing payment method before publishing this campaign.',
         );
 
         try {
-            // Off-session charge against the brand's saved default payment method.
+            // Off-session charge using subscription payment method (if subscribed) or default payment method.
             $payment = $brandUser->charge(
                 (int) round($amount * 100),
-                $brandUser->defaultPaymentMethod()->id,
+                $paymentMethodId,
                 [
                     'currency' => config('escrow.currency', 'usd'),
                     'off_session' => true,

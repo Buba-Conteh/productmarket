@@ -259,14 +259,14 @@ final readonly class PayoutService
         $newRetryCount = $payout->retry_count + 1;
 
         if ($newRetryCount < 2) {
-            // First failure — keep pending and schedule a retry in 30 minutes.
+            // First failure — keep pending and schedule a retry in 15 minutes (SQS max).
             $payout->update([
                 'status' => 'pending',
                 'failure_reason' => $reason,
                 'retry_count' => $newRetryCount,
             ]);
 
-            ProcessPayoutJob::dispatch($payout->id)->delay(now()->addMinutes(30));
+            ProcessPayoutJob::dispatch($payout->id)->delay(now()->addMinutes(15));
 
             return;
         }
