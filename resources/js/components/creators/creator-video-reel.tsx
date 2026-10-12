@@ -91,19 +91,21 @@ export function CreatorVideoReel({
 
     if (videos.length === 0) {
         return (
-            <div className="flex aspect-[9/16] h-[calc(100dvh-7rem)] max-w-[calc(100vw-2rem)] flex-col items-center justify-center gap-2 rounded-2xl bg-neutral-900 text-sm text-white/70 ring-1 ring-white/10">
+            <div className="flex size-full flex-col items-center justify-center gap-2 rounded-xl bg-muted text-sm text-muted-foreground">
                 <Film className="size-6" />
                 No videos synced yet
             </div>
         );
     }
 
+    // Fills the frame the parent gives it; the video area itself stays black
+    // in both themes, as any player does.
     return (
-        <div className="flex items-center gap-3">
+        <div className="relative size-full">
             <div
                 ref={scroller}
                 onScroll={handleScroll}
-                className="aspect-[9/16] h-[calc(100dvh-7rem)] max-w-[calc(100vw-2rem)] snap-y snap-mandatory overflow-y-auto overscroll-contain rounded-2xl bg-black [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                className="size-full snap-y snap-mandatory overflow-y-auto overscroll-contain rounded-xl bg-black [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
                 {videos.map((video, index) => (
                     <div
@@ -126,7 +128,8 @@ export function CreatorVideoReel({
                 ))}
             </div>
 
-            <div className="hidden flex-col gap-2 sm:flex">
+            {/* Sits on the video, clear of the embed's own bottom controls */}
+            <div className="absolute top-1/2 right-2 flex -translate-y-1/2 flex-col gap-2">
                 <ReelButton
                     label="Previous video"
                     disabled={activeIndex === 0}
@@ -163,7 +166,7 @@ function ReelButton({
             aria-label={label}
             disabled={disabled}
             onClick={onClick}
-            className="flex size-10 items-center justify-center rounded-full bg-neutral-800 text-white shadow-lg ring-1 ring-white/15 transition hover:bg-neutral-700 disabled:opacity-30"
+            className="flex size-9 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition hover:bg-black/70 disabled:pointer-events-none disabled:opacity-0"
         >
             {children}
         </button>

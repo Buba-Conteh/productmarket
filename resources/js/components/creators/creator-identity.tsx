@@ -7,19 +7,13 @@ import type { CreatorSearchResult } from '@/types/profile';
 type Props = {
     creator: CreatorSearchResult;
     size?: 'md' | 'lg';
-    /** Tone for use on the dark video-browser backdrop. */
-    inverted?: boolean;
 };
 
 /**
  * Avatar, name, country and primary handle — the header every creator surface
  * in the directory (card, quick view, video browser) leads with.
  */
-export function CreatorIdentity({
-    creator,
-    size = 'md',
-    inverted = false,
-}: Props) {
+export function CreatorIdentity({ creator, size = 'md' }: Props) {
     const getInitials = useInitials();
     const primary = creator.social_accounts[0];
 
@@ -27,8 +21,7 @@ export function CreatorIdentity({
         <div className="flex min-w-0 items-center gap-3">
             <Avatar
                 className={cn(
-                    'shrink-0 ring-2',
-                    inverted ? 'ring-white/20' : 'ring-border',
+                    'shrink-0 ring-2 ring-border',
                     size === 'lg' ? 'size-14' : 'size-11',
                 )}
             >
@@ -36,7 +29,7 @@ export function CreatorIdentity({
                     src={creator.user.avatar ?? undefined}
                     alt={creator.display_name}
                 />
-                <AvatarFallback className="text-xs font-semibold text-foreground">
+                <AvatarFallback className="text-xs font-semibold">
                     {getInitials(creator.display_name)}
                 </AvatarFallback>
             </Avatar>
@@ -52,28 +45,14 @@ export function CreatorIdentity({
                         {creator.display_name}
                     </span>
                     {creator.user.country && (
-                        <span
-                            className={cn(
-                                'flex shrink-0 items-center gap-0.5 text-xs font-medium',
-                                inverted
-                                    ? 'text-white/70'
-                                    : 'text-muted-foreground',
-                            )}
-                        >
+                        <span className="flex shrink-0 items-center gap-0.5 text-xs font-medium text-muted-foreground">
                             <MapPin className="size-3" />
                             {creator.user.country}
                         </span>
                     )}
                 </div>
                 {primary && (
-                    <p
-                        className={cn(
-                            'truncate text-sm',
-                            inverted
-                                ? 'text-white/75'
-                                : 'text-muted-foreground',
-                        )}
-                    >
+                    <p className="truncate text-sm text-muted-foreground">
                         @{primary.handle}
                     </p>
                 )}

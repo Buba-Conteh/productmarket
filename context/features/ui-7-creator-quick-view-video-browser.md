@@ -16,7 +16,10 @@ going back and forth to each profile:
    niches, the per-platform breakdown and up to 10 featured videos. **← / →**
    (buttons or keyboard) step to the previous/next creator on the page.
 3. **Video browser** opens when you click any video, from the card or the
-   quick view. It is a full-screen player with a vertical snap-scrolling reel:
+   quick view. It is a themed popup (light in light mode, dark in dark mode)
+   with the directory still visible behind a light blurred overlay, so it never
+   feels like leaving the site. Only the video frame is black. A vertical
+   snap-scrolling reel:
    **↑ / ↓** (scroll, buttons or keys) moves through that creator's videos, and
    **← / →** jumps to the previous/next creator. A side panel shows the creator's
    stats, the current video's stats, Invite and Full profile. If it was opened
@@ -57,7 +60,8 @@ out.
 | `app/Http/Controllers/Brand/CreatorSearchController.php` | Adds `featured_videos` to each result |
 | `components/creators/creator-directory-card.tsx` | Redesigned card with the video strip |
 | `components/creators/creator-quick-view-dialog.tsx` | Quick-view popup with creator paging |
-| `components/creators/creator-video-viewer.tsx` | Full-screen browser that pages between creators |
+| `components/creators/creator-video-viewer.tsx` | Themed video-browser popup that pages between creators |
+| `components/creators/creator-nav-arrow.tsx` | Shared previous/next-creator arrow used by both popups |
 | `components/creators/creator-video-reel.tsx` | One creator's vertical snap reel (↑/↓) |
 | `components/creators/featured-video-player.tsx` | Player for a video/embed, plus the poster fallback |
 | `components/creators/featured-video-thumb.tsx` | 9:16 thumbnail tile |
