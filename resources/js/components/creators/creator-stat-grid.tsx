@@ -1,12 +1,10 @@
 import { formatCompactNumber } from '@/lib/format';
-import { cn } from '@/lib/utils';
 import type { CreatorSocialTotals } from '@/types/profile';
 
 type Props = {
     totals: CreatorSocialTotals;
     /** `inline` for the card row, `tiles` for the boxed quick-view grid. */
     variant?: 'inline' | 'tiles';
-    inverted?: boolean;
 };
 
 function creatorStats(totals: CreatorSocialTotals) {
@@ -43,39 +41,29 @@ function creatorStats(totals: CreatorSocialTotals) {
 }
 
 /** The creator's headline numbers, combined across every connected platform. */
-export function CreatorStatGrid({
-    totals,
-    variant = 'inline',
-    inverted = false,
-}: Props) {
+export function CreatorStatGrid({ totals, variant = 'inline' }: Props) {
     const stats = creatorStats(totals);
 
     if (variant === 'tiles') {
+        // Sized by the container, not the viewport — the same grid sits in
+        // the wide quick view and the narrow video-browser side panel.
         return (
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-                {stats.map((stat) => (
-                    <div
-                        key={stat.key}
-                        className={cn(
-                            'flex flex-col items-center gap-0.5 rounded-xl px-2 py-3 text-center',
-                            inverted ? 'bg-white/10' : 'bg-muted/60',
-                        )}
-                    >
-                        <span
-                            className={cn(
-                                'text-xs',
-                                inverted
-                                    ? 'text-white/75'
-                                    : 'text-muted-foreground',
-                            )}
+            <div className="@container">
+                <div className="grid grid-cols-2 gap-2 @xs:grid-cols-3 @xl:grid-cols-5">
+                    {stats.map((stat) => (
+                        <div
+                            key={stat.key}
+                            className="flex flex-col items-center gap-0.5 rounded-xl bg-muted/60 px-2 py-3 text-center"
                         >
-                            {stat.label}
-                        </span>
-                        <span className="text-base font-semibold tabular-nums">
-                            {stat.value}
-                        </span>
-                    </div>
-                ))}
+                            <span className="text-xs text-muted-foreground">
+                                {stat.label}
+                            </span>
+                            <span className="text-base font-semibold tabular-nums">
+                                {stat.value}
+                            </span>
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }

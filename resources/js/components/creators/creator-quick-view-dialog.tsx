@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { ChevronLeft, ChevronRight, Film, PlaySquare } from 'lucide-react';
+import { Film, PlaySquare } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +12,7 @@ import { useArrowKeys } from '@/hooks/use-arrow-keys';
 import type { CreatorSearchResult } from '@/types/profile';
 import { CreatorIdentity } from './creator-identity';
 import { CreatorInviteButton } from './creator-invite-button';
+import { CreatorNavArrow } from './creator-nav-arrow';
 import { CreatorStatGrid } from './creator-stat-grid';
 import { FeaturedVideoThumb } from './featured-video-thumb';
 import { PlatformReachRow } from './platform-reach-row';
@@ -55,12 +56,16 @@ export function CreatorQuickViewDialog({
                 overlayClassName="bg-black/30 backdrop-blur-[2px]"
                 className="gap-0 overflow-visible rounded-2xl border-0 bg-background p-0 shadow-2xl sm:max-w-3xl dark:ring-1 dark:ring-white/10"
             >
-                <NavArrow
+                <CreatorNavArrow
                     side="left"
                     onClick={onPrevious}
                     label="Previous creator"
                 />
-                <NavArrow side="right" onClick={onNext} label="Next creator" />
+                <CreatorNavArrow
+                    side="right"
+                    onClick={onNext}
+                    label="Next creator"
+                />
 
                 <div className="max-h-[85vh] space-y-3 overflow-y-auto p-3 sm:p-4">
                     {/* Profile */}
@@ -164,34 +169,5 @@ export function CreatorQuickViewDialog({
                 </div>
             </DialogContent>
         </Dialog>
-    );
-}
-
-function NavArrow({
-    side,
-    onClick,
-    label,
-}: {
-    side: 'left' | 'right';
-    onClick?: () => void;
-    label: string;
-}) {
-    const Icon = side === 'left' ? ChevronLeft : ChevronRight;
-
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            disabled={!onClick}
-            aria-label={label}
-            className={
-                'absolute top-1/2 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-background shadow-lg transition hover:bg-accent disabled:pointer-events-none disabled:opacity-0 ' +
-                (side === 'left'
-                    ? 'left-1 sm:-left-14'
-                    : 'right-1 sm:-right-14')
-            }
-        >
-            <Icon className="size-5" />
-        </button>
     );
 }

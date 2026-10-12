@@ -1,23 +1,25 @@
 import { Link } from '@inertiajs/react';
-import * as DialogPrimitive from '@radix-ui/react-dialog';
-import {
-    ChevronLeft,
-    ChevronRight,
-    ExternalLink,
-    Eye,
-    Heart,
-    MessageCircle,
-    X,
-} from 'lucide-react';
+import { ExternalLink, Eye, Heart, MessageCircle } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { useArrowKeys } from '@/hooks/use-arrow-keys';
 import { formatCompactNumber } from '@/lib/format';
-import type { CreatorSearchResult } from '@/types/profile';
+import type { CreatorSearchResult, FeaturedVideo } from '@/types/profile';
 import { CreatorIdentity } from './creator-identity';
 import { CreatorInviteButton } from './creator-invite-button';
+import { CreatorNavArrow } from './creator-nav-arrow';
 import { CreatorStatGrid } from './creator-stat-grid';
 import { CreatorVideoReel } from './creator-video-reel';
 import { platformLabel } from './platform-chip';
+
+const PANEL_CARD =
+    'rounded-xl bg-background p-4 shadow-[0_2px_12px_rgba(0,0,0,0.08)] dark:bg-card dark:shadow-none';
 
 type Props = {
     creator: CreatorSearchResult;
@@ -32,9 +34,10 @@ type Props = {
 };
 
 /**
- * Full-screen video browser. Up/down moves through the current creator's
- * reel; left/right jumps to the previous/next creator in the results, so a
- * brand can audition creators back-to-back without leaving the directory.
+ * Video browser popup. It shares the quick view's light, themed treatment so
+ * the directory stays visible behind it: the brand is still clearly on the
+ * site, just looking closer. Up/down moves through the creator's reel;
+ * left/right jumps to the previous/next creator in the results.
  */
 export function CreatorVideoViewer({
     creator,
@@ -62,172 +65,147 @@ export function CreatorVideoViewer({
     useArrowKeys({ left: onPrevious, right: onNext }, !keyboardPaused);
 
     return (
-        <DialogPrimitive.Root open onOpenChange={(open) => !open && onClose()}>
-            <DialogPrimitive.Portal>
-                <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-neutral-950/85 backdrop-blur-xl data-[state=open]:animate-in data-[state=open]:fade-in-0" />
-                <DialogPrimitive.Content className="fixed inset-0 z-50 flex items-center justify-center text-white outline-none">
-                    <DialogPrimitive.Title className="sr-only">
-                        {creator.display_name} — videos
-                    </DialogPrimitive.Title>
-                    <DialogPrimitive.Description className="sr-only">
-                        Use the up and down arrows for this creator's videos and
-                        left and right for other creators.
-                    </DialogPrimitive.Description>
+        <Dialog open onOpenChange={(open) => !open && onClose()}>
+            <DialogContent
+                overlayClassName="bg-black/30 backdrop-blur-[2px]"
+                className="flex h-[min(88dvh,860px)] flex-col gap-3 overflow-visible rounded-2xl border-0 bg-background p-3 shadow-2xl sm:max-w-4xl lg:flex-row lg:gap-4 dark:ring-1 dark:ring-white/10"
+            >
+                <DialogTitle className="sr-only">
+                    {creator.display_name} — videos
+                </DialogTitle>
+                <DialogDescription className="sr-only">
+                    Use the up and down arrows for this creator's videos and
+                    left and right for other creators.
+                </DialogDescription>
 
-                    <DialogPrimitive.Close
-                        className="absolute top-4 right-4 z-10 flex size-10 items-center justify-center rounded-full bg-neutral-800 shadow-lg ring-1 ring-white/15 transition hover:bg-neutral-700"
-                        aria-label="Close"
-                    >
-                        <X className="size-5" />
-                    </DialogPrimitive.Close>
+                <CreatorNavArrow
+                    side="left"
+                    onClick={onPrevious}
+                    label="Previous creator"
+                />
+                <CreatorNavArrow
+                    side="right"
+                    onClick={onNext}
+                    label="Next creator"
+                />
 
-                    <CreatorArrow
-                        side="left"
-                        onClick={onPrevious}
-                        label="Previous creator"
+                {/* Compact header for screens without the side panel */}
+                <div className="flex items-center justify-between gap-3 pr-8 lg:hidden">
+                    <CreatorIdentity creator={creator} />
+                    <CreatorInviteButton
+                        onInvite={onInvite}
+                        fullyInvited={fullyInvited}
                     />
+                </div>
 
-                    <div className="flex items-center gap-8">
-                        <div className="flex flex-col gap-3">
-                            {/* Compact identity for screens without the side panel */}
-                            <div className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-900 p-3 shadow-xl ring-1 ring-white/10 lg:hidden">
-                                <CreatorIdentity creator={creator} inverted />
-                                <CreatorInviteButton
-                                    onInvite={onInvite}
-                                    fullyInvited={fullyInvited}
-                                />
-                            </div>
+                <div className="flex min-h-0 flex-1 justify-center lg:flex-none">
+                    <div className="aspect-[9/16] h-full max-w-full">
+                        <CreatorVideoReel
+                            key={creator.id}
+                            videos={creator.featured_videos}
+                            initialIndex={activeIndex}
+                            activeIndex={activeIndex}
+                            onActiveChange={setActiveIndex}
+                            keyboardPaused={keyboardPaused}
+                        />
+                    </div>
+                </div>
 
-                            <CreatorVideoReel
-                                key={creator.id}
-                                videos={creator.featured_videos}
-                                initialIndex={activeIndex}
-                                activeIndex={activeIndex}
-                                onActiveChange={setActiveIndex}
-                                keyboardPaused={keyboardPaused}
+                <aside className="hidden min-w-0 flex-1 flex-col gap-3 overflow-y-auto lg:flex">
+                    <section className={`${PANEL_CARD} space-y-4 pr-10`}>
+                        <CreatorIdentity creator={creator} size="lg" />
+                        <div className="flex items-center gap-2">
+                            <CreatorInviteButton
+                                onInvite={onInvite}
+                                fullyInvited={fullyInvited}
                             />
-                        </div>
-
-                        <aside className="hidden w-80 space-y-5 rounded-2xl bg-neutral-900 p-5 shadow-2xl ring-1 ring-white/10 lg:block">
-                            <CreatorIdentity
-                                creator={creator}
-                                size="lg"
-                                inverted
-                            />
-
-                            <CreatorStatGrid
-                                totals={creator.totals}
-                                variant="tiles"
-                                inverted
-                            />
-
-                            {video && (
-                                <div className="space-y-2 rounded-xl bg-white/[0.07] p-3">
-                                    <p className="text-xs text-white/70">
-                                        Video {activeIndex + 1} of{' '}
-                                        {creator.featured_videos.length}
-                                        {video.platform &&
-                                            ` · ${platformLabel(video.platform)}`}
-                                        {video.source === 'entry' &&
-                                            ' · Made on ProductMarket'}
-                                    </p>
-                                    {video.title && (
-                                        <p className="line-clamp-3 text-sm font-medium">
-                                            {video.title}
-                                        </p>
-                                    )}
-                                    <div className="flex items-center gap-3 text-xs text-white/85 tabular-nums">
-                                        <span className="flex items-center gap-1">
-                                            <Eye className="size-3.5" />
-                                            {formatCompactNumber(
-                                                video.view_count,
-                                            )}
-                                        </span>
-                                        {video.like_count > 0 && (
-                                            <span className="flex items-center gap-1">
-                                                <Heart className="size-3.5" />
-                                                {formatCompactNumber(
-                                                    video.like_count,
-                                                )}
-                                            </span>
-                                        )}
-                                        {video.comment_count > 0 && (
-                                            <span className="flex items-center gap-1">
-                                                <MessageCircle className="size-3.5" />
-                                                {formatCompactNumber(
-                                                    video.comment_count,
-                                                )}
-                                            </span>
-                                        )}
-                                        {video.share_url && (
-                                            <a
-                                                href={video.share_url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="ml-auto flex items-center gap-1 hover:text-white"
-                                            >
-                                                <ExternalLink className="size-3.5" />
-                                                Original
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="flex items-center gap-2">
-                                <CreatorInviteButton
-                                    onInvite={onInvite}
-                                    fullyInvited={fullyInvited}
-                                />
-                                <Link
-                                    href={`/creators/${creator.id}`}
-                                    className="rounded-full bg-white/15 px-4 py-1.5 text-sm font-medium transition hover:bg-white/25"
-                                >
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                asChild
+                                className="rounded-full"
+                            >
+                                <Link href={`/creators/${creator.id}`}>
                                     Full profile
                                 </Link>
-                            </div>
+                            </Button>
+                        </div>
+                        <CreatorStatGrid
+                            totals={creator.totals}
+                            variant="tiles"
+                        />
+                    </section>
 
-                            <p className="text-xs text-white/60">
-                                Creator {position.index + 1} of {position.total}{' '}
-                                · ↑↓ videos · ←→ creators
-                            </p>
-                        </aside>
-                    </div>
+                    {video && (
+                        <VideoDetails
+                            video={video}
+                            index={activeIndex}
+                            total={creator.featured_videos.length}
+                        />
+                    )}
 
-                    <CreatorArrow
-                        side="right"
-                        onClick={onNext}
-                        label="Next creator"
-                    />
-                </DialogPrimitive.Content>
-            </DialogPrimitive.Portal>
-        </DialogPrimitive.Root>
+                    <p className="mt-auto px-1 text-xs text-muted-foreground">
+                        Creator {position.index + 1} of {position.total} · ↑↓
+                        videos · ←→ creators
+                    </p>
+                </aside>
+            </DialogContent>
+        </Dialog>
     );
 }
 
-function CreatorArrow({
-    side,
-    onClick,
-    label,
+function VideoDetails({
+    video,
+    index,
+    total,
 }: {
-    side: 'left' | 'right';
-    onClick?: () => void;
-    label: string;
+    video: FeaturedVideo;
+    index: number;
+    total: number;
 }) {
-    const Icon = side === 'left' ? ChevronLeft : ChevronRight;
-
     return (
-        <button
-            type="button"
-            onClick={onClick}
-            disabled={!onClick}
-            aria-label={label}
-            className={
-                'absolute top-1/2 z-10 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-800 shadow-lg ring-1 ring-white/15 transition hover:bg-neutral-700 disabled:pointer-events-none disabled:opacity-0 ' +
-                (side === 'left' ? 'left-2 sm:left-6' : 'right-2 sm:right-6')
-            }
-        >
-            <Icon className="size-6" />
-        </button>
+        <section className={`${PANEL_CARD} space-y-2`}>
+            <p className="text-xs text-muted-foreground">
+                Video {index + 1} of {total}
+                {video.platform && ` · ${platformLabel(video.platform)}`}
+                {video.source === 'entry' && ' · Made on ProductMarket'}
+            </p>
+
+            {video.title && (
+                <p className="line-clamp-3 text-sm font-medium">
+                    {video.title}
+                </p>
+            )}
+
+            <div className="flex items-center gap-3 text-xs text-muted-foreground tabular-nums">
+                <span className="flex items-center gap-1">
+                    <Eye className="size-3.5" />
+                    {formatCompactNumber(video.view_count)}
+                </span>
+                {video.like_count > 0 && (
+                    <span className="flex items-center gap-1">
+                        <Heart className="size-3.5" />
+                        {formatCompactNumber(video.like_count)}
+                    </span>
+                )}
+                {video.comment_count > 0 && (
+                    <span className="flex items-center gap-1">
+                        <MessageCircle className="size-3.5" />
+                        {formatCompactNumber(video.comment_count)}
+                    </span>
+                )}
+                {video.share_url && (
+                    <a
+                        href={video.share_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-auto flex items-center gap-1 font-medium text-primary hover:underline"
+                    >
+                        <ExternalLink className="size-3.5" />
+                        View original
+                    </a>
+                )}
+            </div>
+        </section>
     );
 }
