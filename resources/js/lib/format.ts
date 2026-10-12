@@ -13,3 +13,11 @@ export function formatCompactNumber(value: number): string {
 
     return String(value);
 }
+
+/** "1234.5" -> "$1,234.50". Used by wallet and payout surfaces. */
+export function formatUsd(value: string | number): string {
+    return `$${Number(value).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    })}`;
+}

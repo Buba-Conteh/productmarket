@@ -13,6 +13,18 @@ final class Payout extends Model
 {
     use HasUlids;
 
+    /**
+     * Reason stored on a pending payout that is held because the creator has
+     * no active Stripe Connect account yet. Held payouts are not failures.
+     */
+    public const string AWAITING_ACCOUNT_REASON = 'Awaiting creator payout account.';
+
+    /**
+     * Reason written by the old flow, which failed these payouts outright.
+     * Payouts carrying it are recovered once the creator's account is active.
+     */
+    public const string LEGACY_INACTIVE_ACCOUNT_REASON = 'Creator Stripe Connect account is not active.';
+
     protected $fillable = [
         'entry_id',
         'creator_profile_id',

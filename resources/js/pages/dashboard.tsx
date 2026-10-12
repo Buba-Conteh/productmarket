@@ -1,7 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { formatDistanceToNow } from 'date-fns';
 import {
-    AlertTriangle,
     CheckCircle2,
     CircleX,
     Clock,
@@ -21,8 +20,10 @@ import type { ActivityItem } from '@/components/dashboard/activity-list';
 import { PerformanceChart } from '@/components/dashboard/performance-chart';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { WelcomeHero } from '@/components/dashboard/welcome-hero';
+import { PayoutAccountBanner } from '@/components/payouts/payout-account-banner';
 import { dashboard } from '@/routes';
 import type { Auth } from '@/types';
+import type { PayoutAccountStatus } from '@/types/payouts';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -56,10 +57,11 @@ interface BrandStats {
 interface CreatorStats {
     total_earned: string;
     pending_earnings: string;
+    awaiting_account: string;
     active_entries: number;
     total_views: number;
     pending_payouts_count: number;
-    stripe_connect_status: 'pending' | 'active' | 'restricted';
+    stripe_connect_status: PayoutAccountStatus | null;
 }
 
 interface ChartData {
@@ -96,6 +98,7 @@ function mapActivity(raw: RawActivity[]): ActivityItem[] {
             icon: Compass,
             tone: 'neutral' as const,
         };
+
         return {
             id: r.id,
             title: r.title,
@@ -110,8 +113,14 @@ function mapActivity(raw: RawActivity[]): ActivityItem[] {
 }
 
 function formatViews(n: number): string {
-    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-    if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+    if (n >= 1_000_000) {
+        return `${(n / 1_000_000).toFixed(1)}M`;
+    }
+
+    if (n >= 1_000) {
+        return `${(n / 1_000).toFixed(1)}K`;
+    }
+
     return n.toString();
 }
 
@@ -262,25 +271,11 @@ function CreatorDashboard({
                 secondaryCta={{ label: 'My entries', href: '/entries' }}
             />
 
-            {s && s.stripe_connect_status !== 'active' && (
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-yellow-200 bg-yellow-50 px-5 py-3.5 text-sm dark:border-yellow-900/50 dark:bg-yellow-950/30">
-                    <div className="flex items-center gap-2.5 text-yellow-800 dark:text-yellow-300">
-                        <AlertTriangle className="size-4 shrink-0" />
-                        <span>
-                            {s.stripe_connect_status === 'restricted'
-                                ? 'Your Stripe payout account is restricted — update your information to receive transfers.'
-                                : 'Payout account not connected — complete Stripe setup to receive earnings.'}
-                        </span>
-                    </div>
-                    <Link
-                        href="/onboarding/creator/payout"
-                        className="shrink-0 font-medium text-yellow-900 underline-offset-2 hover:underline dark:text-yellow-200"
-                    >
-                        {s.stripe_connect_status === 'restricted'
-                            ? 'Fix account →'
-                            : 'Set up payouts →'}
-                    </Link>
-                </div>
+            {s && (
+                <PayoutAccountBanner
+                    status={s.stripe_connect_status}
+                    awaitingAmount={s.awaiting_account}
+                />
             )}
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

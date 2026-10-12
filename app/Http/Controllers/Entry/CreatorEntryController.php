@@ -12,6 +12,7 @@ use App\Models\ContentType;
 use App\Models\CreatorProfile;
 use App\Models\Entry;
 use App\Models\Platform;
+use App\Services\CreatorWalletService;
 use App\Services\EntryService;
 use App\Support\DirectUpload;
 use App\Support\FileUploader;
@@ -30,7 +31,7 @@ final class CreatorEntryController extends Controller
     /**
      * Creator's entries list (my entries).
      */
-    public function index(Request $request): Response
+    public function index(Request $request, CreatorWalletService $wallet): Response
     {
         $creator = $request->user()->creatorProfile;
         $status = $request->query('status', 'all');
@@ -50,6 +51,8 @@ final class CreatorEntryController extends Controller
             ->selectRaw('coalesce(sum(entry_platforms.comment_count), 0) as comments')
             ->first();
 
+        $walletSummary = $wallet->summary($creator);
+
         return Inertia::render('entries/creator/index', [
             'entries' => $entries,
             'filters' => ['status' => $status],
@@ -64,8 +67,8 @@ final class CreatorEntryController extends Controller
             'summary' => [
                 'total_views' => (int) ($reach->views ?? 0),
                 'total_comments' => (int) ($reach->comments ?? 0),
-                'total_earned' => (string) $creator->total_earned,
-                'pending_earnings' => (string) $creator->pending_earnings,
+                'total_earned' => $walletSummary->totalEarned,
+                'pending_earnings' => $walletSummary->pending,
             ],
             'invitations' => $this->pendingInvitations($creator),
         ]);

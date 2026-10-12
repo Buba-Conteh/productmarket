@@ -26,10 +26,14 @@ final class ReleaseHeldPayoutsJob implements ShouldQueue
             return;
         }
 
-        // Find all pending payouts where the creator has accumulated enough balance.
+        // Find all pending payouts where the creator has accumulated enough balance
+        // and can actually receive a transfer (others are released on activation).
         Payout::query()
             ->where('status', 'pending')
-            ->whereHas('creator', fn ($q) => $q->where('pending_earnings', '>=', $min))
+            ->whereHas('creator', fn ($q) => $q
+                ->where('pending_earnings', '>=', $min)
+                ->whereNotNull('stripe_connect_id')
+                ->where('stripe_connect_status', 'active'))
             ->select('id')
             ->chunkById(100, function ($payouts): void {
                 foreach ($payouts as $payout) {

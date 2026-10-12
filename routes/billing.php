@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Billing\BillingController;
+use App\Http\Controllers\Billing\ConnectWebhookController;
 use App\Http\Controllers\Billing\WebhookController;
 use App\Http\Middleware\EnsureOnboardingComplete;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,6 +16,11 @@ use Illuminate\Support\Facades\Route;
 */
 Route::post('/stripe/webhook', [WebhookController::class, 'handleWebhook'])
     ->name('cashier.webhook');
+
+// Connect events (creator payout accounts) — separate endpoint + signing secret.
+Route::post('/stripe/connect/webhook', ConnectWebhookController::class)
+    ->withoutMiddleware([ValidateCsrfToken::class])
+    ->name('stripe.connect.webhook');
 
 /*
 |--------------------------------------------------------------------------

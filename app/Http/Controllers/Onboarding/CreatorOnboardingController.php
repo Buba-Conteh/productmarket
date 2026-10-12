@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 final class CreatorOnboardingController extends Controller
 {
@@ -144,7 +145,7 @@ final class CreatorOnboardingController extends Controller
      * Initiate Stripe Connect Express onboarding: create an account if needed,
      * then redirect the creator to Stripe's hosted onboarding flow.
      */
-    public function connectStripe(Request $request): RedirectResponse
+    public function connectStripe(Request $request): SymfonyResponse
     {
         $profile = $request->user()->creatorProfile;
 
@@ -162,7 +163,7 @@ final class CreatorOnboardingController extends Controller
             route('onboarding.creator.stripe.refresh'),
         );
 
-        return redirect()->away($onboardingUrl);
+        return Inertia::location($onboardingUrl);
     }
 
     /**
@@ -184,7 +185,7 @@ final class CreatorOnboardingController extends Controller
      * Stripe redirects here when the onboarding link expires.
      * We generate a fresh link and redirect the creator back to Stripe.
      */
-    public function stripeRefresh(Request $request): RedirectResponse
+    public function stripeRefresh(Request $request): SymfonyResponse
     {
         $profile = $request->user()->creatorProfile;
 
@@ -198,7 +199,7 @@ final class CreatorOnboardingController extends Controller
             route('onboarding.creator.stripe.refresh'),
         );
 
-        return redirect()->away($onboardingUrl);
+        return Inertia::location($onboardingUrl);
     }
 
     public function complete(Request $request): RedirectResponse
