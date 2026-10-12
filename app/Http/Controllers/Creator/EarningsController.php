@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Creator;
 
+use App\Services\CreatorWalletService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 final class EarningsController
 {
-    public function index(Request $request): Response
+    public function index(Request $request, CreatorWalletService $wallet): Response
     {
         $profile = $request->user()->creatorProfile;
 
@@ -18,6 +19,10 @@ final class EarningsController
             ->with(['campaign:id,title,type'])
             ->orderByDesc('created_at')
             ->paginate(20);
+
+        // Same rule as the wallet summary: pending money is "awaiting account"
+        // whenever the creator cannot receive transfers yet.
+        $awaitingAccount = ! $profile->canReceivePayouts();
 
         $payouts->through(fn ($payout) => [
             'id' => $payout->id,
@@ -29,17 +34,14 @@ final class EarningsController
             'net_amount' => $payout->net_amount,
             'status' => $payout->status,
             'failure_reason' => $payout->failure_reason,
+            'awaiting_account' => $awaitingAccount && in_array($payout->status, ['pending', 'processing'], true),
             'paid_at' => $payout->paid_at?->toDateString(),
             'created_at' => $payout->created_at->toDateString(),
         ]);
 
-        $paidCount = $profile->payouts()->where('status', 'paid')->count();
-
         return Inertia::render('creator/earnings', [
-            'total_earned' => $profile->total_earned,
-            'pending_earnings' => $profile->pending_earnings,
-            'paid_count' => $paidCount,
-            'stripe_connect_status' => $profile->stripe_connect_status,
+            ...$wallet->summary($profile)->toArray(),
+            'stripe_connect_status' => $profile->stripe_connect_id ? $profile->stripe_connect_status : null,
             'payouts' => $payouts,
         ]);
     }

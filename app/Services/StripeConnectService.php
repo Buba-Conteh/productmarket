@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\CreatorProfile;
 use Illuminate\Support\Facades\Log;
+use Stripe\Account;
 use Stripe\StripeClient;
 
 final readonly class StripeConnectService
@@ -84,14 +85,56 @@ final readonly class StripeConnectService
     {
         $account = $this->stripe->accounts->retrieve($profile->stripe_connect_id);
 
-        $status = match (true) {
-            $account->details_submitted && $account->charges_enabled => 'active',
-            $account->details_submitted => 'restricted',
-            default => 'pending',
-        };
+        return $this->applyAccountStatus($profile, $account);
+    }
+
+    /**
+     * Store the status derived from a Stripe Account (fetched or from an
+     * account.updated webhook). While the account can receive transfers,
+     * every payout held for the creator is released.
+     */
+    public function applyAccountStatus(CreatorProfile $profile, Account $account): string
+    {
+        $status = $this->resolveStatus($account);
 
         $profile->update(['stripe_connect_status' => $status]);
 
+        if ($status === 'active') {
+            // Idempotent: payouts are claimed atomically, so re-queuing is safe.
+            $released = app(PayoutService::class)->releaseHeldPayouts($profile);
+
+            if ($released > 0) {
+                Log::info('Creator payout account active — held payouts released', [
+                    'creator_profile_id' => $profile->id,
+                    'released' => $released,
+                ]);
+            }
+        }
+
         return $status;
+    }
+
+    /**
+     * Single-use link to the creator's Stripe Express dashboard, where they
+     * manage their bank account or debit card.
+     */
+    public function createDashboardLink(CreatorProfile $profile): string
+    {
+        return $this->stripe->accounts->createLoginLink($profile->stripe_connect_id)->url;
+    }
+
+    /**
+     * Payouts are sent as transfers, so "active" means the transfers capability
+     * is active — not card charges, which creators never take.
+     */
+    private function resolveStatus(Account $account): string
+    {
+        $transfers = $account->capabilities?->transfers ?? null;
+
+        return match (true) {
+            $account->details_submitted && $transfers === 'active' => 'active',
+            (bool) $account->details_submitted => 'restricted',
+            default => 'pending',
+        };
     }
 }

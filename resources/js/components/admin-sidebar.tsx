@@ -1,5 +1,12 @@
 import { Link } from '@inertiajs/react';
-import { LayoutGrid, Mail, Settings, Shield, Users } from 'lucide-react';
+import {
+    Banknote,
+    LayoutGrid,
+    Mail,
+    Settings,
+    Shield,
+    Users,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavUser } from '@/components/nav-user';
@@ -17,6 +24,7 @@ import {
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { dashboard } from '@/routes/admin';
 import { index as adminEarlyAccessIndex } from '@/routes/admin/early-access';
+import { index as adminPayoutsIndex } from '@/routes/admin/payouts';
 import { edit as adminSettingsEdit } from '@/routes/admin/settings';
 import { index as adminUsersIndex } from '@/routes/admin/users';
 import type { NavItem } from '@/types';
@@ -34,6 +42,11 @@ const manageItems: NavItem[] = [
         title: 'Users',
         href: adminUsersIndex.url(),
         icon: Users,
+    },
+    {
+        title: 'Payouts',
+        href: adminPayoutsIndex.url(),
+        icon: Banknote,
     },
     {
         title: 'Early Access',

@@ -9,9 +9,11 @@ import {
 } from 'lucide-react';
 import { StatCard } from '@/components/dashboard/stat-card';
 import Heading from '@/components/heading';
+import { PayoutAccountBanner } from '@/components/payouts/payout-account-banner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
+import type { PayoutAccountStatus, WalletSummary } from '@/types/payouts';
 
 type Payout = {
     id: string;
@@ -23,6 +25,7 @@ type Payout = {
     net_amount: string;
     status: 'pending' | 'processing' | 'paid' | 'failed';
     failure_reason: string | null;
+    awaiting_account: boolean;
     paid_at: string | null;
     created_at: string;
 };
@@ -37,11 +40,8 @@ type PaginatedPayouts = {
     prev_page_url: string | null;
 };
 
-type Props = {
-    total_earned: string;
-    pending_earnings: string;
-    paid_count: number;
-    stripe_connect_status: 'pending' | 'active' | 'restricted';
+type Props = WalletSummary & {
+    stripe_connect_status: PayoutAccountStatus | null;
     payouts: PaginatedPayouts;
 };
 
@@ -57,9 +57,11 @@ function formatCurrency(value: string | number): string {
     return `$${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function StatusBadge({ status }: { status: Payout['status'] }) {
+type BadgeStatus = Payout['status'] | 'awaiting_account';
+
+function StatusBadge({ status }: { status: BadgeStatus }) {
     const map: Record<
-        Payout['status'],
+        BadgeStatus,
         { label: string; icon: typeof CheckCircle2; className: string }
     > = {
         paid: {
@@ -73,6 +75,12 @@ function StatusBadge({ status }: { status: Payout['status'] }) {
             icon: Clock,
             className:
                 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+        },
+        awaiting_account: {
+            label: 'Awaiting payout account',
+            icon: Clock,
+            className:
+                'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
         },
         processing: {
             label: 'Processing',
@@ -100,28 +108,12 @@ function StatusBadge({ status }: { status: Payout['status'] }) {
     );
 }
 
-function StripeStatusIndicator({
-    status,
-}: {
-    status: Props['stripe_connect_status'];
-}) {
-    if (status === 'active') {
-        return null;
-    }
-
-    return (
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800 dark:border-yellow-800/40 dark:bg-yellow-900/20 dark:text-yellow-300">
-            {status === 'pending'
-                ? 'Your Stripe account is pending verification. Payouts will be held until verification is complete.'
-                : 'Your Stripe account is restricted. Please update your payout information to receive transfers.'}
-        </div>
-    );
-}
-
 export default function CreatorEarnings({
     total_earned,
     pending_earnings,
+    awaiting_account,
     paid_count,
+    pending_count,
     stripe_connect_status,
     payouts,
 }: Props) {
@@ -135,9 +127,10 @@ export default function CreatorEarnings({
                     description="Your payout history and current balance"
                 />
 
-                {stripe_connect_status !== 'active' && (
-                    <StripeStatusIndicator status={stripe_connect_status} />
-                )}
+                <PayoutAccountBanner
+                    status={stripe_connect_status}
+                    awaitingAmount={awaiting_account}
+                />
 
                 {/* Stat cards */}
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -148,7 +141,7 @@ export default function CreatorEarnings({
                         accent="primary"
                     />
                     <StatCard
-                        label="Pending Payouts"
+                        label={`Pending Payouts (${pending_count})`}
                         value={formatCurrency(pending_earnings)}
                         icon={Clock}
                     />
@@ -243,7 +236,11 @@ export default function CreatorEarnings({
                                             <td className="px-4 py-3">
                                                 <div className="flex flex-col gap-1">
                                                     <StatusBadge
-                                                        status={payout.status}
+                                                        status={
+                                                            payout.awaiting_account
+                                                                ? 'awaiting_account'
+                                                                : payout.status
+                                                        }
                                                     />
                                                     {payout.status ===
                                                         'failed' &&

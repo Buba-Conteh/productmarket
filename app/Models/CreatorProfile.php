@@ -39,6 +39,11 @@ final class CreatorProfile extends Model
         return $this->onboarding_completed_at !== null;
     }
 
+    public function canReceivePayouts(): bool
+    {
+        return $this->stripe_connect_id !== null && $this->stripe_connect_status === 'active';
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

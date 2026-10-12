@@ -35,6 +35,11 @@ return [
         ],
     ],
 
+    'stripe' => [
+        // Signing secret of the Stripe *Connect* webhook endpoint (/stripe/connect/webhook).
+        'connect_webhook_secret' => env('STRIPE_CONNECT_WEBHOOK_SECRET'),
+    ],
+
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
