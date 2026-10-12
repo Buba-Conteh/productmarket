@@ -91,7 +91,7 @@ export function CreatorVideoReel({
 
     if (videos.length === 0) {
         return (
-            <div className="flex aspect-[9/16] h-[calc(100dvh-7rem)] max-w-[calc(100vw-2rem)] flex-col items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 text-sm text-white/60">
+            <div className="flex aspect-[9/16] h-[calc(100dvh-7rem)] max-w-[calc(100vw-2rem)] flex-col items-center justify-center gap-2 rounded-2xl bg-neutral-900 text-sm text-white/70 ring-1 ring-white/10">
                 <Film className="size-6" />
                 No videos synced yet
             </div>
@@ -163,7 +163,7 @@ function ReelButton({
             aria-label={label}
             disabled={disabled}
             onClick={onClick}
-            className="flex size-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 disabled:opacity-30"
+            className="flex size-10 items-center justify-center rounded-full bg-neutral-800 text-white shadow-lg ring-1 ring-white/15 transition hover:bg-neutral-700 disabled:opacity-30"
         >
             {children}
         </button>
