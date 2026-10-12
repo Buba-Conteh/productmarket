@@ -65,7 +65,7 @@ export function CreatorStatGrid({
                             className={cn(
                                 'text-xs',
                                 inverted
-                                    ? 'text-white/60'
+                                    ? 'text-white/75'
                                     : 'text-muted-foreground',
                             )}
                         >
