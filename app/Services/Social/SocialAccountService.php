@@ -37,7 +37,7 @@ final class SocialAccountService
 
         $grantedScopes = (array) config("social_oauth.{$platformSlug}.scopes", []);
 
-        return DB::transaction(function () use ($user, $platform, $tokens, $profile, $grantedScopes) {
+        $account = DB::transaction(function () use ($user, $platform, $tokens, $profile, $grantedScopes) {
             return SocialAccount::updateOrCreate(
                 ['user_id' => $user->id, 'platform_id' => $platform->id],
                 [
@@ -58,6 +58,14 @@ final class SocialAccountService
                 ],
             );
         });
+
+        // Pull the creator's platform videos now rather than waiting for the
+        // scheduled sweep, so a creator with no ProductMarket entries still has
+        // a featured reel the moment they connect. Never throws — a failed
+        // fetch leaves the reel empty until the next sweep.
+        $this->syncVideos($account);
+
+        return $account;
     }
 
     public function findForUser(User $user, string $platformSlug): ?SocialAccount

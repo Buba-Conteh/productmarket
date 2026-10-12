@@ -16,17 +16,17 @@
         <meta property="og:description" content="{{ $ogDescription ?? 'Connect brands with creators through verified viral campaigns.' }}">
         <meta property="og:url" content="{{ url()->current() }}">
         <meta property="og:site_name" content="{{ config('app.name') }}">
-        <meta property="og:image" content="{{ $ogImage ?? asset('og-default.png') }}">
-        <meta property="og:image:width" content="1200">
-        <meta property="og:image:height" content="630">
+        <meta property="og:image" content="{{ $ogImage ?? asset('og-image.png') }}">
+        <meta property="og:image:width" content="512">
+        <meta property="og:image:height" content="512">
         <meta property="og:image:alt" content="{{ config('app.name') }} logo">
         <meta property="og:locale" content="en_US">
 
         {{-- Twitter/X Card --}}
-        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:card" content="summary">
         <meta name="twitter:title" content="{{ $twitterTitle ?? config('app.name') . ' — Viral Content Marketing' }}">
         <meta name="twitter:description" content="{{ $twitterDescription ?? 'Connect brands with creators through verified viral campaigns.' }}">
-        <meta name="twitter:image" content="{{ $twitterImage ?? asset('og-default.png') }}">
+        <meta name="twitter:image" content="{{ $twitterImage ?? asset('og-image.png') }}">
         <meta name="twitter:site" content="@trendko">
         <meta name="twitter:creator" content="@trendko">
 
