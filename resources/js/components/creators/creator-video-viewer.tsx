@@ -64,7 +64,7 @@ export function CreatorVideoViewer({
     return (
         <DialogPrimitive.Root open onOpenChange={(open) => !open && onClose()}>
             <DialogPrimitive.Portal>
-                <DialogPrimitive.Overlay className="backdrop-blur-mddata-[state=open]:animate-in fixed inset-0 z-50 bg-black/75 data-[state=open]:fade-in-0" />
+                <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-neutral-950/85 backdrop-blur-xl data-[state=open]:animate-in data-[state=open]:fade-in-0" />
                 <DialogPrimitive.Content className="fixed inset-0 z-50 flex items-center justify-center text-white outline-none">
                     <DialogPrimitive.Title className="sr-only">
                         {creator.display_name} — videos
@@ -75,7 +75,7 @@ export function CreatorVideoViewer({
                     </DialogPrimitive.Description>
 
                     <DialogPrimitive.Close
-                        className="absolute top-4 right-4 z-10 flex size-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
+                        className="absolute top-4 right-4 z-10 flex size-10 items-center justify-center rounded-full bg-neutral-800 shadow-lg ring-1 ring-white/15 transition hover:bg-neutral-700"
                         aria-label="Close"
                     >
                         <X className="size-5" />
@@ -90,7 +90,7 @@ export function CreatorVideoViewer({
                     <div className="flex items-center gap-8">
                         <div className="flex flex-col gap-3">
                             {/* Compact identity for screens without the side panel */}
-                            <div className="flex items-center justify-between gap-3 lg:hidden">
+                            <div className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-900 p-3 shadow-xl ring-1 ring-white/10 lg:hidden">
                                 <CreatorIdentity creator={creator} inverted />
                                 <CreatorInviteButton
                                     onInvite={onInvite}
@@ -108,7 +108,7 @@ export function CreatorVideoViewer({
                             />
                         </div>
 
-                        <aside className="hidden w-80 space-y-5 lg:block">
+                        <aside className="hidden w-80 space-y-5 rounded-2xl bg-neutral-900 p-5 shadow-2xl ring-1 ring-white/10 lg:block">
                             <CreatorIdentity
                                 creator={creator}
                                 size="lg"
@@ -122,8 +122,8 @@ export function CreatorVideoViewer({
                             />
 
                             {video && (
-                                <div className="space-y-2 rounded-xl bg-white/5 p-3">
-                                    <p className="text-xs text-white/50">
+                                <div className="space-y-2 rounded-xl bg-white/[0.07] p-3">
+                                    <p className="text-xs text-white/70">
                                         Video {activeIndex + 1} of{' '}
                                         {creator.featured_videos.length}
                                         {video.platform &&
@@ -136,7 +136,7 @@ export function CreatorVideoViewer({
                                             {video.title}
                                         </p>
                                     )}
-                                    <div className="flex items-center gap-3 text-xs text-white/70 tabular-nums">
+                                    <div className="flex items-center gap-3 text-xs text-white/85 tabular-nums">
                                         <span className="flex items-center gap-1">
                                             <Eye className="size-3.5" />
                                             {formatCompactNumber(
@@ -181,13 +181,13 @@ export function CreatorVideoViewer({
                                 />
                                 <Link
                                     href={`/creators/${creator.id}`}
-                                    className="rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium transition hover:bg-white/20"
+                                    className="rounded-full bg-white/15 px-4 py-1.5 text-sm font-medium transition hover:bg-white/25"
                                 >
                                     Full profile
                                 </Link>
                             </div>
 
-                            <p className="text-xs text-white/40">
+                            <p className="text-xs text-white/60">
                                 Creator {position.index + 1} of {position.total}{' '}
                                 · ↑↓ videos · ←→ creators
                             </p>
@@ -223,7 +223,7 @@ function CreatorArrow({
             disabled={!onClick}
             aria-label={label}
             className={
-                'absolute top-1/2 z-10 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20 disabled:pointer-events-none disabled:opacity-0 ' +
+                'absolute top-1/2 z-10 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-800 shadow-lg ring-1 ring-white/15 transition hover:bg-neutral-700 disabled:pointer-events-none disabled:opacity-0 ' +
                 (side === 'left' ? 'left-2 sm:left-6' : 'right-2 sm:right-6')
             }
         >
