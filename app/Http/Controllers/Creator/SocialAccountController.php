@@ -78,7 +78,7 @@ final class SocialAccountController extends Controller
     }
 
     /**
-     * Pull fresh metrics for an already-connected account on demand.
+     * Pull fresh metrics and videos for an already-connected account on demand.
      */
     public function refresh(Request $request, string $platform): RedirectResponse
     {
@@ -89,6 +89,7 @@ final class SocialAccountController extends Controller
         abort_if($account === null, 404);
 
         $synced = $this->accounts->syncStats($account);
+        $this->accounts->syncVideos($account);
 
         return back()->with(
             'status',

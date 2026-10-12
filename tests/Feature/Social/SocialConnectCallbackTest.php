@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use App\Models\CreatorProfile;
+use App\Models\CreatorVideo;
 use App\Models\User;
+use App\Services\Creators\FeaturedVideoService;
 use App\Services\Social\PlatformProviderFactory;
 use Database\Seeders\PlatformSeeder;
 use Database\Seeders\RoleSeeder;
@@ -102,4 +104,43 @@ test('a stale intended url does not divert the creator to the dashboard', functi
     $this->actingAs($user)
         ->get(route('creator.social.callback', ['platform' => 'tiktok'])."?code=abc&state={$state}")
         ->assertRedirect(route('social-accounts.edit'));
+});
+
+test('connecting tiktok pulls the creator videos straight away', function () {
+    $user = onboardedCreator();
+
+    $this->actingAs($user)
+        ->from(route('social-accounts.edit'))
+        ->get(route('creator.social.connect', ['platform' => 'tiktok']));
+
+    $state = session('social_oauth_state_tiktok');
+
+    $this->actingAs($user)
+        ->get(route('creator.social.callback', ['platform' => 'tiktok'])."?code=abc&state={$state}")
+        ->assertRedirect(route('social-accounts.edit'));
+
+    $account = $user->socialAccounts()->sole();
+
+    expect(CreatorVideo::where('social_account_id', $account->id)->count())->toBeGreaterThan(0);
+});
+
+test('a creator with no entries is featured with their tiktok videos', function () {
+    $user = onboardedCreator();
+
+    $this->actingAs($user)
+        ->from(route('social-accounts.edit'))
+        ->get(route('creator.social.connect', ['platform' => 'tiktok']));
+
+    $state = session('social_oauth_state_tiktok');
+
+    $this->actingAs($user)
+        ->get(route('creator.social.callback', ['platform' => 'tiktok'])."?code=abc&state={$state}");
+
+    $creator = $user->creatorProfile()->with('user.socialAccounts.platform')->sole();
+
+    $featured = app(FeaturedVideoService::class)->forCreators([$creator])[$creator->id];
+
+    expect($featured)->not->toBeEmpty()
+        ->and(collect($featured)->pluck('source')->unique()->all())->toBe(['platform'])
+        ->and(collect($featured)->pluck('platform')->unique()->all())->toBe(['tiktok']);
 });
