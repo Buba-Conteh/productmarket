@@ -17,9 +17,9 @@ Sharing the site link (WhatsApp, iMessage, Slack, LinkedIn, X) showed the Larave
 
 | File | Change |
 |---|---|
-| `public/favicon.ico` | Replaced with Trendko "T" mark (16/32/48 px, PNG-in-ICO) |
-| `public/apple-touch-icon.png` | Replaced with 180×180 Trendko mark |
-| `public/og-default.png` | New 1200×630 share image (wordmark + tagline) |
+| `public/favicon.ico` | Rasterized from `favicon.svg` — "T" with amber dot top-right (16/32/48 px, PNG-in-ICO) |
+| `public/apple-touch-icon.png` | 180×180 from `favicon.svg`, square corners (iOS rounds them itself) |
+| `public/og-default.png` | 1200×630 share image: `favicon.svg` "T" mark + wordmark + tagline |
 | `resources/views/app.blade.php` | OG/Twitter image defaults now `asset('og-default.png')` (served from `APP_URL`); added `og:image:alt` |
 | `app/Http/Controllers/WelcomeController.php` | Replaced dead `og-welcome.png` URLs with `asset('og-default.png')` |
 
