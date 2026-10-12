@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminEarlyAccessController;
+use App\Http\Controllers\Admin\AdminPayoutController;
 use App\Http\Controllers\Admin\AdminSettingsController;
 use App\Http\Controllers\Admin\AdminUserController;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +21,11 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::prefix('early-access')->name('early-access.')->group(function () {
         Route::get('/', [AdminEarlyAccessController::class, 'index'])->name('index');
         Route::get('export', [AdminEarlyAccessController::class, 'exportCsv'])->name('export');
+    });
+
+    Route::prefix('payouts')->name('payouts.')->group(function () {
+        Route::get('/', [AdminPayoutController::class, 'index'])->name('index');
+        Route::post('{payout}/retry', [AdminPayoutController::class, 'retry'])->name('retry');
     });
 
     Route::get('settings', [AdminSettingsController::class, 'edit'])->name('settings.edit');

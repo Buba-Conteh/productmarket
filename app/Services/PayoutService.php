@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\DTOs\PayoutAmounts;
 use App\Jobs\ProcessPayoutJob;
+use App\Models\CreatorProfile;
 use App\Models\Entry;
 use App\Models\Payout;
 use App\Models\PlatformSetting;
@@ -99,8 +100,12 @@ final readonly class PayoutService
     {
         $creator = $payout->creator;
 
-        if (! $creator->stripe_connect_id || $creator->stripe_connect_status !== 'active') {
-            $this->markFailed($payout, 'Creator Stripe Connect account is not active.');
+        if (! $creator->canReceivePayouts()) {
+            // No payout account yet — hold the payout (it stays pending and in the
+            // creator's balance). It is released when the account becomes active.
+            if ($payout->failure_reason !== Payout::AWAITING_ACCOUNT_REASON) {
+                $payout->update(['failure_reason' => Payout::AWAITING_ACCOUNT_REASON]);
+            }
 
             return;
         }
@@ -111,6 +116,18 @@ final readonly class PayoutService
             // Balance below minimum — hold payout until threshold is reached.
             return;
         }
+
+        // Claim the payout atomically so two queued jobs can never transfer it twice.
+        $claimed = Payout::whereKey($payout->id)
+            ->where('status', 'pending')
+            ->update(['status' => 'processing']);
+
+        if ($claimed === 0) {
+            return;
+        }
+
+        $payout->status = 'processing';
+        $payout->syncOriginalAttribute('status');
 
         try {
             $transfer = $this->stripe->transfers->create([
@@ -124,31 +141,6 @@ final readonly class PayoutService
                     'payout_type' => $payout->payout_type,
                 ],
             ]);
-
-            DB::transaction(function () use ($payout, $transfer, $creator): void {
-                $payout->update([
-                    'status' => 'paid',
-                    'stripe_transfer_id' => $transfer->id,
-                    'paid_at' => now(),
-                ]);
-
-                // Move net amount from pending → earned on the creator profile.
-                $net = (float) $payout->net_amount;
-                $creator->decrement('pending_earnings', $net);
-                $creator->increment('total_earned', $net);
-
-                // Track how much escrow has been released for this campaign.
-                $payout->campaign->escrowTransaction?->increment(
-                    'total_released',
-                    (float) $payout->gross_amount,
-                );
-            });
-
-            // Notify creator of successful payout
-            $creatorUser = $creator->user ?? null;
-            if ($creatorUser) {
-                $creatorUser->notify(new PayoutProcessed($payout->fresh()));
-            }
         } catch (ApiErrorException $e) {
             Log::error('Stripe transfer failed', [
                 'payout_id' => $payout->id,
@@ -156,7 +148,102 @@ final readonly class PayoutService
             ]);
 
             $this->markFailed($payout, $e->getMessage());
+
+            return;
         }
+
+        DB::transaction(function () use ($payout, $transfer, $creator): void {
+            $payout->update([
+                'status' => 'paid',
+                'stripe_transfer_id' => $transfer->id,
+                'failure_reason' => null,
+                'paid_at' => now(),
+            ]);
+
+            // Move net amount from pending → earned on the creator profile.
+            $net = (float) $payout->net_amount;
+            $creator->decrement('pending_earnings', $net);
+            $creator->increment('total_earned', $net);
+
+            // Track how much escrow has been released for this campaign.
+            $payout->campaign->escrowTransaction?->increment(
+                'total_released',
+                (float) $payout->gross_amount,
+            );
+        });
+
+        // Notify creator of successful payout
+        $creatorUser = $creator->user ?? null;
+        if ($creatorUser) {
+            $creatorUser->notify(new PayoutProcessed($payout->fresh()));
+        }
+    }
+
+    /**
+     * Release every payout held for a creator once their payout account is active.
+     *
+     * Payouts failed by the old flow purely because the account was missing are
+     * restored to pending first (and their amount put back into pending_earnings),
+     * then every pending payout is queued for transfer.
+     */
+    public function releaseHeldPayouts(CreatorProfile $creator): int
+    {
+        if (! $creator->canReceivePayouts()) {
+            return 0;
+        }
+
+        $creator->payouts()
+            ->where('status', 'failed')
+            ->where('failure_reason', Payout::LEGACY_INACTIVE_ACCOUNT_REASON)
+            ->get()
+            ->each(fn (Payout $payout) => $this->restoreToPending($payout));
+
+        $pendingIds = $creator->payouts()->where('status', 'pending')->pluck('id');
+
+        foreach ($pendingIds as $payoutId) {
+            ProcessPayoutJob::dispatch($payoutId);
+        }
+
+        return $pendingIds->count();
+    }
+
+    /**
+     * Admin-triggered retry of a failed payout: restore it to pending and queue it.
+     */
+    public function retry(Payout $payout): void
+    {
+        if ($payout->status !== 'failed') {
+            return;
+        }
+
+        $this->restoreToPending($payout);
+
+        ProcessPayoutJob::dispatch($payout->id);
+    }
+
+    /**
+     * Move a failed payout back to pending, re-adding its net amount to the
+     * creator's pending balance (markFailed removed it).
+     */
+    private function restoreToPending(Payout $payout): void
+    {
+        DB::transaction(function () use ($payout): void {
+            $restored = Payout::whereKey($payout->id)
+                ->where('status', 'failed')
+                ->update([
+                    'status' => 'pending',
+                    'retry_count' => 0,
+                    'failure_reason' => $payout->creator->canReceivePayouts()
+                        ? null
+                        : Payout::AWAITING_ACCOUNT_REASON,
+                ]);
+
+            if ($restored === 1) {
+                $payout->creator()->increment('pending_earnings', (float) $payout->net_amount);
+            }
+        });
+
+        $payout->refresh();
     }
 
     /**
@@ -172,13 +259,14 @@ final readonly class PayoutService
         $newRetryCount = $payout->retry_count + 1;
 
         if ($newRetryCount < 2) {
-            // First failure — keep pending and schedule a retry in 30 minutes.
+            // First failure — keep pending and schedule a retry in 15 minutes (SQS max).
             $payout->update([
+                'status' => 'pending',
                 'failure_reason' => $reason,
                 'retry_count' => $newRetryCount,
             ]);
 
-            ProcessPayoutJob::dispatch($payout->id)->delay(now()->addMinutes(30));
+            ProcessPayoutJob::dispatch($payout->id)->delay(now()->addMinutes(15));
 
             return;
         }

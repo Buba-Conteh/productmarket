@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Analytics;
 
 use App\Http\Controllers\Controller;
 use App\Models\CreatorAnalytic;
+use App\Services\CreatorWalletService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -13,7 +14,7 @@ use Inertia\Response;
 
 final class CreatorAnalyticsController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, CreatorWalletService $wallet): Response
     {
         $creator = $request->user()->creatorProfile;
         abort_unless($creator, 403);
@@ -58,6 +59,8 @@ final class CreatorAnalyticsController extends Controller
             ->limit(8)
             ->get();
 
+        $walletSummary = $wallet->summary($creator);
+
         return Inertia::render('analytics/creator', [
             'weekly_snapshots' => $weeklySnapshots,
             'entry_views' => $entryViews,
@@ -67,8 +70,8 @@ final class CreatorAnalyticsController extends Controller
                     ->join('entries', 'entries.id', '=', 'entry_platforms.entry_id')
                     ->where('entries.creator_profile_id', $creator->id)
                     ->sum('entry_platforms.verified_view_count'),
-                'total_earned' => (float) $creator->total_earned,
-                'pending_earnings' => (float) $creator->pending_earnings,
+                'total_earned' => (float) $walletSummary->totalEarned,
+                'pending_earnings' => (float) $walletSummary->pending,
                 'total_entries' => $creator->entries()->whereNotIn('status', ['draft'])->count(),
             ],
         ]);

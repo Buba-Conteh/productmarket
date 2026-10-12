@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\PayoutAccountController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
 use App\Http\Controllers\Settings\SocialAccountsController;
@@ -31,5 +32,17 @@ Route::middleware(['auth', 'verified', EnsureOnboardingComplete::class])->group(
 
     Route::middleware('role:creator')->group(function () {
         Route::get('settings/social-accounts', [SocialAccountsController::class, 'edit'])->name('social-accounts.edit');
+
+        Route::prefix('settings/payout-account')->name('settings.payout-account.')->group(function () {
+            Route::get('/', [PayoutAccountController::class, 'edit'])->name('edit');
+            Route::post('connect', [PayoutAccountController::class, 'connect'])
+                ->middleware('throttle:10,1')
+                ->name('connect');
+            Route::post('dashboard', [PayoutAccountController::class, 'dashboard'])
+                ->middleware('throttle:10,1')
+                ->name('dashboard');
+            Route::get('return', [PayoutAccountController::class, 'return'])->name('return');
+            Route::get('refresh', [PayoutAccountController::class, 'refresh'])->name('refresh');
+        });
     });
 });

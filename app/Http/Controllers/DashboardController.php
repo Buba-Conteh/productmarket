@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\CreatorWalletService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +14,7 @@ use Inertia\Response;
 
 final class DashboardController
 {
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request, CreatorWalletService $wallet): Response
     {
         $user = $request->user();
 
@@ -22,7 +23,7 @@ final class DashboardController
         }
 
         if ($user->hasRole('creator') && $user->creatorProfile) {
-            return $this->creatorDashboard($user);
+            return $this->creatorDashboard($user, $wallet);
         }
 
         return Inertia::render('dashboard');
@@ -107,7 +108,7 @@ final class DashboardController
         ]);
     }
 
-    private function creatorDashboard(User $user): Response
+    private function creatorDashboard(User $user, CreatorWalletService $wallet): Response
     {
         $creator = $user->creatorProfile;
 
@@ -122,7 +123,7 @@ final class DashboardController
 
         [$chartData, $chartLabels] = $this->creatorChartData($creator);
 
-        $pendingPayoutsCount = $creator->payouts()->where('status', 'pending')->count();
+        $summary = $wallet->summary($creator);
 
         $recentPayouts = $creator->payouts()
             ->with('campaign:id,title')
@@ -159,12 +160,14 @@ final class DashboardController
 
         return Inertia::render('dashboard', [
             'stats' => [
-                'total_earned' => number_format((float) $creator->total_earned, 2, '.', ''),
-                'pending_earnings' => number_format((float) $creator->pending_earnings, 2, '.', ''),
+                'total_earned' => $summary->totalEarned,
+                'pending_earnings' => $summary->pending,
+                'awaiting_account' => $summary->awaitingAccount,
                 'active_entries' => $activeEntries,
                 'total_views' => $totalViews,
-                'pending_payouts_count' => $pendingPayoutsCount,
-                'stripe_connect_status' => $creator->stripe_connect_status ?? 'pending',
+                'pending_payouts_count' => $summary->pendingCount,
+                // null = no payout account connected yet.
+                'stripe_connect_status' => $creator->stripe_connect_id ? $creator->stripe_connect_status : null,
             ],
             'chart' => [
                 'data' => $chartData,

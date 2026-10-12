@@ -43,6 +43,11 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                       icon: null,
                   },
                   {
+                      title: 'Payout Account',
+                      href: '/settings/payout-account',
+                      icon: null,
+                  },
+                  {
                       title: 'Social Accounts',
                       href: '/settings/social-accounts',
                       icon: null,
