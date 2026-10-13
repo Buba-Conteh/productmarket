@@ -1,6 +1,7 @@
 import { Search } from 'lucide-react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { NotificationBell } from '@/components/notification-bell';
+import { TourButton } from '@/components/tour/tour-button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
 
@@ -25,6 +26,7 @@ export function AppSidebarHeader({
                         className="h-9 w-56 rounded-full border border-border bg-muted/40 pr-3 pl-9 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/30 lg:w-72"
                     />
                 </div>
+                <TourButton />
                 <NotificationBell />
             </div>
         </header>
