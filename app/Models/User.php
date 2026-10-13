@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Services\EmailVerificationCodeService;
 use App\Support\FileUploader;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -39,6 +40,17 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /** @var list<string> */
     protected $appends = ['avatar_url'];
+
+    /**
+     * Email a numeric verification code instead of Laravel's signed link.
+     *
+     * Fortify calls this on registration and on "resend", so both flows pick
+     * up the code. The signed-link route still works for links sent earlier.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        app(EmailVerificationCodeService::class)->send($this);
+    }
 
     /**
      * The picture to render for this user.

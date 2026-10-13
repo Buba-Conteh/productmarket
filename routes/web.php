@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\EmailVerificationCodeController;
 use App\Http\Controllers\Auth\PhoneAuthController;
 use App\Http\Controllers\Auth\RoleSelectionController;
 use App\Http\Controllers\Auth\SocialAuthController;
@@ -43,6 +44,12 @@ Route::middleware('guest')->group(function () {
     Route::post('auth/phone/resend', [PhoneAuthController::class, 'resend'])
         ->middleware('throttle:6,1')->name('phone.resend');
 });
+
+// Email verification by emailed code. The code itself is sent by
+// User::sendEmailVerificationNotification() on signup and on Fortify's resend.
+Route::post('email/verify-code', [EmailVerificationCodeController::class, 'store'])
+    ->middleware(['auth', 'throttle:6,1'])
+    ->name('verification.code');
 
 // Role picker for social / phone signups that arrive without a role. Sits
 // behind auth+verified but NOT the onboarding gate (which redirects here).
