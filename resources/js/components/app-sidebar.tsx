@@ -33,17 +33,41 @@ const brandSections: NavSection[] = [
         label: 'Workspace',
         items: [
             { title: 'Dashboard', href: '/dashboard', icon: LayoutGrid },
-            { title: 'Campaigns', href: '/campaigns', icon: Megaphone },
-            { title: 'Find Creators', href: '/creators', icon: Users },
+            {
+                title: 'Campaigns',
+                href: '/campaigns',
+                icon: Megaphone,
+                tourId: 'nav-campaigns',
+            },
+            {
+                title: 'Find Creators',
+                href: '/creators',
+                icon: Users,
+                tourId: 'nav-creators',
+            },
         ],
     },
     {
         label: 'Communication',
-        items: [{ title: 'Messages', href: '/messages', icon: MessageSquare }],
+        items: [
+            {
+                title: 'Messages',
+                href: '/messages',
+                icon: MessageSquare,
+                tourId: 'nav-messages',
+            },
+        ],
     },
     {
         label: 'Insights',
-        items: [{ title: 'Analytics', href: '/analytics', icon: BarChart3 }],
+        items: [
+            {
+                title: 'Analytics',
+                href: '/analytics',
+                icon: BarChart3,
+                tourId: 'nav-analytics',
+            },
+        ],
     },
     {
         label: 'Growth',
@@ -56,17 +80,41 @@ const creatorSections: NavSection[] = [
         label: 'Workspace',
         items: [
             { title: 'Dashboard', href: '/dashboard', icon: LayoutGrid },
-            { title: 'Discover', href: '/discover', icon: Compass },
-            { title: 'My Entries', href: '/entries', icon: FileVideo },
+            {
+                title: 'Discover',
+                href: '/discover',
+                icon: Compass,
+                tourId: 'nav-discover',
+            },
+            {
+                title: 'My Entries',
+                href: '/entries',
+                icon: FileVideo,
+                tourId: 'nav-entries',
+            },
         ],
     },
     {
         label: 'Earnings',
-        items: [{ title: 'Wallet', href: '/wallet', icon: Wallet }],
+        items: [
+            {
+                title: 'Wallet',
+                href: '/wallet',
+                icon: Wallet,
+                tourId: 'nav-wallet',
+            },
+        ],
     },
     {
         label: 'Communication',
-        items: [{ title: 'Messages', href: '/messages', icon: MessageSquare }],
+        items: [
+            {
+                title: 'Messages',
+                href: '/messages',
+                icon: MessageSquare,
+                tourId: 'nav-messages',
+            },
+        ],
     },
     {
         label: 'Insights',
@@ -75,6 +123,7 @@ const creatorSections: NavSection[] = [
                 title: 'Analytics',
                 href: '/creator/analytics',
                 icon: BarChart3,
+                tourId: 'nav-analytics',
             },
         ],
     },
@@ -92,7 +141,12 @@ const defaultSections: NavSection[] = [
 ];
 
 const supportItems: NavItem[] = [
-    { title: 'Settings', href: '/settings/profile', icon: Settings },
+    {
+        title: 'Settings',
+        href: '/settings/profile',
+        icon: Settings,
+        tourId: 'nav-settings',
+    },
 ];
 
 export function AppSidebar() {

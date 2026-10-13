@@ -47,6 +47,7 @@ export function NotificationBell() {
                     variant="ghost"
                     size="icon"
                     className="relative rounded-full"
+                    data-tour="notifications"
                     aria-label={
                         unreadCount > 0
                             ? `Notifications, ${unreadCount} unread`
