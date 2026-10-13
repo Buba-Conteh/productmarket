@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Settings;
 
+use App\Exceptions\UnsupportedPayoutCountryException;
 use App\Http\Controllers\Controller;
 use App\Services\CreatorWalletService;
 use App\Services\StripeConnectService;
@@ -41,6 +42,7 @@ final class PayoutAccountController extends Controller
             'account' => [
                 'connected' => $profile->stripe_connect_id !== null,
                 'status' => $profile->stripe_connect_id ? $profile->stripe_connect_status : null,
+                'country' => $request->user()->country,
             ],
             'wallet' => $wallet->summary($profile)->toArray(),
         ]);
@@ -52,18 +54,29 @@ final class PayoutAccountController extends Controller
      */
     public function connect(Request $request, StripeConnectService $stripeConnect): SymfonyResponse
     {
-        $profile = $request->user()->creatorProfile;
+        $user = $request->user();
+        $profile = $user->creatorProfile;
+
+        // Creators who never set a country pick one here; the payout account
+        // must be created in the country where their bank account is.
+        if (! $user->country) {
+            $validated = $request->validate([
+                'country' => ['required', 'string', 'size:2', 'alpha'],
+            ]);
+
+            $user->update(['country' => strtoupper($validated['country'])]);
+        }
 
         try {
-            if (! $profile->stripe_connect_id) {
-                $stripeConnect->createExpressAccount($profile);
-            }
+            $stripeConnect->prepareAccount($profile);
 
             $url = $stripeConnect->createOnboardingLink(
                 $profile,
                 route('settings.payout-account.return'),
                 route('settings.payout-account.refresh'),
             );
+        } catch (UnsupportedPayoutCountryException $e) {
+            return redirect()->route('settings.payout-account.edit')->with('error', $e->getMessage());
         } catch (ApiErrorException $e) {
             Log::error('Stripe Connect onboarding link failed', [
                 'creator_profile_id' => $profile->id,

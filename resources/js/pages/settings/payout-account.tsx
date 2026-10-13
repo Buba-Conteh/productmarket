@@ -9,6 +9,7 @@ type Props = {
     account: {
         connected: boolean;
         status: PayoutAccountStatus | null;
+        country: string | null;
     };
     wallet: WalletSummary;
 };
@@ -30,6 +31,7 @@ export default function PayoutAccount({ account, wallet }: Props) {
                 <PayoutAccountCard
                     connected={account.connected}
                     status={account.status}
+                    country={account.country}
                 />
 
                 <div className="space-y-3">

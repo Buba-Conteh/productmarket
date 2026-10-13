@@ -1,15 +1,11 @@
-﻿# Current Feature — Fix creator payout account & wallet figures
+﻿# Current Feature — International creator payouts
 
-**Status:** 🟡 Implemented — awaiting staging verification (see context/features/fix-creator-payout-account.md)
-**Branch:** `fix/creator-payout-account`
+**Status:** 🟡 Implemented — awaiting staging verification (see context/features/fix-international-creator-payouts.md)
+**Branch:** `fix/international-creator-payouts`
 
 ## Goals
 
-1. Creators can connect / finish / manage their Stripe payout account at any time
-   (Settings → Payout Account), not only during onboarding.
-2. Payouts for creators without an active account are held (pending), not failed,
-   and are sent automatically once the account is active (page sync + Connect webhook).
-3. Payouts already failed in prod for "account not active" are recovered.
-4. Wallet, dashboard, entries and analytics figures all come from the payout rows
-   so they match the payout history.
-5. Admin can see held/failed payouts and retry them.
+1. Create each creator's Stripe payout account in their own country (not always US).
+2. Request only the `transfers` capability; use the `recipient` agreement outside the US.
+3. Replace unfinished accounts that were created in the wrong country.
+4. Show a clear message when Stripe can't pay out to a creator's country.

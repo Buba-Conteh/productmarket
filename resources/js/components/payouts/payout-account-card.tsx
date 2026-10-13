@@ -7,7 +7,10 @@ import {
     Loader2,
 } from 'lucide-react';
 import { useState } from 'react';
+import { CountrySelect } from '@/components/shared/country-select';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { countryName } from '@/lib/countries';
 import {
     connect as connectAccount,
     dashboard as openDashboard,
@@ -17,14 +20,16 @@ import type { PayoutAccountStatus } from '@/types/payouts';
 type Props = {
     connected: boolean;
     status: PayoutAccountStatus | null;
+    /** Creator's ISO country code; null when they never set one. */
+    country: string | null;
 };
 
 function useStripeRedirect() {
     const [loading, setLoading] = useState(false);
 
-    function go(url: string) {
+    function go(url: string, data: Record<string, string> = {}) {
         setLoading(true);
-        router.post(url, {}, { onFinish: () => setLoading(false) });
+        router.post(url, data, { onFinish: () => setLoading(false) });
     }
 
     return { loading, go };
@@ -36,7 +41,7 @@ const STATE_COPY: Record<
 > = {
     none: {
         title: 'No payout account connected',
-        body: 'Connect a bank account or debit card through Stripe Express. Stripe handles identity checks — we never see your banking details.',
+        body: 'Connect the bank account you want to be paid into through Stripe Express. Payouts arrive in your local currency. Stripe handles identity checks — we never see your banking details.',
         action: 'Set up payouts with Stripe',
     },
     pending: {
@@ -57,8 +62,10 @@ const STATE_COPY: Record<
 };
 
 /** Shows the creator's payout account state with the one action that moves it forward. */
-export function PayoutAccountCard({ connected, status }: Props) {
+export function PayoutAccountCard({ connected, status, country }: Props) {
     const { loading, go } = useStripeRedirect();
+    const [selectedCountry, setSelectedCountry] = useState('');
+    const needsCountry = !country;
     const state = connected && status ? status : 'none';
     const copy = STATE_COPY[state];
     const isActive = state === 'active';
@@ -84,15 +91,39 @@ export function PayoutAccountCard({ connected, status }: Props) {
                 <div className="space-y-1">
                     <p className="text-sm font-medium">{copy.title}</p>
                     <p className="text-sm text-muted-foreground">{copy.body}</p>
+                    {country && (
+                        <p className="text-xs text-muted-foreground">
+                            Payout country: {countryName(country)}
+                        </p>
+                    )}
                 </div>
             </div>
 
+            {needsCountry && (
+                <div className="space-y-2">
+                    <Label htmlFor="payout-country">
+                        Country of your bank account
+                    </Label>
+                    <CountrySelect
+                        id="payout-country"
+                        value={selectedCountry}
+                        onChange={setSelectedCountry}
+                        clearable={false}
+                    />
+                </div>
+            )}
+
             <Button
                 variant={isActive ? 'outline' : 'default'}
-                disabled={loading}
+                disabled={loading || (needsCountry && !selectedCountry)}
                 className="w-full gap-2 sm:w-auto"
                 onClick={() =>
-                    go(isActive ? openDashboard.url() : connectAccount.url())
+                    isActive
+                        ? go(openDashboard.url())
+                        : go(
+                              connectAccount.url(),
+                              needsCountry ? { country: selectedCountry } : {},
+                          )
                 }
             >
                 {loading ? (

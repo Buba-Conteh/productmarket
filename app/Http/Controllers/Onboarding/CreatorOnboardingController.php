@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Onboarding;
 
+use App\Exceptions\UnsupportedPayoutCountryException;
 use App\Http\Controllers\Controller;
 use App\Models\Niche;
 use App\Services\Social\PlatformProviderFactory;
@@ -153,8 +154,10 @@ final class CreatorOnboardingController extends Controller
             return redirect()->route('onboarding.creator.profile');
         }
 
-        if (! $profile->stripe_connect_id) {
-            $this->stripeConnect->createExpressAccount($profile);
+        try {
+            $this->stripeConnect->prepareAccount($profile);
+        } catch (UnsupportedPayoutCountryException $e) {
+            return redirect()->route('onboarding.creator.payout')->with('error', $e->getMessage());
         }
 
         $onboardingUrl = $this->stripeConnect->createOnboardingLink(
