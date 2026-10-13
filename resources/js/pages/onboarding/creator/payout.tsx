@@ -10,6 +10,7 @@ import {
     Zap,
 } from 'lucide-react';
 import { useState } from 'react';
+import { FlashAlert } from '@/components/shared/flash-alert';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -211,6 +212,7 @@ export default function CreatorPayout({ profile, plans }: Props) {
                 </div>
 
                 {/* Stripe Connect */}
+                <FlashAlert className="space-y-2" />
                 <StripeConnectSection profile={profile} />
 
                 {/* Plan comparison */}
