@@ -114,4 +114,21 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Email Verification Code
+    |--------------------------------------------------------------------------
+    |
+    | New accounts verify their email by entering a numeric code that is
+    | emailed to them. The ttl is in seconds; max_attempts caps guesses
+    | against a single code before it is burned.
+    |
+    */
+
+    'email_verification_code' => [
+        'length' => (int) env('EMAIL_VERIFICATION_CODE_LENGTH', 6),
+        'ttl' => (int) env('EMAIL_VERIFICATION_CODE_TTL', 600),
+        'max_attempts' => (int) env('EMAIL_VERIFICATION_CODE_MAX_ATTEMPTS', 5),
+    ],
+
 ];
