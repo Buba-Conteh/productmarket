@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CaptureReferralCode;
 use App\Http\Middleware\EnsureBrandCampaignLimit;
 use App\Http\Middleware\EnsureBrandSubscription;
 use App\Http\Middleware\EnsureCreatorEntryLimit;
@@ -31,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             EnsureUserIsActive::class,
+            CaptureReferralCode::class,
         ]);
 
         $middleware->alias([

@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 final class Referral extends Model
 {
@@ -38,5 +39,10 @@ final class Referral extends Model
     public function referred(): BelongsTo
     {
         return $this->belongsTo(User::class, 'referred_user_id');
+    }
+
+    public function payout(): HasOne
+    {
+        return $this->hasOne(Payout::class);
     }
 }

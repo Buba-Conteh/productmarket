@@ -61,7 +61,7 @@ class CreateNewUser implements CreatesNewUsers
         }
 
         if (! empty($input['ref'])) {
-            session(['pending_referral_code' => $input['ref']]);
+            session([ReferralService::SESSION_KEY => $input['ref']]);
         }
 
         return $user;

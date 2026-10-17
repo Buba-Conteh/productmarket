@@ -6,15 +6,17 @@ namespace App\Http\Controllers\Growth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Referral;
+use App\Services\ReferralService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 final class ReferralController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, ReferralService $referralService): Response
     {
         $user = $request->user();
+        $referralCode = $referralService->ensureCode($user);
 
         $referrals = Referral::where('referrer_user_id', $user->id)
             ->with('referred:id,name,email,created_at')
@@ -31,8 +33,8 @@ final class ReferralController extends Controller
             ]);
 
         return Inertia::render('growth/referrals', [
-            'referral_code' => $user->referral_code,
-            'referral_link' => url('/register?ref='.$user->referral_code),
+            'referral_code' => $referralCode,
+            'referral_link' => url('/register?ref='.$referralCode),
             'referrals' => $referrals,
             'stats' => [
                 'total' => $referrals->count(),

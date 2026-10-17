@@ -20,8 +20,10 @@ final class AdminAnalyticsController extends Controller
         abort_unless($request->user()->hasRole('admin'), 403);
 
         // GMV + commission revenue by month — last 6 months
+        // Referral bonuses are platform-funded, not marketplace volume.
         $gmvByMonth = DB::table('payouts')
             ->where('status', 'paid')
+            ->where('payout_type', '!=', 'referral_bonus')
             ->where('paid_at', '>=', now()->subMonths(6))
             ->selectRaw("DATE_TRUNC('month', paid_at) as month, SUM(gross_amount) as gmv, SUM(platform_fee) as revenue")
             ->groupByRaw("DATE_TRUNC('month', paid_at)")
@@ -118,7 +120,7 @@ final class AdminAnalyticsController extends Controller
             ->value('pending') ?? 0;
 
         // Totals
-        $totalGmv = DB::table('payouts')->where('status', 'paid')->sum('gross_amount');
+        $totalGmv = DB::table('payouts')->where('status', 'paid')->where('payout_type', '!=', 'referral_bonus')->sum('gross_amount');
         $totalRevenue = DB::table('payouts')->where('status', 'paid')->sum('platform_fee');
         $takeRate = $totalGmv > 0 ? round($totalRevenue / $totalGmv * 100, 2) : 0;
 

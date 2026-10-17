@@ -79,7 +79,7 @@ final readonly class EntryService
      */
     public function submit(CreatorProfile $creator, Campaign $campaign, array $data): Entry
     {
-        return DB::transaction(function () use ($creator, $campaign, $data) {
+        $entry = DB::transaction(function () use ($creator, $campaign, $data) {
             $entry = $this->saveDraft($creator, $campaign, $data);
 
             abort_unless(
@@ -101,11 +101,14 @@ final readonly class EntryService
                 $brandUser->notify(new EntrySubmitted($entry));
             }
 
-            // Qualify any pending creator referral on first entry submitted
-            $this->referralService->qualify($entry->creator->user);
-
             return $entry;
         });
+
+        // Qualify any pending creator referral on first entry submitted. Runs
+        // after commit so a reward failure can never undo the submission.
+        $this->referralService->qualify($entry->creator->user);
+
+        return $entry;
     }
 
     /**
