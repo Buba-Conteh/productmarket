@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\ReferralService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -43,14 +44,14 @@ final class SocialAuthController extends Controller
         return Socialite::driver($driver)->redirect();
     }
 
-    public function callback(string $provider): RedirectResponse
+    public function callback(string $provider, ReferralService $referrals): RedirectResponse
     {
         $this->validateProvider($provider);
 
         $driver = self::DRIVER_MAP[$provider] ?? $provider;
         $socialUser = Socialite::driver($driver)->user();
 
-        $user = DB::transaction(function () use ($socialUser): User {
+        $user = DB::transaction(function () use ($socialUser, $referrals): User {
             $user = User::where('email', $socialUser->getEmail())->first();
 
             if ($user) {
@@ -62,6 +63,7 @@ final class SocialAuthController extends Controller
                 'email' => $socialUser->getEmail(),
                 'password' => Str::random(32),
                 'email_verified_at' => now(),
+                'referral_code' => $referrals->generateCode(new User),
             ]);
         });
 

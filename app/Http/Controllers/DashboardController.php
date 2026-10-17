@@ -135,7 +135,7 @@ final class DashboardController
                 'id' => 'payout_'.$p->id,
                 'event_type' => $p->status === 'paid' ? 'payout_paid' : 'payout_pending',
                 'title' => $p->status === 'paid' ? 'Payout received' : 'Payout processing',
-                'description' => '$'.number_format((float) $p->net_amount, 2).' · '.($p->campaign?->title ?? 'Campaign'),
+                'description' => '$'.number_format((float) $p->net_amount, 2).' · '.($p->campaign?->title ?? ($p->payout_type === 'referral_bonus' ? 'Referral bonus' : 'Campaign')),
                 'created_at' => $p->created_at->toISOString(),
             ]);
 

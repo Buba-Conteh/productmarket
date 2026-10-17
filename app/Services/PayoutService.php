@@ -10,6 +10,7 @@ use App\Models\CreatorProfile;
 use App\Models\Entry;
 use App\Models\Payout;
 use App\Models\PlatformSetting;
+use App\Models\Referral;
 use App\Models\User;
 use App\Notifications\PayoutFailureAlert;
 use App\Notifications\PayoutProcessed;
@@ -88,6 +89,39 @@ final readonly class PayoutService
     }
 
     /**
+     * Create a referral bonus payout. It is funded from the platform's own Stripe
+     * balance (not campaign escrow), so no platform fee is taken.
+     * Returns the existing payout if this referral was already paid.
+     */
+    public function createReferralPayout(CreatorProfile $creator, Referral $referral, string $amount): Payout
+    {
+        $amount = number_format((float) $amount, 2, '.', '');
+
+        return DB::transaction(function () use ($creator, $referral, $amount): Payout {
+            $existing = Payout::where('referral_id', $referral->id)->first();
+
+            if ($existing) {
+                return $existing;
+            }
+
+            $payout = Payout::create([
+                'creator_profile_id' => $creator->id,
+                'referral_id' => $referral->id,
+                'gross_amount' => $amount,
+                'platform_fee' => '0.00',
+                'net_amount' => $amount,
+                'payout_type' => 'referral_bonus',
+                'status' => 'pending',
+                'retry_count' => 0,
+            ]);
+
+            $creator->increment('pending_earnings', (float) $amount);
+
+            return $payout;
+        });
+    }
+
+    /**
      * Execute a Stripe Connect transfer for a pending payout.
      *
      * On success: marks payout as paid, moves amount from pending_earnings → total_earned
@@ -130,17 +164,19 @@ final readonly class PayoutService
         $payout->syncOriginalAttribute('status');
 
         try {
-            $transfer = $this->stripe->transfers->create([
+            // Referral bonuses have no campaign or entry, so those keys are dropped.
+            $transfer = $this->stripe->transfers->create(array_filter([
                 'amount' => $this->toStripeAmounts($payout->net_amount),
                 'currency' => 'usd',
                 'destination' => $creator->stripe_connect_id,
                 'transfer_group' => $payout->campaign_id,
-                'metadata' => [
+                'metadata' => array_filter([
                     'payout_id' => $payout->id,
                     'entry_id' => $payout->entry_id,
+                    'referral_id' => $payout->referral_id,
                     'payout_type' => $payout->payout_type,
-                ],
-            ]);
+                ]),
+            ]));
         } catch (ApiErrorException $e) {
             Log::error('Stripe transfer failed', [
                 'payout_id' => $payout->id,
@@ -166,7 +202,8 @@ final readonly class PayoutService
             $creator->increment('total_earned', $net);
 
             // Track how much escrow has been released for this campaign.
-            $payout->campaign->escrowTransaction?->increment(
+            // Referral bonuses are platform-funded and never touch escrow.
+            $payout->campaign?->escrowTransaction?->increment(
                 'total_released',
                 (float) $payout->gross_amount,
             );

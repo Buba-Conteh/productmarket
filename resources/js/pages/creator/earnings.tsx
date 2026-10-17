@@ -51,6 +51,7 @@ const PAYOUT_TYPE_LABELS: Record<string, string> = {
     ripple_initial_fee: 'Ripple Initial',
     ripple_milestone: 'Ripple Milestone',
     pitch_payment: 'Pitch Payment',
+    referral_bonus: 'Referral Bonus',
 };
 
 function formatCurrency(value: string | number): string {

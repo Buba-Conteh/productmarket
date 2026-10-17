@@ -71,7 +71,7 @@ final class ReconcileCreatorBalancesCommand extends Command
         } else {
             $this->table(['Creator', 'Payout account', 'total_earned', 'pending_earnings'], $rows);
             $this->line(count($rows).' creator(s) '.($fix ? 'corrected.' : 'out of sync. Re-run with --fix to correct.'));
-            $this->warn('Note: referral bonuses were added to pending_earnings without a payout row; correcting removes them from that column.');
+            $this->warn('Note: referral bonuses granted before Oct 2026 were added to pending_earnings without a payout row; correcting removes them from that column.');
         }
 
         if ($fix) {

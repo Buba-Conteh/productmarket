@@ -67,8 +67,9 @@ final class RoleSelectionController extends Controller
 
         $user->assignRole($validated['role']);
 
-        // Email signups hold their referral code until the role is known.
-        $referralCode = $request->session()->pull('pending_referral_code');
+        // Every signup path (email, social, phone) holds its referral code in
+        // the session until the role is known.
+        $referralCode = $request->session()->pull(ReferralService::SESSION_KEY);
 
         if ($referralCode) {
             $referrals->attachReferral($user, $referralCode, $validated['role']);

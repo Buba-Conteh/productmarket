@@ -28,7 +28,7 @@ final class PayoutProcessed extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $amount = number_format((float) $this->payout->net_amount, 2);
-        $campaignTitle = $this->payout->campaign->title;
+        $campaignTitle = $this->sourceTitle();
 
         return (new MailMessage)
             ->subject("Payout of \${$amount} processed")
@@ -44,10 +44,16 @@ final class PayoutProcessed extends Notification implements ShouldQueue
             'type' => 'payout_processed',
             'payout_id' => $this->payout->id,
             'campaign_id' => $this->payout->campaign_id,
-            'campaign_title' => $this->payout->campaign->title,
+            'campaign_title' => $this->sourceTitle(),
             'net_amount' => $this->payout->net_amount,
-            'message' => 'Payout of $'.number_format((float) $this->payout->net_amount, 2)." processed for {$this->payout->campaign->title}",
+            'message' => 'Payout of $'.number_format((float) $this->payout->net_amount, 2)." processed for {$this->sourceTitle()}",
             'url' => '/wallet',
         ];
+    }
+
+    /** Referral bonuses have no campaign. */
+    private function sourceTitle(): string
+    {
+        return $this->payout->campaign?->title ?? 'your referral bonus';
     }
 }

@@ -29,6 +29,7 @@ final class Payout extends Model
         'entry_id',
         'creator_profile_id',
         'campaign_id',
+        'referral_id',
         'gross_amount',
         'platform_fee',
         'net_amount',
@@ -64,6 +65,11 @@ final class Payout extends Model
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(Campaign::class);
+    }
+
+    public function referral(): BelongsTo
+    {
+        return $this->belongsTo(Referral::class);
     }
 
     public function rippleEarnings(): HasMany

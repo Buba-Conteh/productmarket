@@ -26,7 +26,8 @@ final class EarningsController
 
         $payouts->through(fn ($payout) => [
             'id' => $payout->id,
-            'campaign_title' => $payout->campaign?->title ?? '—',
+            'campaign_title' => $payout->campaign?->title
+                ?? ($payout->payout_type === 'referral_bonus' ? 'Referral bonus' : '—'),
             'campaign_type' => $payout->campaign?->type,
             'payout_type' => $payout->payout_type,
             'gross_amount' => $payout->gross_amount,

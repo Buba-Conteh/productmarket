@@ -125,7 +125,7 @@ final class CampaignService
         // transaction (never make external API calls inside a transaction).
         $paymentIntentId = $this->fundEscrow($campaign, $escrowAmount);
 
-        return DB::transaction(function () use ($campaign, $escrowAmount, $paymentIntentId) {
+        $published = DB::transaction(function () use ($campaign, $escrowAmount, $paymentIntentId) {
             EscrowTransaction::create([
                 'campaign_id' => $campaign->id,
                 'brand_profile_id' => $campaign->brand_profile_id,
@@ -142,14 +142,17 @@ final class CampaignService
                 'published_at' => now(),
             ]);
 
-            // Qualify any pending brand referral on first campaign published
-            $brandUser = $campaign->brand?->user;
-            if ($brandUser) {
-                app(ReferralService::class)->qualify($brandUser);
-            }
-
             return $campaign->fresh();
         });
+
+        // Qualify any pending brand referral on first campaign published. Runs
+        // after commit: the reward is a Stripe call that must not undo the publish.
+        $brandUser = $published->brand?->user;
+        if ($brandUser) {
+            app(ReferralService::class)->qualify($brandUser);
+        }
+
+        return $published;
     }
 
     /**
