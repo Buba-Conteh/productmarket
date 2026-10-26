@@ -44,6 +44,9 @@ Route::middleware(['auth', 'verified', EnsureOnboardingComplete::class, 'role:cr
 
         Route::get('/{entry}/publish/tiktok/status', [TikTokPublishController::class, 'status'])
             ->name('entries.creator.tiktok-publish-status');
+
+        Route::get('/{entry}/publish/tiktok/creator-info', [TikTokPublishController::class, 'creatorInfo'])
+            ->name('entries.creator.tiktok-creator-info');
     });
 
 // Creator submission routes (nested under campaign)

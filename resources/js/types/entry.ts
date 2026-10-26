@@ -19,6 +19,35 @@ export type TikTokPublishStatus =
     | 'failed'
     | null;
 
+export type TikTokPrivacyLevel =
+    | 'PUBLIC_TO_EVERYONE'
+    | 'MUTUAL_FOLLOW_FRIENDS'
+    | 'FOLLOWER_OF_CREATOR'
+    | 'SELF_ONLY';
+
+export type TikTokCreatorInfo = {
+    nickname: string;
+    username: string;
+    avatar_url: string | null;
+    privacy_level_options: TikTokPrivacyLevel[];
+    comment_disabled: boolean;
+    duet_disabled: boolean;
+    stitch_disabled: boolean;
+    max_video_post_duration_sec: number;
+    video_duration_sec: number | null;
+};
+
+export type TikTokPostPayload = {
+    caption: string;
+    privacy_level: TikTokPrivacyLevel;
+    disable_comment: boolean;
+    disable_duet: boolean;
+    disable_stitch: boolean;
+    brand_content_toggle: boolean;
+    brand_organic_toggle: boolean;
+    music_consent: true;
+};
+
 export type EntryPlatform = Platform & {
     pivot?: {
         posted_url: string | null;

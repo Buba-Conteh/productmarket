@@ -18,11 +18,79 @@ final readonly class TikTokPostingService
 
     private const PUBLISH_STATUS_URL = 'https://open.tiktokapis.com/v2/post/publish/status/fetch/';
 
+    private const CREATOR_INFO_URL = 'https://open.tiktokapis.com/v2/post/publish/creator_info/query/';
+
     private const CHUNK_SIZE = 10 * 1024 * 1024; // 10 MB
 
     public function __construct(
         private readonly SocialAccountService $socialAccountService,
     ) {}
+
+    /**
+     * Query the creator's live posting settings. TikTok requires this to be
+     * called before rendering the post UI: it tells us which privacy levels
+     * the creator may use, which interactions they have disabled, and the
+     * longest video they may post.
+     *
+     * @return array{
+     *     nickname: string,
+     *     username: string,
+     *     avatar_url: string|null,
+     *     privacy_level_options: list<string>,
+     *     comment_disabled: bool,
+     *     duet_disabled: bool,
+     *     stitch_disabled: bool,
+     *     max_video_post_duration_sec: int,
+     * }
+     */
+    public function queryCreatorInfo(SocialAccount $account): array
+    {
+        if ($this->stubMode()) {
+            return [
+                'nickname' => ltrim((string) $account->handle, '@') ?: 'creator',
+                'username' => ltrim((string) $account->handle, '@') ?: 'creator',
+                'avatar_url' => null,
+                'privacy_level_options' => ['PUBLIC_TO_EVERYONE', 'MUTUAL_FOLLOW_FRIENDS', 'SELF_ONLY'],
+                'comment_disabled' => false,
+                'duet_disabled' => false,
+                'stitch_disabled' => false,
+                'max_video_post_duration_sec' => 600,
+            ];
+        }
+
+        $this->socialAccountService->refreshIfNeeded($account);
+
+        $response = Http::withToken($account->oauth_token)->post(self::CREATOR_INFO_URL);
+
+        $errorCode = (string) $response->json('error.code', 'ok');
+
+        if ($response->failed() || $errorCode !== 'ok') {
+            Log::warning('TikTok creator info query failed', [
+                'account_id' => $account->id,
+                'error_code' => $errorCode,
+                'response' => $response->body(),
+            ]);
+
+            throw new RuntimeException(
+                $errorCode === 'spam_risk_too_many_posts' || $errorCode === 'reached_active_user_cap'
+                    ? 'This TikTok account has reached its posting limit. Please try again later.'
+                    : 'Could not load your TikTok posting settings. Please try again.'
+            );
+        }
+
+        $data = $response->json('data', []);
+
+        return [
+            'nickname' => (string) ($data['creator_nickname'] ?? $data['creator_username'] ?? ''),
+            'username' => (string) ($data['creator_username'] ?? ''),
+            'avatar_url' => $data['creator_avatar_url'] ?? null,
+            'privacy_level_options' => array_values((array) ($data['privacy_level_options'] ?? [])),
+            'comment_disabled' => (bool) ($data['comment_disabled'] ?? false),
+            'duet_disabled' => (bool) ($data['duet_disabled'] ?? false),
+            'stitch_disabled' => (bool) ($data['stitch_disabled'] ?? false),
+            'max_video_post_duration_sec' => (int) ($data['max_video_post_duration_sec'] ?? 0),
+        ];
+    }
 
     /**
      * Initialize a Direct Post upload with TikTok.
@@ -60,10 +128,12 @@ final readonly class TikTokPostingService
             ->post(self::PUBLISH_INIT_URL, [
                 'post_info' => [
                     'title' => mb_substr((string) $postData['caption'], 0, 2200),
-                    'privacy_level' => $postData['privacy_level'] ?? 'PUBLIC_TO_EVERYONE',
-                    'disable_duet' => (bool) ($postData['disable_duet'] ?? false),
-                    'disable_comment' => (bool) ($postData['disable_comment'] ?? false),
-                    'disable_stitch' => (bool) ($postData['disable_stitch'] ?? false),
+                    'privacy_level' => $postData['privacy_level'],
+                    'disable_duet' => (bool) ($postData['disable_duet'] ?? true),
+                    'disable_comment' => (bool) ($postData['disable_comment'] ?? true),
+                    'disable_stitch' => (bool) ($postData['disable_stitch'] ?? true),
+                    'brand_content_toggle' => (bool) ($postData['brand_content_toggle'] ?? false),
+                    'brand_organic_toggle' => (bool) ($postData['brand_organic_toggle'] ?? false),
                 ],
                 'source_info' => [
                     'source' => 'FILE_UPLOAD',
