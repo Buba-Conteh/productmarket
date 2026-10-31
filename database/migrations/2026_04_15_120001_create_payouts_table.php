@@ -24,6 +24,7 @@ return new class extends Migration
                 'ripple_initial_fee',
                 'ripple_milestone',
                 'pitch_payment',
+                'referral_bonus',
             ]);
             $table->string('stripe_transfer_id')->nullable()->index();
             $table->enum('status', ['pending', 'processing', 'paid', 'failed'])->default('pending');
