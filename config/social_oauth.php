@@ -16,6 +16,7 @@ return [
 
     'tiktok' => [
         'client_key' => env('TIKTOK_CLIENT_KEY'),
+        'disable_auto_auth' => env('TIKTOK_DISABLE_AUTO_AUTH', false),
         'client_secret' => env('TIKTOK_CLIENT_SECRET'),
         'scopes' => ['user.info.basic', 'user.info.stats', 'video.list', 'video.publish'],
         'authorize_url' => 'https://www.tiktok.com/v2/auth/authorize/',
