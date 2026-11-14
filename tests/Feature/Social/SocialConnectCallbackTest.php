@@ -54,6 +54,16 @@ test('the authorization url points at the connect callback, not the login callba
         ->and($query['redirect_uri'])->not->toContain('/auth/tiktok/callback');
 });
 
+test('the TikTok authorization url forces the consent screen when configured', function () {
+    config(['social_oauth.tiktok.disable_auto_auth' => true]);
+
+    $url = app(PlatformProviderFactory::class)->make('tiktok')->getAuthorizationUrl('some-state');
+
+    parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+
+    expect($query['disable_auto_auth'])->toBe('1');
+});
+
 test('the connect callback route is reachable by an authenticated creator', function () {
     $user = onboardedCreator();
 

@@ -45,6 +45,13 @@ final class TikTokProvider extends AbstractOAuthProvider
         return ',';
     }
 
+    protected function extraAuthParams(): array
+    {
+        return ($this->config['disable_auto_auth'] ?? false)
+            ? ['disable_auto_auth' => '1']
+            : [];
+    }
+
     public function fetchAccountProfile(TokenSet $tokens): ConnectedAccount
     {
         if ($this->stubMode()) {
